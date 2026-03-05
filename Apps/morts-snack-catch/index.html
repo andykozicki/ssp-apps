@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" class="transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mort's Snack Catch | SSP Clinical Tools</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+
+    <style>
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; transition: background-color 0.2s; }
+        .bg-sterling-green:hover { background-color: #15803d; }
+        
+        /* Phaser Container Styling */
+        #phaser-game {
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.5rem;
+            display: block;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .dark #phaser-game {
+            background-color: #111827; /* gray-900 */
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Sugar Rush flash override */
+        .sugar-rush-active {
+            box-shadow: 0 0 40px 10px #ec4899, inset 0 2px 4px 0 rgba(0, 0, 0, 0.06) !important;
+            animation: pulse 1s infinite;
+        }
+        .dark .sugar-rush-active {
+            box-shadow: 0 0 40px 10px #ec4899, inset 0 2px 4px 0 rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="w-full p-4 flex justify-between items-center">
+        <a href="../index.html" class="flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors text-sm font-medium">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="themeToggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+        </label>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 w-full pb-8">
+        
+        <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-6 max-w-2xl w-full">
+            
+            <header class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Mort's Snack Catch <span class="text-xs align-top text-pink-500 font-black">DX</span></h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sterling Specialty Pharmacy Internal Tool</p>
+            </header>
+
+            <div class="flex flex-col gap-1 mb-2 px-2">
+                <div class="flex justify-between items-center">
+                    <div class="text-lg font-bold">Score: <span id="scoreDisplay" class="sterling-green">0</span></div>
+                    <div class="text-lg font-bold tracking-widest" id="healthDisplay">❤️❤️❤️</div>
+                    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400">High Score: <span id="highScoreDisplay">0</span></div>
+                </div>
+                <div class="flex justify-between items-center h-5">
+                    <div id="comboDisplay" class="text-sm font-bold text-orange-500 opacity-0 transition-opacity">Combo: x<span id="comboMultiplier">1</span>!</div>
+                    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400">Level: <span id="levelDisplay">1</span></div>
+                </div>
+            </div>
+
+            <div class="relative">
+                
+                <div id="phaser-game"></div>
+                
+                <div id="gameOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-800/80 rounded-lg backdrop-blur-sm transition-opacity z-20">
+                    <h2 id="overlayTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Ready to Catch?</h2>
+                    <p id="overlaySub" class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center px-8">
+                        Use <strong class="dark:text-white">Left & Right Arrow Keys</strong> to move.<br>
+                        Powered by <strong>Phaser 3 Engine</strong>.
+                    </p>
+                    <button id="startBtn" class="bg-sterling-green text-white px-8 py-3 rounded-md shadow-lg hover:scale-105 transition-transform font-bold text-lg">
+                        START ENGINE
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-12 text-gray-400 text-xs text-center">
+            &copy; <span id="copyrightYear"></span> Sterling Specialty Pharmacy. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+        /* --- 1. Dark Mode Standardization --- */
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            }
+        });
+
+        document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+        /* --- 2. Shared Game State & DOM Elements --- */
+        const DOM = {
+            score: document.getElementById('scoreDisplay'),
+            health: document.getElementById('healthDisplay'),
+            highScore: document.getElementById('highScoreDisplay'),
+            level: document.getElementById('levelDisplay'),
+            combo: document.getElementById('comboDisplay'),
+            comboMult: document.getElementById('comboMultiplier'),
+            overlay: document.getElementById('gameOverlay'),
+            overlayTitle: document.getElementById('overlayTitle'),
+            overlaySub: document.getElementById('overlaySub'),
+            startBtn: document.getElementById('startBtn'),
+            container: document.getElementById('phaser-game')
+        };
+
+        let GameState = {
+            score: 0,
+            highScore: parseInt(localStorage.getItem('ssp_mort_highscore_dx')) || 0,
+            health: 3,
+            maxHealth: 3,
+            level: 1,
+            combo: 0,
+            isPlaying: false
+        };
+
+        DOM.highScore.innerText = GameState.highScore;
+
+        function updateDOM() {
+            DOM.score.innerText = GameState.score;
+            DOM.level.innerText = GameState.level;
+            
+            let hearts = '';
+            for(let i=0; i<GameState.maxHealth; i++) hearts += (i < GameState.health) ? '❤️' : '🖤';
+            DOM.health.innerText = hearts;
+
+            if (GameState.combo > 1) {
+                DOM.combo.style.opacity = '1';
+                DOM.comboMult.innerText = GameState.combo;
+            } else {
+                DOM.combo.style.opacity = '0';
+            }
+        }
+
+        /* --- 3. Phaser 3 Engine Setup --- */
+        
+        // Helper to turn emojis into Phaser Textures (The Single-File Hack)
+        function createEmojiTexture(scene, key, emoji, size = 32) {
+            let canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            let ctx = canvas.getContext('2d');
+            ctx.font = `${size * 0.8}px Arial`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(emoji, size/2, size/2 + size*0.1); // slight offset for baseline
+            scene.textures.addCanvas(key, canvas);
+        }
+
+        class MortScene extends Phaser.Scene {
+            constructor() { super('MortScene'); }
+
+            preload() {
+                // Generate all assets directly in memory
+                const assets = [
+                    ['apple', '🍎'], ['banana', '🍌'], ['blueberry', '🫐'],
+                    ['skull', '☠️'], ['anvil', '🪨'], ['heal', '❤️'],
+                    ['sparkle', '✨'], ['candy', '🍬'], ['drone', '🚁'], ['rx', '📜']
+                ];
+                assets.forEach(a => createEmojiTexture(this, a[0], a[1], 36));
+            }
+
+            create() {
+                // Setup Physics Groups
+                this.itemsGroup = this.physics.add.group();
+                this.droneGroup = this.physics.add.group();
+
+                // Setup Input
+                this.cursors = this.input.keyboard.createCursorKeys();
+
+                // Setup Mort (Physics Body)
+                // We use an invisible physics rectangle for precise collisions
+                this.mortBody = this.add.rectangle(300, 360, 80, 40, 0x000000, 0);
+                this.physics.add.existing(this.mortBody);
+                this.mortBody.body.setCollideWorldBounds(true);
+                this.mortBody.body.allowGravity = false;
+                this.mortBody.body.setImmovable(true);
+                this.mortBody.body.setDrag(2000); // Slippy but tight friction
+
+                // Setup Mort (Visual Graphics for Juice)
+                this.mortVisual = this.add.graphics();
+                this.mortScaleX = 1;
+                this.mortScaleY = 1;
+
+                // Collisions
+                this.physics.add.overlap(this.mortBody, this.itemsGroup, this.catchItem, null, this);
+
+                // Timers
+                this.spawnTimer = this.time.addEvent({ delay: 1000, callback: this.spawnNormalItem, callbackScope: this, loop: true });
+                this.droneTimer = this.time.addEvent({ delay: 20000, callback: this.triggerDroneSurprise, callbackScope: this, loop: true });
+                
+                // Difficulty Scaling
+                this.baseGravity = 150;
+            }
+
+            update(time, delta) {
+                if (!GameState.isPlaying) {
+                    this.mortBody.body.setVelocityX(0);
+                    this.physics.pause();
+                    return;
+                } else {
+                    this.physics.resume();
+                }
+
+                // Smooth Arcade Physics Movement
+                const speed = 500;
+                if (this.cursors.left.isDown) {
+                    this.mortBody.body.setAccelerationX(-3000);
+                    this.mortBody.body.setMaxVelocity(speed, 0);
+                } else if (this.cursors.right.isDown) {
+                    this.mortBody.body.setAccelerationX(3000);
+                    this.mortBody.body.setMaxVelocity(speed, 0);
+                } else {
+                    this.mortBody.body.setAccelerationX(0); // Drag takes over
+                }
+
+                // Clean up missed items
+                this.itemsGroup.getChildren().forEach(item => {
+                    if (item.y > 420) {
+                        if (item.getData('type') === 'food') GameState.combo = 0;
+                        item.destroy();
+                        updateDOM();
+                    }
+                });
+
+                // Lerp Mort's Squash and Stretch back to 1.0
+                this.mortScaleX += (1.0 - this.mortScaleX) * 0.2;
+                this.mortScaleY += (1.0 - this.mortScaleY) * 0.2;
+
+                this.drawMortVisual();
+            }
+
+            drawMortVisual() {
+                this.mortVisual.clear();
+                let x = this.mortBody.x;
+                let y = this.mortBody.y;
+                let w = 80 * this.mortScaleX;
+                let h = 40 * this.mortScaleY;
+                let rx = x - w/2;
+                let ry = y - h/2;
+
+                // Determine eye tracking (find lowest food)
+                let targetX = 300; let targetY = 0;
+                let lowest = null;
+                this.itemsGroup.getChildren().forEach(item => {
+                    if (item.getData('type') === 'food' && (!lowest || item.y > lowest.y)) lowest = item;
+                });
+                if (lowest) { targetX = lowest.x; targetY = lowest.y; }
+
+                // Body
+                this.mortVisual.fillStyle(0x16a34a, 1);
+                this.mortVisual.fillRoundedRect(rx, ry, w, h, 15);
+
+                // Eyes
+                const leX = rx + (w * 0.3); const reX = rx + (w * 0.7); const eY = ry + 12;
+                this.mortVisual.fillStyle(0xffffff, 1);
+                this.mortVisual.fillCircle(leX, eY, 8);
+                this.mortVisual.fillCircle(reX, eY, 8);
+
+                // Pupils
+                const aL = Math.atan2(targetY - eY, targetX - leX);
+                const aR = Math.atan2(targetY - eY, targetX - reX);
+                this.mortVisual.fillStyle(0x000000, 1);
+                this.mortVisual.fillCircle(leX + Math.cos(aL)*3, eY + Math.sin(aL)*3, 3);
+                this.mortVisual.fillCircle(reX + Math.cos(aR)*3, eY + Math.sin(aR)*3, 3);
+
+                // Mouth (dynamically opens wider if squashed)
+                this.mortVisual.fillStyle(0x064e3b, 1);
+                this.mortVisual.beginPath();
+                this.mortVisual.arc(x, ry + 25, 10 * this.mortScaleX, 0, Math.PI, false);
+                this.mortVisual.fillPath();
+            }
+
+            spawnNormalItem() {
+                if (!GameState.isPlaying) return;
+
+                const margin = 30;
+                const spawnX = Phaser.Math.Between(margin, 600 - margin);
+                
+                // Roll loot table
+                const rand = Math.random();
+                let key, type, pts, scale;
+                
+                // Anvil scales with level
+                const anvilChance = Math.min(0.05, GameState.level * 0.005);
+
+                if (rand < 0.02) { key = 'heal'; type = 'heal'; pts = 50; scale = 1; }
+                else if (rand < 0.02 + anvilChance) { key = 'anvil'; type = 'hazard'; pts = -100; scale = 1.8; }
+                else if (rand < 0.15) { key = 'skull'; type = 'hazard'; pts = -30; scale = 1; }
+                else if (rand < 0.30) { key = 'blueberry'; type = 'food'; pts = 50; scale = 0.8; }
+                else if (rand < 0.60) { key = 'banana'; type = 'food'; pts = 20; scale = 1; }
+                else { key = 'apple'; type = 'food'; pts = 10; scale = 1; }
+
+                let item = this.itemsGroup.create(spawnX, -20, key);
+                item.setScale(scale);
+                item.setData('type', type);
+                item.setData('pts', pts);
+                
+                // Physics tweaks per item
+                item.body.setGravityY(this.baseGravity + (GameState.level * 10));
+                
+                // Anvils fall slow, blueberries fall fast
+                if (key === 'anvil') item.body.setGravityY(this.baseGravity * 0.5);
+                if (key === 'blueberry') item.body.setGravityY(this.baseGravity * 1.5);
+                if (key === 'skull') {
+                    // Phaser Sine wave tween for skulls
+                    this.tweens.add({ targets: item, x: item.x + Phaser.Math.Between(-50, 50), duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+                }
+            }
+
+            triggerDroneSurprise() {
+                if (!GameState.isPlaying) return;
+
+                // Fly Drone Across Screen
+                let drone = this.add.sprite(-40, 40, 'drone').setScale(1.5);
+                
+                this.tweens.add({
+                    targets: drone, x: 640, duration: 2500, ease: 'Linear',
+                    onUpdate: (tween, target) => {
+                        // Drop Golden Rx rapidly
+                        if (Math.random() < 0.15) {
+                            let rx = this.itemsGroup.create(target.x, target.y + 20, 'rx');
+                            rx.setData('type', 'rx'); rx.setData('pts', 100);
+                            rx.body.setGravityY(this.baseGravity * 2);
+                            rx.body.setVelocityX(Phaser.Math.Between(-50, 50)); // scatter
+                        }
+                    },
+                    onComplete: () => drone.destroy()
+                });
+            }
+
+            catchItem(mort, item) {
+                const type = item.getData('type');
+                const pts = item.getData('pts');
+                const x = item.x; const y = item.y;
+                let key = item.texture.key;
+
+                item.destroy();
+
+                // Squash & Stretch Juice
+                this.mortScaleX = 1.4;
+                this.mortScaleY = 0.7;
+
+                if (type === 'hazard') {
+                    GameState.health--;
+                    GameState.combo = 0;
+                    this.cameras.main.shake(200, 0.02); // Screen Shake!
+                    this.spawnFloatingText(x, y, pts, '#ef4444');
+                    this.spawnExplosion(x, y, key, 8);
+                    
+                    if (GameState.health <= 0) this.gameOver();
+                } 
+                else if (type === 'heal') {
+                    if (GameState.health < GameState.maxHealth) GameState.health++;
+                    GameState.score += pts;
+                    this.spawnFloatingText(x, y, '+HEALTH', '#ef4444');
+                    this.spawnExplosion(x, y, 'heal', 10);
+                }
+                else if (type === 'rx') {
+                    GameState.combo++;
+                    GameState.score += pts * GameState.combo;
+                    this.cameras.main.shake(50, 0.005);
+                    this.spawnFloatingText(x, y, 'RX RUSH!', '#f59e0b');
+                    this.spawnExplosion(x, y, 'sparkle', 12);
+                }
+                else {
+                    // Normal Food
+                    GameState.combo++;
+                    GameState.score += pts * GameState.combo;
+                    this.spawnFloatingText(x, y, `+${pts * GameState.combo}`, '#16a34a');
+                    this.spawnExplosion(x, y, key, 4);
+                }
+
+                this.checkLevelUp();
+                updateDOM();
+            }
+
+            spawnFloatingText(x, y, msg, color) {
+                let txt = this.add.text(x, y, msg, { font: 'bold 22px Arial', fill: color, stroke: '#fff', strokeThickness: 3 })
+                    .setOrigin(0.5);
+                this.tweens.add({
+                    targets: txt, y: y - 60, alpha: 0, duration: 800, ease: 'Power1',
+                    onComplete: () => txt.destroy()
+                });
+            }
+
+            spawnExplosion(x, y, textureKey, count) {
+                // Native Phaser Particle Emitter
+                let emitter = this.add.particles(x, y, textureKey, {
+                    speed: { min: 50, max: 200 },
+                    angle: { min: 0, max: 360 },
+                    scale: { start: 1, end: 0 },
+                    lifespan: 600,
+                    gravityY: 300,
+                    quantity: count,
+                    emitting: false
+                });
+                emitter.explode();
+                // Auto cleanup
+                this.time.delayedCall(1000, () => emitter.destroy());
+            }
+
+            checkLevelUp() {
+                const req = GameState.level * 500;
+                if (GameState.score >= req) {
+                    GameState.level++;
+                    this.baseGravity += 20; // Global speed increase
+                    this.spawnFloatingText(300, 200, "LEVEL UP!", '#3b82f6');
+                }
+            }
+
+            gameOver() {
+                GameState.isPlaying = false;
+                if (GameState.score > GameState.highScore) {
+                    GameState.highScore = GameState.score;
+                    localStorage.setItem('ssp_mort_highscore_dx', GameState.highScore);
+                }
+                
+                DOM.overlayTitle.innerText = "Game Over!";
+                DOM.overlayTitle.className = "text-3xl font-black mb-2 text-red-600 dark:text-red-400";
+                DOM.overlaySub.innerHTML = `You ran out of health.<br><br>Final Score: <strong>${GameState.score}</strong><br>Level Reached: <strong>${GameState.level}</strong>`;
+                DOM.startBtn.innerText = "TRY AGAIN";
+                DOM.overlay.style.display = 'flex';
+            }
+        }
+
+        /* --- 4. Boot Logic --- */
+        const phaserConfig = {
+            type: Phaser.AUTO,
+            parent: 'phaser-game',
+            width: 600,
+            height: 400,
+            transparent: true, // respects Tailwind background behind it
+            physics: {
+                default: 'arcade',
+                arcade: { debug: false }
+            },
+            scene: MortScene
+        };
+
+        let gameInstance = new Phaser.Game(phaserConfig);
+
+        DOM.startBtn.addEventListener('click', () => {
+            // Reset State
+            GameState.score = 0;
+            GameState.health = GameState.maxHealth;
+            GameState.level = 1;
+            GameState.combo = 0;
+            GameState.isPlaying = true;
+            
+            // Get current active scene and reset it
+            let scene = gameInstance.scene.keys['MortScene'];
+            scene.itemsGroup.clear(true, true);
+            scene.baseGravity = 150;
+            scene.mortBody.x = 300;
+            scene.mortBody.body.setVelocity(0);
+            
+            updateDOM();
+            DOM.overlay.style.display = 'none';
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Phrase of the Day</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding-top: 20px;
+        }
+        .top-bar {
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+            font-size: 15px;
+            color: #4a5568;
+            font-weight: bold;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e0;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2b6cb0;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .app-title {
+            font-size: 20px;
+            color: #4a5568;
+            margin-top: 0;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 12px;
+        }
+        .spanish {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 24px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .phonetic {
+            font-size: 16px;
+            font-style: italic;
+            color: #718096;
+            margin-bottom: 16px;
+        }
+        .english {
+            font-size: 18px;
+            color: #2b6cb0;
+            margin-bottom: 16px;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .nav-group {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 24px;
+            margin-top: 8px;
+        }
+        button {
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #2c5282;
+        }
+        button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .reveal-btn {
+            background-color: #4a5568;
+            font-size: 14px;
+            padding: 8px 16px;
+            min-width: 120px;
+        }
+        .reveal-btn:hover {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span>English</span>
+        <label class="switch">
+            <input type="checkbox" id="lang-toggle" onchange="toggleLanguage()">
+            <span class="slider"></span>
+        </label>
+        <span>Español</span>
+    </div>
+
+    <div class="card">
+        <h1 class="app-title" id="app-title">Spanish Phrase of the Day</h1>
+        <div class="spanish" id="spanish-text">Cargando...</div>
+        
+        <div class="button-group" id="reveal-group">
+            <button class="reveal-btn" id="pronunciation-btn" onclick="togglePronunciation()">Pronunciation</button>
+            <button class="reveal-btn" id="translation-btn" onclick="toggleTranslation()">Translation</button>
+        </div>
+        
+        <div class="phonetic hidden" id="phonetic-text"></div>
+        <div class="english hidden" id="english-text"></div>
+        
+        <div class="button-group nav-group">
+            <button id="back-btn" onclick="goBack()" disabled>Back</button>
+            <button id="next-btn" onclick="generatePhrase()">New Phrase</button>
+        </div>
+    </div>
+
+    <script src="phrases.js"></script>
+    
+    <script>
+        let phraseHistory = [];
+        let currentIndex = -1;
+        
+        let showPronunciation = false;
+        let showTranslation = false;
+
+        const uiText = {
+            en: { 
+                title: "Spanish Phrase of the Day",
+                pronunciation: "Pronunciation",
+                translation: "Translation",
+                hide: "Hide",
+                back: "Back", 
+                next: "New Phrase"
+            },
+            es: { 
+                title: "Frase del Día",
+                pronunciation: "Pronunciación",
+                translation: "Traducción",
+                hide: "Ocultar",
+                back: "Anterior", 
+                next: "Nueva Frase"
+            }
+        };
+
+        function getLang() {
+            return document.getElementById("lang-toggle").checked ? 'es' : 'en';
+        }
+
+        function toggleLanguage() {
+            const lang = getLang();
+            
+            document.getElementById("app-title").innerText = uiText[lang].title;
+            document.getElementById("back-btn").innerText = uiText[lang].back;
+            document.getElementById("next-btn").innerText = uiText[lang].next;
+            
+            document.getElementById("pronunciation-btn").innerText = showPronunciation ? uiText[lang].hide : uiText[lang].pronunciation;
+            document.getElementById("translation-btn").innerText = showTranslation ? uiText[lang].hide : uiText[lang].translation;
+        }
+
+        function togglePronunciation() {
+            showPronunciation = !showPronunciation;
+            const lang = getLang();
+            
+            if (showPronunciation) {
+                document.getElementById("phonetic-text").classList.remove("hidden");
+                document.getElementById("pronunciation-btn").innerText = uiText[lang].hide;
+            } else {
+                document.getElementById("phonetic-text").classList.add("hidden");
+                document.getElementById("pronunciation-btn").innerText = uiText[lang].pronunciation;
+            }
+        }
+
+        function toggleTranslation() {
+            showTranslation = !showTranslation;
+            const lang = getLang();
+            
+            if (showTranslation) {
+                document.getElementById("english-text").classList.remove("hidden");
+                document.getElementById("translation-btn").innerText = uiText[lang].hide;
+            } else {
+                document.getElementById("english-text").classList.add("hidden");
+                document.getElementById("translation-btn").innerText = uiText[lang].translation;
+            }
+        }
+
+        function resetReveal() {
+            showPronunciation = false;
+            showTranslation = false;
+            const lang = getLang();
+            
+            document.getElementById("phonetic-text").classList.add("hidden");
+            document.getElementById("english-text").classList.add("hidden");
+            
+            document.getElementById("pronunciation-btn").innerText = uiText[lang].pronunciation;
+            document.getElementById("translation-btn").innerText = uiText[lang].translation;
+        }
+
+        function updateScreen(phrase) {
+            document.getElementById("spanish-text").innerText = phrase.spanish;
+            document.getElementById("phonetic-text").innerText = phrase.phonetic;
+            document.getElementById("english-text").innerText = phrase.english;
+            resetReveal();
+        }
+
+        function checkBackButton() {
+            document.getElementById("back-btn").disabled = currentIndex <= 0;
+        }
+
+        function generatePhrase() {
+            if (typeof phrases === 'undefined') return;
+            
+            const randomIndex = Math.floor(Math.random() * phrases.length);
+            const selected = phrases[randomIndex];
+
+            if (currentIndex < phraseHistory.length - 1) {
+                phraseHistory = phraseHistory.slice(0, currentIndex + 1);
+            }
+
+            phraseHistory.push(selected);
+            currentIndex++;
+            
+            updateScreen(selected);
+            checkBackButton();
+        }
+
+        function goBack() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateScreen(phraseHistory[currentIndex]);
+                checkBackButton();
+            }
+        }
+
+        window.onload = function() {
+            toggleLanguage(); 
+            generatePhrase(); 
+        };
+    </script>
+</body>
+</html>

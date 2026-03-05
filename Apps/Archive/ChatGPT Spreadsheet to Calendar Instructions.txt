@@ -1,0 +1,451 @@
+You are an iCalendar export tool. I will upload ONE simplified pharmacist schedule workbook (.ods). Your job is to generate individual iCalendar (.ics) files — one per pharmacist — and return EXACTLY ONE .zip containing all .ics files.
+
+TOOL FAILURE RULE (MANDATORY)
+- You MUST use Python + odfpy to read the .ods.
+- If you cannot import odfpy, cannot load the .ods, or cannot parse the sheet into a usable grid, STOP and report: "TOOLS FAILED: <what failed>".
+- Do NOT proceed “blind,” do NOT guess, do NOT generate any .ics if tools fail.
+
+ABSOLUTE OUTPUT REQUIREMENTS
+- Create and return exactly ONE file: Pharmacist_Schedules_<MON>_<YEAR>.zip
+- The .zip must contain one .ics per pharmacist.
+- File naming convention inside the zip (exact): NAME_MONTH_YEAR_SCHEDULE.ICS
+  Example: AndyK_JAN_2026_SCHEDULE.ICS
+- Do not output raw .ics text in chat.
+- Do not output CSV.
+- Do not ask questions.
+- Do not invent data.
+- Do not pattern-fill anything except ON CALL weekly propagation (defined below).
+- Timezone: America/Chicago for all timed events.
+- Strip/ignore stray trailing characters after names or shift tokens, but preserve meaningful shift text and OFF/PTO/HOLIDAY labels.
+
+ALLOWED PHARMACIST NAMES (canonical list)
+Only these names may become calendars / filenames. Any name-like text must be normalized to one of these exactly (case-insensitive match + trim):
+ANDY H
+ANDY K
+ANDREW
+ALYSE
+RACHEL
+ANAM
+MELISSA
+CHOUA
+LAURA
+MOLLY
+THEA
+PAJ
+MADI
+LINA
+
+FILENAME NAME NORMALIZATION
+Convert the canonical name to the filename “NAME” like this:
+- Remove spaces and punctuation
+- Title-case words but keep internal capitalization simple
+Examples:
+- "ANDY K" -> "AndyK"
+- "ANDY H" -> "AndyH"
+- "PAJ" -> "Paj"
+- "CHOUA" -> "Choua"
+
+SHEET LAYOUT (ASSUME THIS — VERIFIED ON THE PROVIDED SIMPLIFIED ODS)
+- One sheet (use the first sheet).
+- One title cell like “JAN 2026 Simplified” near the top-left (use this to infer month/year).
+- A header row that contains:
+  - Column 0 header “Pharmacist”
+  - Then repeated date pairs across columns: “MM/DD Shift” and “MM/DD Notes”
+- Each pharmacist row has:
+  - Column 0 = pharmacist name
+  - Shift cell at the “MM/DD Shift” column
+  - Notes cell at the next column “MM/DD Notes”
+
+DATE RULES
+- Parse the date from the header label “MM/DD Shift” using the inferred YEAR from the title.
+- Use only dates present in the header row (do not create events outside the header date range).
+
+HOW TO INTERPRET SHIFT + NOTES (per pharmacist, per date)
+- Blank shift cell = no shift event (ignore notes-only cells).
+- OFF / OFF (WKND) / OFF (PTO) / PTO / HOLIDAY (case-insensitive) in the SHIFT cell = ALL-DAY event.
+  - SUMMARY must be EXACTLY the SHIFT cell text (trimmed).
+  - DESCRIPTION should include Notes text if present.
+- Timed shift in SHIFT cell:
+  - SUMMARY: "Shift"
+  - DESCRIPTION: first line = SHIFT cell text (trimmed); second line = NOTES cell text (trimmed) if present.
+- ON CALL:
+  - ON CALL can appear in either SHIFT or NOTES (case-insensitive “ON CALL”, “ONCALL”, etc.).
+  - ON CALL propagation is the ONLY allowed pattern-fill:
+    - If ON CALL appears for a pharmacist on any date, apply ON CALL to every day of that calendar week (Mon–Sun) *within the header’s date range only*.
+  - ON CALL should NOT become a separate calendar.
+  - Integration preference:
+    1) If a timed Shift event exists that day, append a new line "ON CALL" to that Shift event DESCRIPTION (avoid duplicating if already present).
+    2) Else if an all-day OFF/PTO/HOLIDAY event exists that day, append "ON CALL" to THAT event’s DESCRIPTION (do not create a second event).
+    3) Else create a single all-day event with SUMMARY "ON CALL".
+
+SHIFT TIME PARSING
+- Accept time tokens like: 6A, 7A, 8A, 9A, 830A, 730A, 3P, 330P, 2:30P, 08:30A-5P, 730A-4P
+- Accept OPEN/CLOSE prefixes:
+  - "OPEN: 6A" means start time 6A
+  - "CLOSE: 2P" means start time 2P
+- Default end times ONLY when a start time is present with no explicit end:
+  - 6:00 AM -> 2:30 PM
+  - 7:00 AM -> 3:30 PM
+  - 8:00 AM -> 4:30 PM
+  - 8:30 AM -> 5:00 PM
+  - 9:00 AM -> 5:30 PM
+  - 2:00 PM (or CLOSE) -> 10:30 PM
+- Any explicitly stated end time overrides defaults.
+
+ICS GENERATION REQUIREMENTS
+- Produce RFC 5545-compliant .ics:
+  - VCALENDAR with VERSION:2.0, PRODID, CALSCALE:GREGORIAN, METHOD:PUBLISH
+  - VEVENT with UID, DTSTAMP, DTSTART, DTEND, SUMMARY, DESCRIPTION
+  - Use CRLF line endings.
+  - Escape text values in SUMMARY/DESCRIPTION: backslash-escape commas, semicolons, and newlines.
+- All-day events:
+  - DTSTART;VALUE=DATE:YYYYMMDD
+  - DTEND;VALUE=DATE:YYYYMMDD (next day)
+- Timed events:
+  - DTSTART;TZID=America/Chicago:YYYYMMDDTHHMMSS
+  - DTEND;TZID=America/Chicago:YYYYMMDDTHHMMSS
+
+DELIVERABLE
+- Write all .ics files into a folder.
+- Zip them into one archive named: Pharmacist_Schedules_<MON>_<YEAR>.zip (MON = 3-letter uppercase like JAN).
+- Save the zip in /mnt/data.
+- Return ONLY the zip file as the final output.
+
+NOW RUN THIS PYTHON (edit only the input path if needed)
+Input file path:
+- /mnt/data/<UPLOADED_SIMPLIFIED_FILE>.ods
+
+Python code:
+```python
+import re, os, zipfile, uuid
+from datetime import datetime, date, timedelta
+
+# TOOL CHECKS (if any fail, STOP and report tools failed)
+try:
+    from odf.opendocument import load
+    from odf.table import Table, TableRow, TableCell
+    from odf.text import P
+except Exception as e:
+    raise RuntimeError(f"TOOLS FAILED: odfpy import error: {e}")
+
+INPUT_PATH = "/mnt/data/<UPLOADED_SIMPLIFIED_FILE>.ods"
+TZID = "America/Chicago"
+
+ALLOWED = ["ANDY H","ANDY K","ANDREW","ALYSE","RACHEL","ANAM","MELISSA","CHOUA","LAURA","MOLLY","THEA","PAJ","MADI","LINA"]
+MONTHS = {"JAN":1,"FEB":2,"MAR":3,"APR":4,"MAY":5,"JUN":6,"JUL":7,"AUG":8,"SEP":9,"OCT":10,"NOV":11,"DEC":12}
+
+def cell_text(cell):
+    ps = cell.getElementsByType(P)
+    out = []
+    for p in ps:
+        for n in p.childNodes:
+            if getattr(n, "data", None):
+                out.append(n.data)
+    return re.sub(r"\s+", " ", "".join(out)).strip()
+
+def expand_row(row):
+    out = []
+    for cell in row.getElementsByType(TableCell):
+        rep = int(cell.getAttribute("numbercolumnsrepeated") or 1)
+        out.extend([cell] * rep)
+    return out
+
+def expand_rows(table):
+    rows = []
+    for row in table.getElementsByType(TableRow):
+        rep = int(row.getAttribute("numberrowsrepeated") or 1)
+        expanded = expand_row(row)
+        for _ in range(rep):
+            rows.append(expanded)
+    return rows
+
+def canon_name(s):
+    if not s: return None
+    t = re.sub(r"\s+", " ", s.strip()).upper()
+    t = re.sub(r"[^\w\s].*$", "", t).strip()
+    return t if t in ALLOWED else None
+
+def filename_name(canon):
+    parts = canon.split()
+    return "".join(p[:1] + p[1:].lower() for p in parts)
+
+def parse_month_year(title):
+    m = re.search(r"\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b[^0-9]*(\d{4})", title, re.I)
+    if not m: return None, None
+    return m.group(1).upper(), int(m.group(2))
+
+def parse_mmdd_from_header(h, year):
+    m = re.search(r"\b(\d{1,2})/(\d{1,2})\b", h)
+    if not m: return None
+    mm, dd = int(m.group(1)), int(m.group(2))
+    return date(year, mm, dd)
+
+TIME_TOKEN_RE = re.compile(r"(?:\d{1,2}:\d{2}[AP]|\d{1,4}[AP])", re.I)
+
+def parse_time_token(tok):
+    if not tok: return None
+    t = tok.strip().upper().replace(" ", "")
+    if t == "CLOSE":
+        return (14, 0)
+    t = re.sub(r"^(OPEN|CLOSE):", "", t)
+    m = re.match(r"^(\d{1,4})(?::?(\d{2}))?(A|P)$", t)
+    if not m: return None
+    digits, mm_str, ap = m.group(1), m.group(2), m.group(3)
+    if mm_str is not None:
+        h, mi = int(digits), int(mm_str)
+    else:
+        if len(digits) in (3, 4):
+            h, mi = int(digits[:-2]), int(digits[-2:])
+        else:
+            h, mi = int(digits), 0
+    if mi > 59 or h > 12 or h < 0:
+        return None
+    if ap == "A":
+        if h == 12: h = 0
+    else:
+        if h != 12: h += 12
+    return (h, mi)
+
+DEFAULT_END = {
+    (6,0):(14,30),
+    (7,0):(15,30),
+    (8,0):(16,30),
+    (8,30):(17,0),
+    (9,0):(17,30),
+    (14,0):(22,30),
+}
+
+def parse_shift_text(shift_text):
+    if not shift_text: return None
+    s = re.sub(r"\s+", " ", shift_text.strip())
+    if re.match(r"^(OFF|PTO|HOLIDAY)\b", s, re.I):
+        return {"kind":"allday", "summary": s}
+    if re.search(r"\b(OFF|PTO|HOLIDAY)\b", s, re.I) and not re.search(r"\d", s):
+        return {"kind":"allday", "summary": s}
+    m = re.search(r"(" + TIME_TOKEN_RE.pattern + r"|CLOSE)\s*-\s*(" + TIME_TOKEN_RE.pattern + r")", s, re.I)
+    if m:
+        st, en = parse_time_token(m.group(1)), parse_time_token(m.group(2))
+        if st and en:
+            return {"kind":"timed", "start": st, "end": en, "raw": s}
+    m = re.search(r"\b(OPEN:\s*" + TIME_TOKEN_RE.pattern + r"|CLOSE:\s*" + TIME_TOKEN_RE.pattern + r"|CLOSE|" + TIME_TOKEN_RE.pattern + r")\b", s, re.I)
+    if m:
+        st = parse_time_token(m.group(1))
+        if st:
+            en = DEFAULT_END.get(st)
+            if en is None:
+                raise RuntimeError(f"TOOLS FAILED: missing default end mapping for start {st} in cell '{shift_text}'")
+            return {"kind":"timed", "start": st, "end": en, "raw": s}
+    return None
+
+def has_oncall(s):
+    return bool(s and re.search(r"\bON\s*CALL\b|\bONCALL\b", s, re.I))
+
+def monday_of(d):
+    return d - timedelta(days=d.weekday())
+
+def ics_escape(text):
+    if text is None: return ""
+    text = text.replace("\\", "\\\\")
+    text = text.replace(";", "\\;").replace(",", "\\,")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("\n", "\\n")
+    return text
+
+def fold_ical_line(line, limit=75):
+    if len(line) <= limit: return [line]
+    out = [line[:limit]]
+    rest = line[limit:]
+    while rest:
+        out.append(" " + rest[:limit-1])
+        rest = rest[limit-1:]
+    return out
+
+def dtstamp_now():
+    return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+
+def fmt_date(d): return d.strftime("%Y%m%d")
+def fmt_dt_local(d, hm):
+    return datetime(d.year, d.month, d.day, hm[0], hm[1], 0).strftime("%Y%m%dT%H%M%S")
+
+def build_ics(events):
+    lines = [
+        "BEGIN:VCALENDAR","VERSION:2.0","CALSCALE:GREGORIAN","METHOD:PUBLISH",
+        "PRODID:-//Sterling Specialty//RPH Schedule Export//EN"
+    ]
+    for ev in events:
+        lines.append("BEGIN:VEVENT")
+        lines.append(f"UID:{ev['uid']}")
+        lines.append(f"DTSTAMP:{ev['dtstamp']}")
+        if ev["allday"]:
+            lines.append(f"DTSTART;VALUE=DATE:{ev['dtstart']}")
+            lines.append(f"DTEND;VALUE=DATE:{ev['dtend']}")
+        else:
+            lines.append(f"DTSTART;TZID={TZID}:{ev['dtstart']}")
+            lines.append(f"DTEND;TZID={TZID}:{ev['dtend']}")
+        lines.append(f"SUMMARY:{ics_escape(ev['summary'])}")
+        desc = ev.get("description") or ""
+        if desc:
+            lines.append(f"DESCRIPTION:{ics_escape(desc)}")
+        lines.append("END:VEVENT")
+    lines.append("END:VCALENDAR")
+    folded = []
+    for ln in lines:
+        folded.extend(fold_ical_line(ln))
+    return "\r\n".join(folded) + "\r\n"
+
+# --- Load ODS ---
+if not os.path.exists(INPUT_PATH):
+    raise RuntimeError(f"TOOLS FAILED: input file not found at {INPUT_PATH}")
+
+try:
+    doc = load(INPUT_PATH)
+except Exception as e:
+    raise RuntimeError(f"TOOLS FAILED: could not load ODS: {e}")
+
+tables = doc.spreadsheet.getElementsByType(Table)
+if not tables:
+    raise RuntimeError("TOOLS FAILED: no sheets/tables found in ODS")
+
+table = tables[0]
+rows = expand_rows(table)
+R = len(rows)
+C = max(len(r) for r in rows) if rows else 0
+grid = [[cell_text(rows[r][c]) if c < len(rows[r]) else "" for c in range(C)] for r in range(R)]
+
+# Infer month/year from title cell
+title = grid[0][0] if R and C else ""
+MON3, YEAR = parse_month_year(title)
+if not (MON3 and YEAR):
+    raise RuntimeError(f"TOOLS FAILED: could not parse month/year from title cell: '{title}'")
+
+# Find header row containing “Pharmacist” and many “Shift” headers
+header_row = None
+best = 0
+for r in range(R):
+    shift_cnt = sum(1 for c in range(C) if grid[r][c].endswith("Shift"))
+    has_pharm = any(grid[r][c].strip().upper() == "PHARMACIST" for c in range(min(6, C)))
+    if has_pharm and shift_cnt > best:
+        best = shift_cnt
+        header_row = r
+if header_row is None or best < 10:
+    raise RuntimeError("TOOLS FAILED: could not locate the header row with date Shift/Notes columns")
+
+# Build date -> (shift_col, notes_col)
+date_cols = {}
+for c in range(C):
+    h = grid[header_row][c]
+    if h.endswith("Shift"):
+        d = parse_mmdd_from_header(h, YEAR)
+        if d:
+            notes_col = (c+1) if (c+1 < C and grid[header_row][c+1].endswith("Notes")) else None
+            date_cols[d] = (c, notes_col)
+if not date_cols:
+    raise RuntimeError("TOOLS FAILED: could not parse any dates from header row")
+
+date_set = set(date_cols.keys())
+
+# Build pharmacist row map
+pharm_rows = {}
+for r in range(header_row+1, R):
+    nm = canon_name(grid[r][0])
+    if nm:
+        pharm_rows[r] = nm
+if not pharm_rows:
+    raise RuntimeError("TOOLS FAILED: could not find any pharmacist rows below header")
+
+events_by = {nm: [] for nm in pharm_rows.values()}
+oncall_weeks = {nm: set() for nm in pharm_rows.values()}
+
+def find_event(nm, d, timed=None):
+    for ev in events_by[nm]:
+        if ev["_date"] == d and (timed is None or (not ev["allday"]) == timed):
+            return ev
+    return None
+
+# Base extraction (shift + notes)
+for r, nm in pharm_rows.items():
+    for d, (sc, nc) in date_cols.items():
+        shift_val = (grid[r][sc] or "").strip()
+        notes_val = ((grid[r][nc] if (nc is not None) else "") or "").strip()
+
+        # ON CALL markers can live in shift or notes
+        if has_oncall(shift_val) or has_oncall(notes_val):
+            oncall_weeks[nm].add(monday_of(d))
+
+        parsed = parse_shift_text(shift_val)
+        if not parsed:
+            continue
+
+        if parsed["kind"] == "allday":
+            events_by[nm].append({
+                "uid": str(uuid.uuid4()),
+                "dtstamp": dtstamp_now(),
+                "allday": True,
+                "dtstart": fmt_date(d),
+                "dtend": fmt_date(d + timedelta(days=1)),
+                "summary": parsed["summary"],
+                "description": notes_val,
+                "_date": d
+            })
+        else:
+            desc_lines = []
+            if shift_val: desc_lines.append(shift_val)
+            if notes_val: desc_lines.append(notes_val)
+            events_by[nm].append({
+                "uid": str(uuid.uuid4()),
+                "dtstamp": dtstamp_now(),
+                "allday": False,
+                "dtstart": fmt_dt_local(d, parsed["start"]),
+                "dtend": fmt_dt_local(d, parsed["end"]),
+                "summary": "Shift",
+                "description": "\n".join(desc_lines),
+                "_date": d
+            })
+
+# Apply ON CALL propagation (Mon–Sun) within header date range only
+for nm in events_by.keys():
+    for wk0 in oncall_weeks[nm]:
+        for i in range(7):
+            dd = wk0 + timedelta(days=i)
+            if dd not in date_set:
+                continue
+            timed_ev = find_event(nm, dd, timed=True)
+            if timed_ev:
+                if "ON CALL" not in (timed_ev.get("description") or ""):
+                    timed_ev["description"] = (timed_ev.get("description") or "").rstrip() + "\nON CALL"
+            else:
+                allday_ev = find_event(nm, dd, timed=False)
+                if allday_ev:
+                    if "ON CALL" not in (allday_ev.get("description") or ""):
+                        prefix = (allday_ev.get("description") or "").rstrip()
+                        allday_ev["description"] = (prefix + ("\n" if prefix else "") + "ON CALL")
+                else:
+                    events_by[nm].append({
+                        "uid": str(uuid.uuid4()),
+                        "dtstamp": dtstamp_now(),
+                        "allday": True,
+                        "dtstart": fmt_date(dd),
+                        "dtend": fmt_date(dd + timedelta(days=1)),
+                        "summary": "ON CALL",
+                        "description": "",
+                        "_date": dd
+                    })
+
+# Write ICS files + zip
+out_dir = f"/mnt/data/ics_{MON3}_{YEAR}"
+os.makedirs(out_dir, exist_ok=True)
+
+written = []
+for canon in sorted(events_by.keys()):
+    ics_name = f"{filename_name(canon)}_{MON3}_{YEAR}_SCHEDULE.ICS"
+    ics_path = os.path.join(out_dir, ics_name)
+    with open(ics_path, "w", newline="") as f:
+        f.write(build_ics(events_by[canon]))
+    written.append(ics_path)
+
+zip_path = f"/mnt/data/Pharmacist_Schedules_{MON3}_{YEAR}.zip"
+with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+    for fp in written:
+        z.write(fp, arcname=os.path.basename(fp))
+
+print(zip_path)
