@@ -92,7 +92,7 @@
         
         <div id="overlay" class="overlay absolute inset-0 z-10 flex flex-col items-center justify-center">
           <button id="startBtn" class="bg-sterling-green hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg shadow-md transition-all hover:shadow-lg active:scale-95">
-            Start Relaxing
+            Start
           </button>
         </div>
 
@@ -126,6 +126,14 @@
     let bestScore = localStorage.getItem('ssp_zen_snake_best') || 0;
     bestScoreDisplay.innerText = bestScore;
     let phaserGame = null;
+
+    // Decouple dropdown focus from arrow keys
+    speedSelect.addEventListener('change', function() {
+        this.blur(); // Remove focus so arrow keys control the game, not the dropdown
+        if (phaserGame && phaserGame.scene.keys.MainScene && !phaserGame.scene.keys.MainScene.isGameOver) {
+            phaserGame.scene.keys.MainScene.setSpeed(parseInt(this.value));
+        }
+    });
 
     // --- Global Dashboard Features: Light/Dark Persistence ---
     const savedTheme = localStorage.getItem('ssp_theme');
@@ -213,8 +221,14 @@
         this.updateTheme();
         
         this.input.keyboard.on('keydown', this.handleInput, this);
-        startBtn.onclick = () => this.startGame();
-        pauseBtn.onclick = () => this.togglePause();
+        startBtn.onclick = () => {
+            document.activeElement.blur(); // Drop focus globally on start
+            this.startGame();
+        };
+        pauseBtn.onclick = () => {
+            document.activeElement.blur();
+            this.togglePause();
+        };
         
         // --- Blur & Visibility Pause Handling ---
         window.addEventListener('blur', () => this.autoPause());
@@ -534,27 +548,51 @@
           this.syringeSprite.setVisible(false);
         }
 
-        if (this.pendingGrowth > 0) this.pendingGrowth--;
-        else this.snake.pop();
+        if (this.pendingGrowth > 0) {
+            this.pendingGrowth--;
+            // Duplicate the tail point so the new tail visually anchors in place while growing
+            let oldTail = this.snakePts[this.snakePts.length - 1];
+            this.snakePts.push({ x: oldTail.x, y: oldTail.y, dead: false });
+        } else {
+            this.snake.pop();
+        }
 
         while(this.snakePts.length > this.snake.length) this.snakePts.pop();
 
+        // Each visual point slides forward to the new grid position of its corresponding segment
         this.snake.forEach((seg, i) => {
             let targetX = seg.x * this.gridSize + this.gridSize/2;
             let targetY = seg.y * this.gridSize + this.gridSize/2;
             let pt = this.snakePts[i];
             
-            if (Math.abs(pt.x - targetX) > this.gridSize * 1.5 || Math.abs(pt.y - targetY) > this.gridSize * 1.5) {
-                pt.x = targetX;
-                pt.y = targetY;
-            } else {
-                this.tweens.add({
-                    targets: pt,
-                    x: targetX, y: targetY,
-                    duration: this.moveTimer.delay,
-                    ease: 'Linear'
-                });
-            }
+            // Kill existing tweens on this point so it doesn't fight the pre-wrap coordinate adjustments
+            this.tweens.killTweensOf(pt);
+            
+            // Pre-wrap points that moved off-canvas in the previous tick
+            if (pt.x < 0) pt.x += this.canvasSize;
+            if (pt.x >= this.canvasSize) pt.x -= this.canvasSize;
+            if (pt.y < 0) pt.y += this.canvasSize;
+            if (pt.y >= this.canvasSize) pt.y -= this.canvasSize;
+
+            let tweenTargetX = targetX;
+            let tweenTargetY = targetY;
+
+            let dx = targetX - pt.x;
+            let dy = targetY - pt.y;
+
+            // Compute unwrapped targets for smooth boundary crossing
+            if (dx > this.canvasSize / 2) tweenTargetX -= this.canvasSize;
+            else if (dx < -this.canvasSize / 2) tweenTargetX += this.canvasSize;
+
+            if (dy > this.canvasSize / 2) tweenTargetY -= this.canvasSize;
+            else if (dy < -this.canvasSize / 2) tweenTargetY += this.canvasSize;
+
+            this.tweens.add({
+                targets: pt,
+                x: tweenTargetX, y: tweenTargetY,
+                duration: this.moveTimer.delay,
+                ease: 'Linear'
+            });
         });
       }
 
