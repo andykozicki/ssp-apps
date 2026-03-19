@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterling Sports Network - SSP</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2316a34a%22/><g transform=%22skewX(-15) translate(15,0)%22 fill=%22white%22><rect x=%2215%22 y=%2232%22 width=%2222%22 height=%224%22/><rect x=%225%22 y=%2248%22 width=%2232%22 height=%224%22/><rect x=%2210%22 y=%2264%22 width=%2227%22 height=%224%22/><text x=%2260%22 y=%2276%22 font-size=%2270%22 font-family=%22Arial, sans-serif%22 font-weight=%22900%22 text-anchor=%22middle%22>S</text></g></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+    </style>
+    <script>
+        if (localStorage.getItem('ssp-theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="w-full p-4 flex justify-between items-center">
+        <a href="../index.html" class="flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Back to Dashboard
+        </a>
+        
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="theme-toggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
+            <span class="ml-3 text-sm font-medium text-gray-500 dark:text-gray-400">Dark Mode</span>
+        </label>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 pb-8">
+        <header class="text-center mb-6 flex flex-col items-center">
+            <svg class="w-16 h-16 mb-3 shadow-md rounded-2xl" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect width="100" height="100" rx="20" fill="#16a34a"/>
+                <g transform="skewX(-15) translate(15,0)" fill="white">
+                    <rect x="15" y="32" width="22" height="4"/>
+                    <rect x="5" y="48" width="32" height="4"/>
+                    <rect x="10" y="64" width="27" height="4"/>
+                    <text x="60" y="76" font-size="70" font-family="Arial, sans-serif" font-weight="900" text-anchor="middle">S</text>
+                </g>
+            </svg>
+            <h1 class="text-3xl font-bold sterling-green tracking-tight">Sterling Sports Network</h1>
+        </header>
+
+        <main class="w-full max-w-md flex flex-col gap-6">
+            
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow w-full overflow-hidden">
+                <div class="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center cursor-pointer select-none" onclick="toggleNCAAFeed()">
+                    <h2 class="font-bold text-sm text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                        <span>🏀</span> NCAA Men's Tournament
+                    </h2>
+                    <div class="flex items-center gap-4">
+                        <button onclick="event.stopPropagation(); fetchNCAA(false)" class="text-sterling-green hover:opacity-75 focus:outline-none">
+                            <svg id="refresh-ncaa" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                        <svg id="ncaa-feed-chevron" class="w-4 h-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                <div id="ncaa-feed" class="block max-h-[350px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700 transition-all duration-300 origin-top">
+                    <div class="p-8 text-center text-sm text-gray-400">Loading live bracket...</div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow w-full overflow-hidden">
+                <div class="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center cursor-pointer select-none" onclick="toggleProFeed()">
+                    <h2 class="font-bold text-sm text-gray-700 dark:text-gray-200">Local Pro Feed</h2>
+                    <div class="flex items-center gap-4">
+                        <button onclick="event.stopPropagation(); fetchProTeams(false)" class="text-sterling-green hover:opacity-75 focus:outline-none">
+                            <svg id="refresh-pro" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                        <svg id="pro-feed-chevron" class="w-4 h-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                <div id="pro-feed" class="divide-y divide-gray-100 dark:divide-gray-700 block transition-all duration-300 origin-top">
+                    <div class="p-8 text-center text-sm text-gray-400">Loading pro sports data...</div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-12 text-gray-400 text-xs text-center">
+            &copy; <span id="year"></span> Sterling Sports Network. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+        // --- Core Dashboard Logic ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlClass = document.documentElement.classList;
+
+        if (htmlClass.contains('dark')) themeToggle.checked = true;
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                htmlClass.add('dark');
+                localStorage.setItem('ssp-theme', 'dark');
+            } else {
+                htmlClass.remove('dark');
+                localStorage.setItem('ssp-theme', 'light');
+            }
+        });
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // --- UI Interactions ---
+        function toggleProFeed() {
+            const feed = document.getElementById('pro-feed');
+            const chevron = document.getElementById('pro-feed-chevron');
+            feed.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function toggleNCAAFeed() {
+            const feed = document.getElementById('ncaa-feed');
+            const chevron = document.getElementById('ncaa-feed-chevron');
+            feed.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // --- Memory Caching for Standings (Option 1) ---
+        let standingsCache = {};
+
+        async function fetchAllStandings() {
+            const leagues = [
+                { id: 'nfl', sport: 'football' },
+                { id: 'nba', sport: 'basketball' },
+                { id: 'mlb', sport: 'baseball' },
+                { id: 'nhl', sport: 'hockey' }
+            ];
+
+            for (const league of leagues) {
+                try {
+                    const resp = await fetch(`https://site.api.espn.com/apis/v2/sports/${league.sport}/${league.id}/standings`);
+                    standingsCache[league.id] = await resp.json();
+                } catch (e) {
+                    console.warn(`Failed to cache ${league.id} standings`, e);
+                }
+            }
+        }
+
+        function getRecordFromCache(leagueId, targetTeamId) {
+            const data = standingsCache[leagueId];
+            if (!data || !targetTeamId) return '';
+            
+            let record = '';
+            function search(obj) {
+                if (record) return; 
+                if (!obj || typeof obj !== 'object') return;
+                
+                if (obj.team && String(obj.team.id) === String(targetTeamId)) {
+                    const stats = obj.stats || [];
+                    const overall = stats.find(s => s.name === 'overall') || stats.find(s => s.type === 'overall') || stats[0];
+                    if (overall) record = overall.displayValue || overall.summary || '';
+                    return;
+                }
+                
+                if (Array.isArray(obj)) {
+                    for (let item of obj) search(item);
+                } else {
+                    for (let key in obj) search(obj[key]);
+                }
+            }
+            search(data);
+            return record;
+        }
+
+        // --- Pro Teams Configuration ---
+        const proConfig = [
+            { id: 'nfl-min', name: 'Minnesota Vikings', teamId: '15', league: 'nfl', url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/15/schedule' },
+            { id: 'nfl-gb', name: 'Green Bay Packers', teamId: '9', league: 'nfl', url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/9/schedule' },
+            { id: 'nba-min', name: 'Minnesota Timberwolves', teamId: '16', league: 'nba', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/16/schedule' },
+            { id: 'nba-mil', name: 'Milwaukee Bucks', teamId: '15', league: 'nba', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/15/schedule' },
+            { id: 'mlb-min', name: 'Minnesota Twins', teamId: '10', league: 'mlb', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/10/schedule' },
+            { id: 'mlb-mil', name: 'Milwaukee Brewers', teamId: '8', league: 'mlb', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/8/schedule' },
+            { id: 'nhl-min', name: 'Minnesota Wild', teamId: '30', league: 'nhl', url: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/30/schedule' }
+        ];
+
+        // --- Data Fetching & Rendering: NCAA ---
+        async function fetchNCAA(isSilent = true) {
+            const feed = document.getElementById('ncaa-feed');
+            const icon = document.getElementById('refresh-ncaa');
+            if (!isSilent) icon.classList.add('animate-spin');
+
+            try {
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const dateParam = `${yyyy}${mm}${dd}`;
+
+                const resp = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${dateParam}`);
+                const data = await resp.json();
+                
+                if (!data?.events || data.events.length === 0) {
+                    feed.innerHTML = '<div class="p-6 text-center text-sm text-gray-500 italic">No tournament games live or scheduled for today.</div>';
+                    return;
+                }
+                
+                let targetGames = data.events;
+
+                targetGames.sort((a, b) => {
+                    const stateA = a.status?.type?.state;
+                    const stateB = b.status?.type?.state;
+                    if (stateA === 'in' && stateB !== 'in') return -1;
+                    if (stateA !== 'in' && stateB === 'in') return 1;
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                feed.innerHTML = targetGames.map(event => {
+                    const comp = event.competitions?.[0];
+                    if (!comp) return '';
+                    const home = comp.competitors?.find(c => c.homeAway === 'home');
+                    const away = comp.competitors?.find(c => c.homeAway === 'away');
+                    if (!home || !away) return '';
+
+                    const state = comp.status?.type?.state;
+                    const isLive = state === 'in';
+                    const isPre = state === 'pre';
+                    
+                    const timeString = new Date(comp.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    const statusText = isPre ? timeString : (comp.status?.type?.shortDetail || 'TBD');
+                    
+                    const statusClass = isLive 
+                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse' 
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300';
+
+                    const renderTeam = (team) => `
+                        <div class="flex items-center gap-2">
+                            ${team.curatedRank?.current < 26 ? `<span class="text-[10px] text-gray-400 font-mono">${team.curatedRank.current}</span>` : ''}
+                            <span class="text-sm ${team.winner ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-200'}">${team.team?.shortDisplayName || 'TBA'}</span>
+                        </div>
+                        <span class="text-sm font-mono ${team.winner ? 'font-bold text-sterling-green' : 'text-gray-600 dark:text-gray-400'}">
+                            ${isPre ? '-' : (team.score || '-')}
+                        </span>
+                    `;
+
+                    return `
+                        <div class="p-3 bg-white dark:bg-gray-800">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] font-bold text-gray-400 tracking-wider truncate max-w-[200px]">${event.shortName || 'NCAA Game'}</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <div class="flex justify-between items-center w-full">${renderTeam(away)}</div>
+                                <div class="flex justify-between items-center w-full">${renderTeam(home)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.warn(error);
+                feed.innerHTML = '<div class="p-4 text-center text-sm text-red-400">NCAA feed temporarily unavailable.</div>';
+            } finally {
+                if (!isSilent) setTimeout(() => icon.classList.remove('animate-spin'), 500);
+            }
+        }
+
+        // --- Data Fetching & Rendering: Pro Teams ---
+        async function fetchProTeams(isSilent = true) {
+            const feed = document.getElementById('pro-feed');
+            const icon = document.getElementById('refresh-pro');
+            if (!isSilent) icon.classList.add('animate-spin');
+
+            try {
+                const results = await Promise.all(
+                    proConfig.map(async (config) => {
+                        try {
+                            const resp = await fetch(config.url);
+                            const data = await resp.json();
+                            return processProData(config, data);
+                        } catch (e) {
+                            return { html: renderOffseasonCard(config.name), weight: 5 };
+                        }
+                    })
+                );
+
+                const validResults = results.filter(r => r !== null);
+                validResults.sort((a, b) => a.weight - b.weight);
+                
+                feed.innerHTML = validResults.map(r => r.html).join('') || '<div class="p-8 text-center text-sm text-gray-400">No data available at this time.</div>';
+            } catch (error) {
+                if (!isSilent) feed.innerHTML = '<div class="p-8 text-center text-sm text-red-400">System error loading feed.</div>';
+            } finally {
+                if (!isSilent) setTimeout(() => icon.classList.remove('animate-spin'), 500);
+            }
+        }
+
+        function processProData(config, data) {
+            if (!data?.events || data.events.length === 0) return { html: renderOffseasonCard(config.name), weight: 5 };
+
+            const teamEvents = data.events.filter(e => {
+                const competitors = e?.competitions?.[0]?.competitors || [];
+                return competitors.some(c => c?.team?.id === config.teamId);
+            });
+            
+            if (teamEvents.length === 0) return { html: renderOffseasonCard(config.name), weight: 5 };
+
+            let event = null;
+            for (let i = teamEvents.length - 1; i >= 0; i--) {
+                const state = teamEvents[i]?.competitions?.[0]?.status?.type?.state;
+                if (state === 'in' || state === 'post') {
+                    event = teamEvents[i];
+                    break;
+                }
+            }
+            if (!event) event = teamEvents[0]; 
+
+            const comp = event?.competitions?.[0];
+            if (!comp) return { html: renderOffseasonCard(config.name), weight: 5 };
+
+            const gameDate = comp.date ? new Date(comp.date) : new Date();
+            const now = new Date();
+            const daysDiff = (gameDate - now) / (1000 * 60 * 60 * 24);
+            const isOffseason = Math.abs(daysDiff) > 21; 
+
+            if (isOffseason) {
+                return { html: renderOffseasonCard(config.name), weight: 5 };
+            }
+
+            const competitors = comp.competitors || [];
+            const home = competitors.find(c => c?.homeAway === 'home') || competitors[0];
+            const away = competitors.find(c => c?.homeAway === 'away') || competitors[1];
+
+            const state = comp.status?.type?.state || 'pre';
+            const isLive = state === 'in';
+            const isPre = state === 'pre';
+
+            let weight = isLive ? 1 : (daysDiff > 0 ? 2 : 3); 
+
+            const venue = comp.venue?.fullName || 'TBD Venue';
+            const displayDate = gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            
+            const parseScore = (teamData) => {
+                if (isPre || teamData?.score == null) return '-';
+                if (typeof teamData.score === 'object') return teamData.score.displayValue ?? teamData.score.value ?? '-';
+                return teamData.score;
+            };
+
+            const getRecord = (teamData) => {
+                let immediateRecord = teamData?.records?.[0]?.summary || teamData?.team?.record?.items?.[0]?.summary || teamData?.team?.record?.summary;
+                if (immediateRecord) return immediateRecord;
+                return getRecordFromCache(config.league, teamData?.team?.id);
+            };
+            
+            const statusDetail = comp.status?.type?.shortDetail || 'Scheduled';
+            const statusClass = isLive 
+                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse' 
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300';
+            
+            const renderTeamRow = (team) => `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        ${team?.team?.logos?.[0]?.href ? `<img src="${team.team.logos[0].href}" class="w-6 h-6 object-contain" onerror="this.style.display='none'">` : '<div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700"></div>'}
+                        <div class="flex flex-col">
+                            <span class="text-sm ${team?.winner ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-200'}">${team?.team?.displayName || 'TBA'}</span>
+                            <span class="text-[10px] text-gray-400">${getRecord(team)}</span>
+                        </div>
+                    </div>
+                    <span class="text-lg font-mono ${team?.winner ? 'text-sterling-green font-bold' : 'text-gray-600 dark:text-gray-400'}">${parseScore(team)}</span>
+                </div>
+            `;
+
+            const html = `
+                <div class="p-4 bg-white dark:bg-gray-800">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">${config.name}</span>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <span>${displayDate}</span><span>&bull;</span><span class="truncate max-w-[150px]">${venue}</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${statusClass}">${statusDetail}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        ${renderTeamRow(away)}
+                        ${renderTeamRow(home)}
+                    </div>
+                </div>
+            `;
+            
+            return { html, weight };
+        }
+
+        function renderOffseasonCard(teamName) {
+            return `
+                <div class="p-4 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                    <span class="text-sm font-bold text-gray-500 dark:text-gray-400">${teamName}</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 tracking-widest">OFFSEASON</span>
+                </div>
+            `;
+        }
+
+        // --- Initialization ---
+        async function initializeDashboard() {
+            await fetchAllStandings();
+            fetchNCAA(false);
+            fetchProTeams(false);
+        }
+
+        initializeDashboard();
+        
+        // Auto-refresh feeds every 10 seconds silently
+        setInterval(() => {
+            fetchNCAA(true);
+            fetchProTeams(true);
+        }, 10000);
+        
+        // Refresh standings memory cache every hour to keep records up-to-date
+        setInterval(fetchAllStandings, 3600000);
+    </script>
+</body>
+</html>
