@@ -500,7 +500,7 @@
 
             if (totalUnitsPerBox > 0 && maxDose > 0 && qty > 0) {
                 const totalDispensed = totalUnitsPerBox * qty;
-                const days = Math.floor(totalDispensed / maxDose);
+                const days = Math.ceil(totalDispensed / maxDose);
                 afrDaySupply.textContent = days;
                 afrLogicBar.textContent = `Calculation: ${totalDispensed} Units ÷ ${maxDose} U/day = ${days} Days`;
                 afrLogicBar.style.opacity = '1';
@@ -586,7 +586,7 @@
             const weeklyDoses = (dose1 * days1) + (dose2 * days2);
 
             if (qty > 0 && weeklyDoses > 0) {
-                const days = Math.floor((qty / weeklyDoses) * 7);
+                const days = Math.ceil((qty / weeklyDoses) * 7);
                 tirDaySupply.textContent = days;
                 tirLogicBar.textContent = `Calculation: (${qty} ÷ ${weeklyDoses} wkly doses) × 7 = ${days} Days`;
                 tirLogicBar.style.opacity = '1';
@@ -735,7 +735,7 @@
             }
 
             if (canShowResult) {
-                document.getElementById('eyDaySupply').textContent = Math.floor(totalDays);
+                document.getElementById('eyDaySupply').textContent = Math.ceil(totalDays);
                 document.getElementById('eyLogicBar').textContent = `[${totalDrops} Total] - ` + logicText.join(' - ');
                 document.getElementById('eyLogicBar').style.opacity = '1';
             } else {
