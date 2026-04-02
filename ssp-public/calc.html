@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Calculators | Sterling Specialty</title>
+    
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='2' width='16' height='20' rx='2' ry='2'/%3E%3Cline x1='8' y1='6' x2='16' y2='6'/%3E%3Cline x1='16' y1='14' x2='16' y2='18'/%3E%3Cpath d='M16 10h.01'/%3E%3Cpath d='M12 10h.01'/%3E%3Cpath d='M8 10h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3C/svg%3E">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script>if (localStorage.getItem('ssp-theme') === 'dark') { document.documentElement.classList.add('dark'); }</script>
+
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        .sterling-blue { color: #005eb8; }
+        .bg-sterling-blue { background-color: #005eb8; }
+        .btn-hover:hover { background-color: #004a91; }
+        .calendar-day { min-height: 40px; }
+        
+        /* Gauge Styles */
+        .gauge-base { padding: 1rem; border-radius: 0.375rem; font-weight: 600; text-align: center; transition: all 0.3s ease; line-height: 1.4; font-size: 0.875rem; }
+        .gray { background-color: #f3f4f6; color: #6b7280; border: 1px dashed #d1d5db; }
+        .dark .gray { background-color: rgba(31, 41, 55, 0.5); color: #9ca3af; border-color: #4b5563; }
+        .green { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .dark .green { background-color: rgba(22, 101, 52, 0.2); color: #86efac; border-color: rgba(22, 101, 52, 0.5); }
+        .yellow { background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+        .dark .yellow { background-color: rgba(133, 77, 14, 0.2); color: #fde047; border-color: rgba(133, 77, 14, 0.5); }
+        .orange { background-color: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+        .dark .orange { background-color: rgba(154, 52, 18, 0.2); color: #fdba74; border-color: rgba(154, 52, 18, 0.5); }
+        .red { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .dark .red { background-color: rgba(153, 27, 27, 0.2); color: #fca5a5; border-color: rgba(153, 27, 27, 0.5); }
+        .dark-red { background-color: #7f1d1d; color: #ffffff; border: 1px solid #450a0a; }
+        .dark .dark-red { background-color: rgba(69, 10, 10, 0.5); color: #ffffff; border-color: #7f1d1d; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="w-full p-4 flex justify-between items-center">
+        <div></div>
+
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Light / Dark</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="themeToggle" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 pt-6 pb-12 w-full">
+
+        <header class="mb-6 text-center">
+            <h1 id="appTitle" class="text-3xl font-bold text-gray-800 dark:text-gray-50 tracking-tight transition-all">Refill Too Soon</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Sterling Specialty Pharmacy Internal Tool</p>
+        </header>
+
+        <div class="flex items-center justify-between w-full max-w-md mb-4 px-2">
+            <button id="prevBtn" class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 opacity-50 cursor-default transition-colors focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex gap-2" id="dots">
+                <div class="w-2 h-2 rounded-full bg-sterling-blue"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+            <button id="nextBtn" class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+
+        <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-w-md w-full overflow-hidden relative" style="height: 620px;">
+            
+            <div id="sliderTrack" class="flex w-[400%] h-full transition-transform duration-500 ease-in-out transform translate-x-0">
+                
+                <div class="w-1/4 p-6 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div id="initial-view" class="flex flex-col items-center text-center mt-12">
+                        <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full mb-6 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sterling-blue dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Ready to Calculate</h2>
+                        <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Generate allowable previous fill dates based on current day supply protocols.</p>
+                        
+                        <button onclick="generateRTS()" class="w-full bg-sterling-blue text-white font-semibold py-3 px-6 rounded-lg shadow-sm btn-hover transition duration-200 ease-in-out flex items-center justify-center gap-2">
+                            Generate Dates for Today
+                        </button>
+                    </div>
+
+                    <div id="results-view" class="hidden flex-col">
+                        <div class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center transition-colors rounded-t-lg mt-1">
+                            <div>
+                                <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Today's Date</span>
+                                <div id="display-date" class="text-base font-bold text-gray-800 dark:text-gray-100 leading-tight"></div>
+                            </div>
+                            <button onclick="resetApp()" class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline focus:outline-none">Reset</button>
+                        </div>
+
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold transition-colors">
+                                    <th class="p-3 w-1/2">Day Supply</th>
+                                    <th class="p-3 w-1/2 text-right">Valid Fill Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rts-table-body" class="divide-y divide-gray-100 dark:divide-gray-700">
+                            </tbody>
+                        </table>
+                        
+                        <div class="p-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 text-[10px] border-t border-yellow-100 dark:border-yellow-900/50 text-center transition-colors">
+                            <strong>Logic:</strong> [Today] - (DS - 8) = Valid Fill Date
+                        </div>
+
+                        <div class="border-t-4 border-gray-100 dark:border-gray-700 mt-2 pt-4 bg-white dark:bg-gray-800 transition-colors">
+                            <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-3">Manual Forward Calculator</h3>
+                            
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase">Last Fill Date</label>
+                                    <input type="date" id="manual-date" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase">Day Supply</label>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="manual-ds" value="30" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 transition-colors">
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 mb-3">
+                                <button onclick="calculateManual()" class="flex-1 bg-gray-800 dark:bg-gray-600 text-white text-sm font-medium py-1.5 rounded shadow-sm hover:bg-gray-700 dark:hover:bg-gray-500 transition duration-150 focus:outline-none">
+                                    Calculate Next Fill
+                                </button>
+                                <button onclick="toggleCalendar()" class="flex-none bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded hover:bg-blue-200 dark:hover:bg-blue-900/60 transition focus:outline-none" title="Show Calendar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div id="manual-result" class="hidden bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded p-2 text-center mb-1 transition-colors">
+                                <span class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold uppercase">Soonest Refill Date</span>
+                                <div id="manual-result-date" class="text-lg font-bold sterling-blue dark:text-blue-400">--/--/----</div>
+                            </div>
+                        </div>
+
+                        <div id="calendar-container" class="hidden border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50 transition-colors mt-2 rounded-b-lg">
+                            <div class="flex justify-between items-center mb-3">
+                                <button onclick="changeMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400 focus:outline-none">&larr;</button>
+                                
+                                <div class="flex gap-1">
+                                    <select id="cal-month-select" onchange="jumpToDate()" class="text-sm font-bold text-gray-800 dark:text-gray-100 border-none bg-transparent focus:ring-0 cursor-pointer dark:bg-gray-800 outline-none">
+                                    </select>
+                                    <select id="cal-year-select" onchange="jumpToDate()" class="text-sm font-bold text-gray-800 dark:text-gray-100 border-none bg-transparent focus:ring-0 cursor-pointer dark:bg-gray-800 outline-none">
+                                    </select>
+                                </div>
+                                
+                                <button onclick="changeMonth(1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400 focus:outline-none">&rarr;</button>
+                            </div>
+                            
+                            <div class="grid grid-cols-7 text-center mb-1">
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Su</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Mo</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Tu</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">We</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Th</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Fr</div>
+                                <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500">Sa</div>
+                            </div>
+                            
+                            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center text-xs text-gray-700 dark:text-gray-300">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/4 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div class="mb-6 mt-2">
+                        
+                        <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Selection</label>
+                            <select id="afrProduct" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                                <option value="0">Select dispensed product...</option>
+                                <option value="360">4 unit box (90ct / 360 U total)</option>
+                                <option value="720">8 unit box (90ct / 720 U total)</option>
+                                <option value="1080">12 unit box (90ct / 1080 U total)</option>
+                                <option value="1080_combo">4, 8 unit box (180ct / 1080 U total)</option>
+                                <option value="1800">8, 12 unit box (180ct / 1800 U total)</option>
+                                <option value="1440">4, 8, 12 unit box (180ct / 1440 U total)</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Packages Dispensed</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="afrQty" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateAfrQty(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateAfrQty(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max Daily Dose (Units)</label>
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMaxDose" placeholder="e.g., 84" class="w-full h-[38px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded p-3 text-center mb-2 transition-colors">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">Calculated Day Supply</span>
+                            <div id="afrDaySupply" class="text-2xl font-bold sterling-green mt-1">--</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex-grow">
+                        <h3 class="text-md font-bold text-gray-800 dark:text-gray-100 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2 transition-colors">Correction Dose Check</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Scheduled Units / Meal</label>
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMealUnits" placeholder="e.g., 12" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Meals per Day</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="afrMealFreq" value="3" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateAfrMealFreq(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateAfrMealFreq(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="afrGauge" class="gauge-base gray mb-6">
+                            Enter meal data to calculate the correction buffer.
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4">
+                        <div id="afrLogicBar" class="text-xs text-center text-gray-400 dark:text-gray-500 mb-3 font-mono opacity-0 transition-opacity duration-300"></div>
+                        <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
+                            <button onclick="resetAfrezza()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/4 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div class="mb-6 mt-2">
+                        
+                        <div class="mb-6">
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Total Quantity Dispensed</label>
+                            <select id="tirQty" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                                <option value="0">Select quantity...</option>
+                                <option value="30">30 capsules</option>
+                                <option value="60">60 capsules</option>
+                                <option value="90">90 capsules</option>
+                                <option value="120">120 capsules</option>
+                                <option value="150">150 capsules</option>
+                                <option value="180">180 capsules</option>
+                                <option value="210">210 capsules</option>
+                            </select>
+                        </div>
+
+                        <h3 class="text-md font-bold text-gray-800 dark:text-gray-100 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2 transition-colors">Alternating Day Regimen</h3>
+
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Capsules / Dose</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" id="tirDose1" value="1" readonly class="w-full h-full bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none transition-colors pr-8 cursor-default text-center">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateTirInput('tirDose1', 1, 1, 5)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateTirInput('tirDose1', -1, 1, 5)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Days / Week</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" id="tirDays1" value="4" readonly class="w-full h-full bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none transition-colors pr-8 cursor-default text-center">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateTirInput('tirDays1', 1, 1, 7)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateTirInput('tirDays1', -1, 1, 7)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Alt Caps / Dose</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" id="tirDose2" value="2" readonly class="w-full h-full bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none transition-colors pr-8 cursor-default text-center">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateTirInput('tirDose2', 1, 0, 5)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateTirInput('tirDose2', -1, 0, 5)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Alt Days / Week</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" id="tirDays2" value="3" readonly class="w-full h-full bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none transition-colors pr-8 cursor-default text-center">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateTirInput('tirDays2', 1, 0, 7)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateTirInput('tirDays2', -1, 0, 7)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tirWarning" class="h-4 text-xs text-red-600 dark:text-red-400 font-semibold mb-2 text-center opacity-0 transition-opacity duration-300">
+                            Warning: Regimen exceeds 7 days per week.
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded p-3 text-center transition-colors">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">Calculated Day Supply</span>
+                            <div id="tirDaySupply" class="text-3xl font-bold sterling-green mt-1">--</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4">
+                        <div id="tirLogicBar" class="text-xs text-center text-gray-400 dark:text-gray-500 mb-3 font-mono opacity-0 transition-opacity duration-300"></div>
+                        <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
+                            <button onclick="resetTirosint()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/4 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div class="mb-2 mt-2">
+                        
+                        <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Bottles Dispensed</label>
+                            <div class="relative w-full h-[38px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="eyBottles" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                    <button type="button" onclick="updateEyBottles(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyBottles(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="eyTaperHeaders" class="hidden grid grid-cols-4 gap-2 mb-1 text-[9px] font-semibold text-gray-500 uppercase text-center">
+                            <div>Drops</div><div>Eyes</div><div>Frequency</div><div>Days</div>
+                        </div>
+                        
+                        <div id="eyPhase1" class="hidden grid grid-cols-4 gap-2 mb-2">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <select id="eyP1Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                                <option value="1">One</option>
+                                <option value="2" selected>Both</option>
+                            </select>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                        </div>
+
+                        <div id="eyPhase2" class="hidden grid grid-cols-4 gap-2 mb-2">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <select id="eyP2Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                                <option value="1">One</option>
+                                <option value="2" selected>Both</option>
+                            </select>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                        </div>
+
+                        <div id="eyPhase3" class="hidden grid grid-cols-4 gap-2 mb-2">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <select id="eyP3Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                                <option value="1">One</option>
+                                <option value="2" selected>Both</option>
+                            </select>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                        </div>
+
+                        <div class="flex justify-between items-center mb-3 mt-1">
+                            <button id="addTaperBtn" type="button" onclick="addEyPhase()" class="text-[10px] text-sterling-green font-semibold uppercase tracking-wider hover:text-green-700 transition-colors focus:outline-none">+ Add Taper Step</button>
+                            <button id="remTaperBtn" type="button" onclick="remEyPhase()" class="hidden text-[10px] text-red-500 font-semibold uppercase tracking-wider hover:text-red-700 transition-colors focus:outline-none">- Remove Step</button>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 mb-1 text-[9px] font-semibold text-gray-500 uppercase text-center mt-3 border-t border-gray-100 dark:border-gray-700 pt-3 transition-colors">
+                            <div>Drops</div><div>Eyes</div><div>Frequency</div><div></div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <select id="eyP4Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                                <option value="1">One</option>
+                                <option value="2" selected>Both</option>
+                            </select>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-transparent dark:border-gray-600 rounded text-xs font-semibold text-gray-500 dark:text-gray-400">FINAL</div>
+                        </div>
+
+                        <div id="eyWarning" class="h-4 text-[10px] text-red-600 dark:text-red-400 font-semibold mt-1 text-center opacity-0 transition-opacity duration-300">
+                            Warning: Bottle depleted before taper completion.
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded p-3 text-center transition-colors mt-2">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">Calculated Day Supply</span>
+                            <div id="eyDaySupply" class="text-3xl font-bold sterling-green mt-1">--</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4">
+                        <div id="eyLogicBar" class="text-[10px] text-center text-gray-400 dark:text-gray-500 mb-3 font-mono opacity-0 transition-opacity duration-300 leading-tight"></div>
+                        <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
+                            <button onclick="resetEysuvis()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="mt-12 text-gray-400 dark:text-gray-500 text-xs text-center w-full">
+            <p>&copy; <span id="year"></span> Sterling Specialty Pharmacy</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // UI & THEME LOGIC
+        // ==========================================
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        if (htmlElement.classList.contains('dark')) {
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('ssp-theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('ssp-theme', 'light');
+            }
+        });
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // ==========================================
+        // SLIDER LOGIC
+        // ==========================================
+        const sliderTrack = document.getElementById('sliderTrack');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dots = document.getElementById('dots').children;
+        const appTitle = document.getElementById('appTitle');
+
+        let currentSlide = 0; // 0 = RTS, 1 = Afrezza, 2 = Tirosint, 3 = Eysuvis
+
+        function updateSlider() {
+            const transforms = ['0', '-25%', '-50%', '-75%'];
+            const titles = ["Refill Too Soon", "Afrezza Calculator", "Tirosint Calculator", "Eysuvis Calculator"];
+            const colors = ['bg-sterling-blue', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-green'];
+
+            sliderTrack.style.transform = `translateX(${transforms[currentSlide]})`;
+            appTitle.textContent = titles[currentSlide];
+            
+            prevBtn.classList.toggle('opacity-50', currentSlide === 0);
+            prevBtn.classList.toggle('cursor-default', currentSlide === 0);
+            if(currentSlide > 0) prevBtn.classList.add('hover:text-green-600', 'dark:hover:text-green-400');
+            else prevBtn.classList.remove('hover:text-green-600', 'dark:hover:text-green-400');
+            
+            nextBtn.classList.toggle('opacity-50', currentSlide === 3);
+            nextBtn.classList.toggle('cursor-default', currentSlide === 3);
+            if(currentSlide < 3) nextBtn.classList.add('hover:text-green-600', 'dark:hover:text-green-400');
+            else nextBtn.classList.remove('hover:text-green-600', 'dark:hover:text-green-400');
+
+            for (let i = 0; i < 4; i++) {
+                if (i === currentSlide) {
+                    dots[i].className = `w-2 h-2 rounded-full ${colors[i]} transition-colors`;
+                } else {
+                    dots[i].className = 'w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors';
+                }
+            }
+        }
+
+        prevBtn.addEventListener('click', () => { if (currentSlide > 0) { currentSlide--; updateSlider(); } });
+        nextBtn.addEventListener('click', () => { if (currentSlide < 3) { currentSlide++; updateSlider(); } });
+
+        // ==========================================
+        // RTS CALCULATOR LOGIC
+        // ==========================================
+        const daySupplies = [28, 30, 56, 60, 84, 90];
+        const rtsInitialView = document.getElementById('initial-view');
+        const rtsResultsView = document.getElementById('results-view');
+        const rtsTableBody = document.getElementById('rts-table-body');
+        const rtsDisplayDate = document.getElementById('display-date');
+        
+        const manualDateInput = document.getElementById('manual-date');
+        const manualDsInput = document.getElementById('manual-ds');
+        const manualResultDiv = document.getElementById('manual-result');
+        const manualResultDate = document.getElementById('manual-result-date');
+
+        let calCurrentDate = new Date();
+        const calGrid = document.getElementById('calendar-grid');
+        const calContainer = document.getElementById('calendar-container');
+        const monthSelect = document.getElementById('cal-month-select');
+        const yearSelect = document.getElementById('cal-year-select');
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        function initCalendarControls() {
+            monthNames.forEach((m, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = m;
+                monthSelect.appendChild(opt);
+            });
+            const currentY = new Date().getFullYear();
+            for (let y = currentY - 5; y <= currentY + 5; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            }
+        }
+
+        function generateRTS() {
+            const today = new Date();
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            rtsDisplayDate.textContent = today.toLocaleDateString('en-US', options);
+            rtsTableBody.innerHTML = '';
+
+            daySupplies.forEach(ds => {
+                const daysToSubtract = ds - 8;
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() - daysToSubtract);
+                
+                const row = document.createElement('tr');
+                let classes = "hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0";
+                if ([28, 56, 84].includes(ds)) {
+                    classes += " bg-blue-50/60 dark:bg-blue-900/20";
+                }
+                
+                row.className = classes;
+                row.innerHTML = `
+                    <td class="p-3 text-gray-900 dark:text-gray-100 font-medium">${ds} Days</td>
+                    <td class="p-3 text-right font-mono font-bold sterling-blue dark:text-blue-400">${formatDate(targetDate)}</td>
+                `;
+                rtsTableBody.appendChild(row);
+            });
+
+            rtsInitialView.classList.add('hidden');
+            rtsResultsView.classList.remove('hidden');
+            rtsResultsView.classList.add('flex');
+        }
+
+        function calculateManual() {
+            const dateVal = manualDateInput.value;
+            const dsVal = parseInt(manualDsInput.value);
+
+            if (!dateVal || !dsVal || isNaN(dsVal)) {
+                alert("Please enter both a valid date and a day supply.");
+                return;
+            }
+
+            const inputDate = new Date(dateVal + 'T12:00:00'); 
+            const buffer = dsVal - 8;
+            inputDate.setDate(inputDate.getDate() + buffer);
+
+            manualResultDate.textContent = formatDate(inputDate);
+            manualResultDiv.classList.remove('hidden');
+        }
+
+        function resetApp() {
+            rtsResultsView.classList.add('hidden');
+            rtsResultsView.classList.remove('flex');
+            rtsInitialView.classList.remove('hidden');
+            manualResultDiv.classList.add('hidden');
+            calContainer.classList.add('hidden');
+            manualDateInput.value = '';
+        }
+
+        function formatDate(date) {
+            const m = date.getMonth() + 1;
+            const d = date.getDate();
+            const y = date.getFullYear();
+            return `${m}/${d}/${y}`;
+        }
+
+        function toggleCalendar() {
+            if (calContainer.classList.contains('hidden')) {
+                calContainer.classList.remove('hidden');
+                renderCalendar();
+                calContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                calContainer.classList.add('hidden');
+            }
+        }
+
+        function changeMonth(delta) {
+            calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function jumpToDate() {
+            const m = parseInt(monthSelect.value);
+            const y = parseInt(yearSelect.value);
+            calCurrentDate.setMonth(m);
+            calCurrentDate.setFullYear(y);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+            
+            monthSelect.value = month;
+            yearSelect.value = year;
+
+            calGrid.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                calGrid.appendChild(empty);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayEl = document.createElement('div');
+                dayEl.textContent = d;
+                dayEl.className = "calendar-day flex items-center justify-center rounded cursor-default hover:bg-white dark:hover:bg-gray-700 transition-colors py-1";
+                
+                if (isCurrentMonth && d === today.getDate()) {
+                    dayEl.classList.add('bg-sterling-blue', 'text-white', 'font-bold', 'hover:bg-blue-700', 'dark:bg-blue-600', 'dark:hover:bg-blue-500');
+                    dayEl.classList.remove('hover:bg-white', 'dark:hover:bg-gray-700');
+                }
+
+                calGrid.appendChild(dayEl);
+            }
+        }
+
+        initCalendarControls();
+
+        // ==========================================
+        // AFREZZA CALCULATOR LOGIC
+        // ==========================================
+        const afrInputs = document.querySelectorAll('#afrProduct, #afrMaxDose, #afrMealUnits');
+        const afrDaySupply = document.getElementById('afrDaySupply');
+        const afrGauge = document.getElementById('afrGauge');
+        const afrQtyInput = document.getElementById('afrQty');
+        const afrMealFreqInput = document.getElementById('afrMealFreq');
+        const afrLogicBar = document.getElementById('afrLogicBar');
+
+        function updateAfrQty(delta) {
+            let val = parseInt(afrQtyInput.value) || 0;
+            val = Math.max(0, Math.min(99, val + delta));
+            afrQtyInput.value = val;
+            calcAfrezza();
+        }
+
+        afrQtyInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrQty(1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrQty(-1); }
+        });
+        
+        afrQtyInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 2) val = val.slice(0, 2);
+            e.target.value = val;
+            calcAfrezza();
+        });
+
+        function updateAfrMealFreq(delta) {
+            let val = parseInt(afrMealFreqInput.value) || 0;
+            val = Math.max(0, Math.min(9, val + delta));
+            afrMealFreqInput.value = val;
+            calcAfrezza();
+        }
+
+        afrMealFreqInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrMealFreq(1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrMealFreq(-1); }
+        });
+        
+        afrMealFreqInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 1) val = val.slice(0, 1);
+            e.target.value = val;
+            calcAfrezza();
+        });
+
+        function calcAfrezza() {
+            let prodValue = document.getElementById('afrProduct').value;
+            let totalUnitsPerBox = prodValue === '1080_combo' ? 1080 : parseInt(prodValue) || 0;
+            
+            const qty = parseInt(afrQtyInput.value) || 0;
+            const maxDose = parseInt(document.getElementById('afrMaxDose').value) || 0;
+            const mealUnits = parseInt(document.getElementById('afrMealUnits').value) || 0;
+            const mealFreq = parseInt(document.getElementById('afrMealFreq').value) || 0;
+
+            if (totalUnitsPerBox > 0 && maxDose > 0 && qty > 0) {
+                const totalDispensed = totalUnitsPerBox * qty;
+                const days = Math.ceil(totalDispensed / maxDose);
+                afrDaySupply.textContent = days;
+                afrLogicBar.textContent = `Calculation: ${totalDispensed} Units ÷ ${maxDose} U/day = ${days} Days`;
+                afrLogicBar.style.opacity = '1';
+            } else {
+                afrDaySupply.textContent = '--';
+                afrLogicBar.style.opacity = '0';
+            }
+
+            if (totalUnitsPerBox === 0 || maxDose === 0 || mealUnits === 0 || mealFreq === 0) {
+                afrGauge.className = 'gauge-base gray';
+                afrGauge.textContent = 'Enter meal data to calculate the correction buffer.';
+                return;
+            }
+
+            const baseDose = mealUnits * mealFreq;
+            const correctionUnits = maxDose - baseDose;
+            
+            if (correctionUnits < 0) {
+                afrGauge.className = 'gauge-base red';
+                afrGauge.innerHTML = `<strong>ERROR:</strong> Scheduled meals (${baseDose} U) exceed Max Daily Dose (${maxDose} U).`;
+                return;
+            }
+
+            const correctionPct = (correctionUnits / maxDose) * 100;
+
+            if (correctionPct <= 30) {
+                afrGauge.className = 'gauge-base green';
+                afrGauge.innerHTML = `<strong>GOOD!</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U).`;
+            } else if (correctionPct <= 55) {
+                afrGauge.className = 'gauge-base yellow';
+                afrGauge.innerHTML = `<strong>BORDERLINE:</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Proceed with caution.`;
+            } else if (correctionPct <= 80) {
+                afrGauge.className = 'gauge-base orange';
+                afrGauge.innerHTML = `<strong>WARNING: NEEDS CLARIFICATION</strong><br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Send to Rph to verify.`;
+            } else {
+                afrGauge.className = 'gauge-base dark-red';
+                afrGauge.innerHTML = `<strong>INCONCEIVABLE!</strong><br>I do not think 'Max Dose' means what you think it means.<br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Clarification REQUIRED.`;
+            }
+        }
+
+        function resetAfrezza() {
+            document.getElementById('afrProduct').value = "0";
+            afrQtyInput.value = "1";
+            document.getElementById('afrMaxDose').value = "";
+            document.getElementById('afrMealUnits').value = "";
+            document.getElementById('afrMealFreq').value = "3";
+            calcAfrezza();
+        }
+
+        afrInputs.forEach(input => input.addEventListener('input', calcAfrezza));
+
+        // ==========================================
+        // TIROSINT CALCULATOR LOGIC
+        // ==========================================
+        const tirQtySelect = document.getElementById('tirQty');
+        const tirDaySupply = document.getElementById('tirDaySupply');
+        const tirWarning = document.getElementById('tirWarning');
+        const tirLogicBar = document.getElementById('tirLogicBar');
+
+        function updateTirInput(inputId, delta, min, max) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value) || 0;
+            val = Math.max(min, Math.min(max, val + delta));
+            inputEl.value = val;
+            calcTirosint();
+        }
+
+        function calcTirosint() {
+            const qty = parseInt(tirQtySelect.value) || 0;
+            const dose1 = parseInt(document.getElementById('tirDose1').value) || 0;
+            const days1 = parseInt(document.getElementById('tirDays1').value) || 0;
+            const dose2 = parseInt(document.getElementById('tirDose2').value) || 0;
+            const days2 = parseInt(document.getElementById('tirDays2').value) || 0;
+
+            const totalDays = days1 + days2;
+            
+            if (totalDays > 7) {
+                tirWarning.style.opacity = '1';
+            } else {
+                tirWarning.style.opacity = '0';
+            }
+
+            const weeklyDoses = (dose1 * days1) + (dose2 * days2);
+
+            if (qty > 0 && weeklyDoses > 0) {
+                const days = Math.ceil((qty / weeklyDoses) * 7);
+                tirDaySupply.textContent = days;
+                tirLogicBar.textContent = `Calculation: (${qty} ÷ ${weeklyDoses} wkly doses) × 7 = ${days} Days`;
+                tirLogicBar.style.opacity = '1';
+            } else {
+                tirDaySupply.textContent = '--';
+                tirLogicBar.style.opacity = '0';
+            }
+        }
+
+        function resetTirosint() {
+            tirQtySelect.value = "0";
+            document.getElementById('tirDose1').value = "1";
+            document.getElementById('tirDays1').value = "4";
+            document.getElementById('tirDose2').value = "2";
+            document.getElementById('tirDays2').value = "3";
+            calcTirosint();
+        }
+
+        tirQtySelect.addEventListener('change', calcTirosint);
+
+        // ==========================================
+        // EYSUVIS CALCULATOR LOGIC
+        // ==========================================
+        const eyInputs = document.querySelectorAll('[id^="ey"]');
+        const eyBottlesInput = document.getElementById('eyBottles');
+        
+        let visibleEyPhases = 0;
+
+        function addEyPhase() {
+            if (visibleEyPhases < 3) {
+                visibleEyPhases++;
+                document.getElementById('eyPhase' + visibleEyPhases).classList.remove('hidden');
+                document.getElementById('eyTaperHeaders').classList.remove('hidden');
+                document.getElementById('remTaperBtn').classList.remove('hidden');
+            }
+            if (visibleEyPhases === 3) {
+                document.getElementById('addTaperBtn').classList.add('hidden');
+            }
+            calcEysuvis();
+        }
+
+        function remEyPhase() {
+            if (visibleEyPhases > 0) {
+                document.getElementById(`eyP${visibleEyPhases}Dr`).value = '';
+                document.getElementById(`eyP${visibleEyPhases}Fq`).value = '';
+                document.getElementById(`eyP${visibleEyPhases}Dy`).value = '';
+                document.getElementById(`eyP${visibleEyPhases}Ey`).value = '2';
+                
+                document.getElementById('eyPhase' + visibleEyPhases).classList.add('hidden');
+                visibleEyPhases--;
+            }
+            if (visibleEyPhases === 0) {
+                document.getElementById('eyTaperHeaders').classList.add('hidden');
+                document.getElementById('remTaperBtn').classList.add('hidden');
+            }
+            if (visibleEyPhases < 3) {
+                document.getElementById('addTaperBtn').classList.remove('hidden');
+            }
+            calcEysuvis();
+        }
+
+        function updateEyBottles(delta) {
+            let val = parseInt(eyBottlesInput.value) || 0;
+            val = Math.max(0, Math.min(9, val + delta));
+            eyBottlesInput.value = val;
+            calcEysuvis();
+        }
+
+        eyBottlesInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') { e.preventDefault(); updateEyBottles(1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); updateEyBottles(-1); }
+        });
+
+        eyBottlesInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 1) val = val.slice(0, 1);
+            e.target.value = val;
+            calcEysuvis();
+        });
+        
+        function calcEysuvis() {
+            const bottles = parseInt(eyBottlesInput.value) || 0;
+            let totalDrops = bottles * 230;
+            let remainingDrops = totalDrops;
+            let totalDays = 0;
+            let logicText = [];
+            let ranOutEarly = false;
+
+            const phases = [
+                { dr: 'eyP1Dr', ey: 'eyP1Ey', fq: 'eyP1Fq', dy: 'eyP1Dy', name: 'P1' },
+                { dr: 'eyP2Dr', ey: 'eyP2Ey', fq: 'eyP2Fq', dy: 'eyP2Dy', name: 'P2' },
+                { dr: 'eyP3Dr', ey: 'eyP3Ey', fq: 'eyP3Fq', dy: 'eyP3Dy', name: 'P3' }
+            ];
+
+            if (bottles === 0) {
+                document.getElementById('eyDaySupply').textContent = '--';
+                document.getElementById('eyLogicBar').style.opacity = '0';
+                document.getElementById('eyWarning').style.opacity = '0';
+                return;
+            }
+
+            for (let i = 0; i < visibleEyPhases; i++) {
+                let p = phases[i];
+                let dr = parseFloat(document.getElementById(p.dr).value) || 0;
+                let ey = parseInt(document.getElementById(p.ey).value) || 0;
+                let fq = parseFloat(document.getElementById(p.fq).value) || 0;
+                let dy = parseFloat(document.getElementById(p.dy).value) || 0;
+
+                if (dr > 0 && ey > 0 && fq > 0 && dy > 0 && remainingDrops > 0 && !ranOutEarly) {
+                    let dropsNeeded = dr * ey * fq * dy;
+                    if (remainingDrops >= dropsNeeded) {
+                        remainingDrops -= dropsNeeded;
+                        totalDays += dy;
+                        logicText.push(`${p.name}:${dropsNeeded}drp`);
+                    } else {
+                        let achievableDays = remainingDrops / (dr * ey * fq);
+                        totalDays += achievableDays;
+                        logicText.push(`${p.name}:${remainingDrops}drp(cap)`);
+                        remainingDrops = 0;
+                        ranOutEarly = true;
+                    }
+                }
+            }
+
+            let fDr = parseFloat(document.getElementById('eyP4Dr').value) || 0;
+            let fEy = parseInt(document.getElementById('eyP4Ey').value) || 0;
+            let fFq = parseFloat(document.getElementById('eyP4Fq').value) || 0;
+
+            let finalPopulated = (fDr > 0 && fEy > 0 && fFq > 0);
+
+            if (finalPopulated && remainingDrops > 0 && !ranOutEarly) {
+                let dropsPerDay = fDr * fEy * fFq;
+                let finalDays = remainingDrops / dropsPerDay;
+                totalDays += finalDays;
+                logicText.push(`Fin:${remainingDrops}drp@${dropsPerDay}/day`);
+                remainingDrops = 0;
+            } else if (remainingDrops > 0 && !ranOutEarly && logicText.length > 0) {
+                logicText.push(`Rem:${remainingDrops}drp(unused)`);
+            }
+
+            let canShowResult = false;
+            if (totalDays > 0) {
+                if (ranOutEarly || finalPopulated) {
+                    canShowResult = true;
+                }
+            }
+
+            if (canShowResult) {
+                document.getElementById('eyDaySupply').textContent = Math.ceil(totalDays);
+                document.getElementById('eyLogicBar').textContent = `[${totalDrops} Total] - ` + logicText.join(' - ');
+                document.getElementById('eyLogicBar').style.opacity = '1';
+            } else {
+                document.getElementById('eyDaySupply').textContent = '--';
+                document.getElementById('eyLogicBar').style.opacity = '0';
+            }
+
+            if (ranOutEarly) {
+                document.getElementById('eyWarning').style.opacity = '1';
+            } else {
+                document.getElementById('eyWarning').style.opacity = '0';
+            }
+        }
+
+        function resetEysuvis() {
+            eyBottlesInput.value = "1";
+            
+            while (visibleEyPhases > 0) {
+                remEyPhase();
+            }
+
+            document.getElementById('eyP4Dr').value = "";
+            document.getElementById('eyP4Fq').value = "";
+            document.getElementById('eyP4Ey').value = "2";
+            calcEysuvis();
+        }
+
+        eyInputs.forEach(input => input.addEventListener('input', calcEysuvis));
+        eyInputs.forEach(input => input.addEventListener('change', calcEysuvis));
+
+        // Initial Calculation calls
+        calcAfrezza();
+        calcTirosint();
+        calcEysuvis();
+
+    </script>
+</body>
+</html>
