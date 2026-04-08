@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Rebill or Not Rebill? | Sterling Specialty</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2316a34a%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect x=%223%22 y=%224%22 width=%2218%22 height=%2218%22 rx=%222%22 ry=%222%22></rect><line x1=%2216%22 y1=%222%22 x2=%2216%22 y2=%226%22></line><line x1=%228%22 y1=%222%22 x2=%228%22 y2=%226%22></line><line x1=%223%22 y1=%2210%22 x2=%2221%22 y2=%2210%22></line><path d=%22M9 16l2 2 4-4%22></path></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class' 
+        }
+    </script>
+    <script>
+        // FOUC Prevention & Memory Check
+        if (localStorage.getItem('ssp-theme') === 'dark') { 
+            document.documentElement.classList.add('dark'); 
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        
+        /* Custom Toggle Pill Styling */
+        .toggle-checkbox:checked { right: 0; border-color: #16a34a; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; }
+
+        /* Dark mode date picker icon fix */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+        }
+        .dark input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="w-full p-4 flex justify-between items-center">
+        <div></div> 
+        
+        <div class="flex items-center">
+            <span class="mr-2 text-sm text-gray-500 dark:text-gray-400">Dark Mode</span>
+            <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="toggle" id="darkModeToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 z-10 top-0 bottom-0 m-auto right-4"/>
+                <label for="darkModeToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 w-full">
+        
+        <header class="mb-8 text-center w-full max-w-md mt-6">
+            <h1 class="text-3xl font-bold tracking-tight mb-2">To Rebill or Not Rebill?</h1>
+            <p class="text-gray-500 dark:text-gray-400 font-medium">Sterling Specialty Pharmacy Internal Tool</p>
+        </header>
+
+        <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow max-w-md w-full p-6">
+            
+            <div class="mb-6">
+                <label for="dispenseDate" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Enter Dispense Date
+                </label>
+                <div class="relative">
+                    <input 
+                        type="date" 
+                        id="dispenseDate" 
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all shadow-sm"
+                    >
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    App automatically calculates +7 days to determine shipping validity.
+                </p>
+            </div>
+
+            <div id="resultBox" class="hidden mt-6 rounded-lg p-4 border transition-all duration-300">
+                <div class="flex items-center mb-2">
+                    <span id="resultIcon"></span>
+                    <h2 id="resultTitle" class="text-lg font-bold"></h2>
+                </div>
+                <p class="text-sm opacity-90">
+                    Calculated Ship Date: <span id="shipDateDisplay" class="font-bold underline decoration-2 underline-offset-2"></span>
+                </p>
+            </div>
+
+        </main>
+    </div>
+
+    <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full">
+        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy. Internal Use Only.</p>
+    </footer>
+
+    <script>
+        // Set dynamic copyright year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Dark Mode Logic
+        const htmlElement = document.documentElement;
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        const isDarkMode = localStorage.getItem('ssp-theme') === 'dark' || 
+                           (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (isDarkMode) {
+            htmlElement.classList.add('dark');
+            darkModeToggle.checked = true;
+        }
+
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('ssp-theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('ssp-theme', 'light');
+            }
+        });
+
+        // Application Logic
+        const dateInput = document.getElementById('dispenseDate');
+        const resultBox = document.getElementById('resultBox');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const shipDateDisplay = document.getElementById('shipDateDisplay');
+
+        // SVG Icons
+        const successIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        const warningIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+
+        dateInput.addEventListener('input', calculateShipping);
+
+        function calculateShipping() {
+            if (!dateInput.value) {
+                resultBox.classList.add('hidden');
+                return;
+            }
+
+            // Parse dispense date safely based on local time
+            const [year, month, day] = dateInput.value.split('-');
+            const dispenseDate = new Date(year, month - 1, day);
+            
+            // Calculate ship date (+7 days)
+            const shipDate = new Date(dispenseDate);
+            shipDate.setDate(shipDate.getDate() + 7);
+
+            // Get today's date normalized to midnight for accurate day-to-day comparison
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Format date for display
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            shipDateDisplay.textContent = shipDate.toLocaleDateString('en-US', options);
+
+            // Reset classes
+            resultBox.classList.remove('hidden', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300', 'bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
+
+            // Logic Assessment
+            if (shipDate >= today) {
+                // Okay to ship
+                resultBox.classList.add('bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300');
+                resultTitle.textContent = "Okay to ship!";
+                resultIcon.innerHTML = successIcon;
+            } else {
+                // Rebill required
+                resultBox.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
+                resultTitle.textContent = "Warning! Rebill required before shipping";
+                resultIcon.innerHTML = warningIcon;
+            }
+        }
+    </script>
+</body>
+</html>
