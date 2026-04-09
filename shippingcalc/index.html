@@ -56,7 +56,7 @@
         
         <header class="mb-8 text-center w-full max-w-md mt-6">
             <h1 class="text-3xl font-bold tracking-tight mb-2">To Rebill or Not Rebill?</h1>
-            <p class="text-gray-500 dark:text-gray-400 font-medium">Sterling Specialty Pharmacy Internal Tool</p>
+            <p class="text-gray-500 dark:text-gray-400 font-medium">Sterling Specialty Pharmacy Internal Tool <span class="text-xs opacity-50 ml-1">v1.2.0</span></p>
         </header>
 
         <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow max-w-md w-full p-6">
@@ -78,11 +78,6 @@
             </div>
 
             <div id="resultBox" class="hidden mt-6 rounded-lg p-4 border transition-all duration-300">
-                <div class="flex items-center mb-2">
-                    <span id="resultIcon"></span>
-                    <h2 id="resultTitle" class="text-lg font-bold"></h2>
-                </div>
-                <p id="resultDescription" class="text-sm opacity-90"></p>
             </div>
 
         </main>
@@ -121,13 +116,11 @@
         // Application State & DOM Elements
         const dateInput = document.getElementById('dispenseDate');
         const resultBox = document.getElementById('resultBox');
-        const resultIcon = document.getElementById('resultIcon');
-        const resultTitle = document.getElementById('resultTitle');
-        const resultDescription = document.getElementById('resultDescription');
 
         // SVG Icons
-        const successIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-        const warningIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        const successIcon = `<svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        const warningIcon = `<svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        const amberAlertIcon = `<svg class="w-6 h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
 
         // Event Listener triggers calculation on date input change
         dateInput.addEventListener('input', calculateShipping);
@@ -135,40 +128,76 @@
         // Core Logic for Calculating Shipping Validity
         function calculateShipping() {
             if (!dateInput.value) {
-                resultBox.classList.add('hidden');
+                resultBox.className = 'hidden mt-6 rounded-lg p-4 border transition-all duration-300';
+                resultBox.innerHTML = '';
                 return;
             }
 
             // Parse dispense date safely based on local time
             const [year, month, day] = dateInput.value.split('-');
             const dispenseDate = new Date(year, month - 1, day);
-            
-            // Calculate ship date (+7 days)
-            const shipDate = new Date(dispenseDate);
-            shipDate.setDate(shipDate.getDate() + 7);
+            dispenseDate.setHours(0, 0, 0, 0); // Normalize to midnight
 
             // Get today's date normalized to midnight for accurate day-to-day comparison
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Reset UI classes before applying new state
-            resultBox.classList.remove('hidden', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300', 'bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
+            // Establish Outlier Limits
+            const futureLimit = new Date(today);
+            futureLimit.setDate(today.getDate() + 1);
+
+            const pastLimit = new Date(today);
+            pastLimit.setDate(today.getDate() - 180);
+
+            // Reset UI classes to base state before applying new dynamic classes
+            resultBox.className = 'mt-6 rounded-lg p-4 border transition-all duration-300 block';
+
+            // 1. The Intercept (Validation Check)
+            if (dispenseDate > futureLimit || dispenseDate < pastLimit) {
+                // AMBER WARNING STATE (Halts calculation)
+                resultBox.classList.add('bg-amber-50', 'dark:bg-amber-900/30', 'border-amber-200', 'dark:border-amber-800', 'text-amber-800', 'dark:text-amber-300');
+                
+                // Inject exact typography requirements
+                resultBox.innerHTML = `
+                    <div class="flex items-start">
+                        ${amberAlertIcon}
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black uppercase tracking-widest">ERROR!</span>
+                            <span class="text-[10px] font-semibold mt-1">Check your date and try again</span>
+                            <span class="text-[9px] italic opacity-80 mt-1">This is not a time machine.</span>
+                        </div>
+                    </div>
+                `;
+                return; // Exit function completely
+            }
+
+            // 2. Standard Calculation (Proceeds only if date is valid)
+            const shipDate = new Date(dispenseDate);
+            shipDate.setDate(shipDate.getDate() + 7);
 
             // Logic Assessment: Determine Output State
             if (shipDate >= today) {
                 // SUCCESS STATE (Okay to ship)
                 resultBox.classList.add('bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300');
                 
-                resultTitle.textContent = "Okay to ship!";
-                resultDescription.innerHTML = "Meets Shipping Timeline - no rebill needed.<br>Go forth and schedule.";
-                resultIcon.innerHTML = successIcon;
+                resultBox.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        ${successIcon}
+                        <h2 class="text-lg font-bold">Okay to ship!</h2>
+                    </div>
+                    <p class="text-sm opacity-90">Meets Shipping Timeline - no rebill needed.<br>Go forth and schedule.</p>
+                `;
             } else {
                 // WARNING STATE (Rebill required)
                 resultBox.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
                 
-                resultTitle.textContent = "Warning! Does not meet the shipping timeline!";
-                resultDescription.textContent = "Reverse, change the dispense date, rebill and schedule.";
-                resultIcon.innerHTML = warningIcon;
+                resultBox.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        ${warningIcon}
+                        <h2 class="text-lg font-bold">Warning! Does not meet the shipping timeline!</h2>
+                    </div>
+                    <p class="text-sm opacity-90">A rebill is required before this order can be shipped.</p>
+                `;
             }
         }
     </script>
