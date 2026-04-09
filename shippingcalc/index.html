@@ -14,7 +14,7 @@
         }
     </script>
     <script>
-        // FOUC Prevention & Memory Check
+        // FUNCTION: FOUC Prevention & Theme Memory Check
         if (localStorage.getItem('ssp-theme') === 'dark') { 
             document.documentElement.classList.add('dark'); 
         }
@@ -82,8 +82,9 @@
                     <span id="resultIcon"></span>
                     <h2 id="resultTitle" class="text-lg font-bold"></h2>
                 </div>
-                <p class="text-sm opacity-90">
-                    Meets Shipping Timeline - no rebill needed. Go forth and schedule.
+                <p id="resultDescription" class="text-sm opacity-90"></p>
+                <p class="text-sm opacity-90 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                    Calculated Ship Date: <span id="shipDateDisplay" class="font-bold"></span>
                 </p>
             </div>
 
@@ -95,10 +96,10 @@
     </footer>
 
     <script>
-        // Set dynamic copyright year
+        // FUNCTION: Set dynamic copyright year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        // Dark Mode Logic
+        // FUNCTION: Dark Mode Toggle Logic
         const htmlElement = document.documentElement;
         const darkModeToggle = document.getElementById('darkModeToggle');
 
@@ -120,19 +121,22 @@
             }
         });
 
-        // Application Logic
+        // Application State & DOM Elements
         const dateInput = document.getElementById('dispenseDate');
         const resultBox = document.getElementById('resultBox');
         const resultIcon = document.getElementById('resultIcon');
         const resultTitle = document.getElementById('resultTitle');
+        const resultDescription = document.getElementById('resultDescription');
         const shipDateDisplay = document.getElementById('shipDateDisplay');
 
         // SVG Icons
         const successIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
         const warningIcon = `<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
 
+        // Event Listener triggers calculation on date input change
         dateInput.addEventListener('input', calculateShipping);
 
+        // FUNCTION: Core Logic for Calculating Shipping Validity
         function calculateShipping() {
             if (!dateInput.value) {
                 resultBox.classList.add('hidden');
@@ -155,19 +159,25 @@
             const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
             shipDateDisplay.textContent = shipDate.toLocaleDateString('en-US', options);
 
-            // Reset classes
+            // Reset UI classes before applying new state
             resultBox.classList.remove('hidden', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300', 'bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
 
-            // Logic Assessment
+            // Logic Assessment: Determine Output State
             if (shipDate >= today) {
-                // Okay to ship
+                // SUCCESS STATE (Okay to ship)
                 resultBox.classList.add('bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300');
+                
+                // EDIT UI TEXT HERE: Success Output Messages
                 resultTitle.textContent = "Okay to ship!";
+                resultDescription.textContent = "Meets Shipping Timeline - no rebill needed. Go forth and schedule.";
                 resultIcon.innerHTML = successIcon;
             } else {
-                // Rebill required
+                // WARNING STATE (Rebill required)
                 resultBox.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
+                
+                // EDIT UI TEXT HERE: Warning Output Messages
                 resultTitle.textContent = "Warning! Does not meet the shipping timeline!";
+                resultDescription.textContent = "A rebill is required before this order can be shipped.";
                 resultIcon.innerHTML = warningIcon;
             }
         }
