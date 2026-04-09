@@ -63,7 +63,7 @@
             
             <div class="mb-6">
                 <label for="dispenseDate" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Enter Dispense Date
+                    Enter Dispense Date - add from the prescription
                 </label>
                 <div class="relative">
                     <input 
@@ -73,7 +73,7 @@
                     >
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    App automatically calculates +7 days to determine shipping validity.
+                    Ship Date = Dispense Date + 7
                 </p>
             </div>
 
@@ -83,7 +83,7 @@
                     <h2 id="resultTitle" class="text-lg font-bold"></h2>
                 </div>
                 <p class="text-sm opacity-90">
-                    Calculated Ship Date: <span id="shipDateDisplay" class="font-bold underline decoration-2 underline-offset-2"></span>
+                    Meets Shipping Timeline - no rebill needed. Go forth and schedule.
                 </p>
             </div>
 
@@ -167,7 +167,7 @@
             } else {
                 // Rebill required
                 resultBox.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
-                resultTitle.textContent = "Warning! Rebill required before shipping";
+                resultTitle.textContent = "Warning! Does not meet the shipping timeline!";
                 resultIcon.innerHTML = warningIcon;
             }
         }
