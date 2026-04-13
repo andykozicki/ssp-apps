@@ -189,7 +189,7 @@
         }
 
         // ----------------------------------------------------
-        // 3. RainViewer API Logic (Specific Implementation Logic B)
+        // 3. RainViewer API Logic (Fixed for 429 Rate Limiting)
         // ----------------------------------------------------
         let radarLayers = [];
         let timeLabels = [];
@@ -210,13 +210,14 @@
                 radarLayers = [];
                 timeLabels = [];
 
-                // Preload all frames as hidden layers to prevent flickering
+                // Prepare layers in memory, but DO NOT add them to the map yet.
+                // This prevents the 429 Too Many Requests error from Leaflet fetching 12 layers simultaneously.
                 pastFrames.forEach((frame) => {
                     const layer = L.tileLayer(`https://tilecache.rainviewer.com/v2/radar/${frame.path}/256/{z}/{x}/{y}/2/1_1.png`, {
                         opacity: 0,
                         transparent: true,
                         zIndex: 10
-                    }).addTo(map);
+                    });
                     
                     radarLayers.push(layer);
                     
@@ -228,6 +229,7 @@
                 if (radarLayers.length > 0) {
                     currentFrame = radarLayers.length - 1; // Start at most recent
                     radarLayers[currentFrame].setOpacity(radarOpacity);
+                    radarLayers[currentFrame].addTo(map); // Only load the active frame on initialization
                     document.getElementById('timestamp').innerText = timeLabels[currentFrame];
                 }
 
@@ -241,6 +243,12 @@
         function cycleRadar() {
             if (radarLayers.length === 0) return;
             const nextFrame = (currentFrame + 1) % radarLayers.length;
+            
+            // Lazy load the next frame onto the map exactly when needed.
+            // This staggers API requests to perfectly avoid the 429 rate limit.
+            if (!map.hasLayer(radarLayers[nextFrame])) {
+                radarLayers[nextFrame].addTo(map);
+            }
             
             // Hide current, show next
             radarLayers[currentFrame].setOpacity(0);
@@ -276,7 +284,7 @@
 
         document.getElementById('opacitySlider').addEventListener('input', (e) => {
             radarOpacity = parseFloat(e.target.value);
-            if (radarLayers.length > 0) {
+            if (radarLayers.length > 0 && map.hasLayer(radarLayers[currentFrame])) {
                 radarLayers[currentFrame].setOpacity(radarOpacity);
             }
         });
