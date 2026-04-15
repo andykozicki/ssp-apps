@@ -38,8 +38,6 @@
         }
     </script>
     
-    <script src="registry.js"></script>
-    
     <style>
         /* Anti-Transition Flash Class */
         .preload * {
@@ -60,7 +58,7 @@
         html.dark {
             --glass-bg: rgba(255, 255, 255, 0.015);
             --glass-border: rgba(255, 255, 255, 0.05);
-            --glass-shine: rgba(22, 163, 74, 0.12); /* Heavy Sterling Green Shine */
+            --glass-shine: rgba(22, 163, 74, 0.12); /* Sterling Green Glow */
             --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
         }
 
@@ -156,12 +154,50 @@
             <p class="text-sterling-green font-mono text-[10px] tracking-[0.3em] uppercase mt-4">Sterling Specialty Operations</p>
         </header>
 
-        <main class="w-full max-w-5xl flex flex-col gap-10">
+        <main class="w-full max-w-4xl flex flex-col gap-10">
             
-            <div id="appGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            <div id="appGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full">
+                
+                <a href="https://calc.sterlingspecialtyrx.com/" target="_blank" rel="noopener noreferrer" data-id="clinical-hub" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
+                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
+                        <svg class="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.2"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Clinical Hub</span>
+                </a>
+
+                <a href="/workflow/index.html" data-id="workflow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
+                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Workflow</span>
+                </a>
+
+                <a href="/pharm-flow/index.html" data-id="pharm-flow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
+                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Pharmacy Flow</span>
+                </a>
+
+                <div onclick="openModal()" data-id="system-links" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square select-none">
+                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3 pointer-events-none">
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                        </svg>
+                    </div>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 pointer-events-none">System Links</span>
                 </div>
 
-            <a href="https://kzick001.github.io/dashboard/weather" target="_blank" rel="noopener noreferrer" class="app-tile group rounded-[2rem] backdrop-blur-3xl p-6 sm:p-8 w-full mt-4 block">
+            </div>
+
+            <a href="https://kzick001.github.io/dashboard/weather" target="_blank" rel="noopener noreferrer" class="app-tile group rounded-[2rem] backdrop-blur-3xl p-6 sm:p-8 w-full block mt-4">
                 <div class="flex justify-between items-start w-full relative z-10 mb-6 border-b border-black/5 dark:border-white/5 pb-4">
                     <div>
                         <h2 class="text-lg font-medium text-slate-800 dark:text-slate-300 tracking-wide mb-1 group-hover:text-sterling-green transition-colors">Mendota Heights</h2>
@@ -181,7 +217,7 @@
     </div>
 
     <footer class="text-slate-400 font-mono text-[10px] tracking-widest uppercase text-center pb-8 w-full relative z-10">
-        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V2.3.2</p>
+        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V3.0.0</p>
     </footer>
 
     <div id="folderModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
@@ -189,13 +225,36 @@
         
         <div id="modalContent" class="relative w-[90%] max-w-3xl bg-white/95 dark:bg-[#050505]/95 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-[2.5rem] shadow-2xl p-6 sm:p-10 transform scale-95 transition-transform duration-300">
             <div class="flex justify-between items-center mb-8 border-b border-black/10 dark:border-white/5 pb-4">
-                <h3 id="modalTitle" class="text-2xl font-light tracking-wide text-slate-800 dark:text-white">System Links</h3>
+                <h3 class="text-2xl font-light tracking-wide text-slate-800 dark:text-white">System Links</h3>
                 <button id="closeModalBtn" class="p-2 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none">
                     <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div id="modalLinks" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
-                </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+                <a href="/pomodoro-timer/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Pomodoro Timer <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+                <a href="/personal-sports-hub/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Sports Network <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+                <a href="/zen-snake/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Zen Snake <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+
+                <a href="https://github.com/andykozicki/ssp-apps" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    andykozicki/ssp-apps <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+                <a href="https://github.com/kzick001/dashboard" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Kzick Dashboard Repo <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+                <a href="https://dash.cloudflare.com/b161c0d78599ee2ead9d5aa4a03d1c40/workers/services/view/kzick-weather/production" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Weather Worker Pipeline <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+                <a href="https://kzick001.github.io/dashboard/" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                    Personal Dash Live <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -275,11 +334,105 @@
         window.addEventListener('offline', updateNetworkStatus);
         if (navigator.connection) navigator.connection.addEventListener('change', updateNetworkStatus);
 
-        // --- 3. TOMORROW.IO METEOROLOGICAL PIPELINE ---
+        // --- 3. MODAL MULTIPLEXER ---
+        const modal = document.getElementById('folderModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        function openModal() {
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                });
+            });
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('modalBackdrop').addEventListener('click', closeModal);
+
+        // --- 4. SMART GLASS & DRAG PHYSICS ---
+        function attachSmartGlassListeners() {
+            document.querySelectorAll('.app-tile').forEach(tile => {
+                tile.addEventListener('mousemove', e => {
+                    const rect = tile.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    tile.style.setProperty('--mouse-x', `${x}px`);
+                    tile.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        }
+
+        function setupDragAndDrop() {
+            const board = document.getElementById('appGrid');
+            let draggedItem = null;
+
+            board.addEventListener('dragstart', e => {
+                const tile = e.target.closest('.app-tile');
+                if(!tile) return;
+                draggedItem = tile;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', tile.getAttribute('data-id') || 'tile'); 
+                setTimeout(() => draggedItem.style.opacity = '0.3', 0);
+            });
+
+            board.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+
+            board.addEventListener('drop', e => {
+                e.preventDefault();
+                const targetItem = e.target.closest('.app-tile');
+                if (targetItem && draggedItem && targetItem !== draggedItem) {
+                    const nodes = Array.from(board.children);
+                    const draggedIdx = nodes.indexOf(draggedItem);
+                    const targetIdx = nodes.indexOf(targetItem);
+                    
+                    if (draggedIdx < targetIdx) targetItem.after(draggedItem);
+                    else targetItem.before(draggedItem);
+                    
+                    const newOrder = Array.from(board.children).map(t => t.getAttribute('data-id'));
+                    localStorage.setItem('ssp_grid_v3', JSON.stringify(newOrder));
+                }
+                if(draggedItem) draggedItem.style.opacity = '1';
+            });
+
+            board.addEventListener('dragend', () => {
+                if(draggedItem) draggedItem.style.opacity = '1';
+                draggedItem = null;
+            });
+        }
+
+        function restoreLayout() {
+            const savedLayout = localStorage.getItem('ssp_grid_v3');
+            if (savedLayout) {
+                try {
+                    const order = JSON.parse(savedLayout);
+                    const board = document.getElementById('appGrid');
+                    if(board) {
+                        const tiles = Array.from(board.children);
+                        const tileMap = {};
+                        tiles.forEach(t => tileMap[t.getAttribute('data-id')] = t);
+                        
+                        order.forEach(id => { if (tileMap[id]) board.appendChild(tileMap[id]); });
+                        tiles.forEach(t => { if (!order.includes(t.getAttribute('data-id'))) board.appendChild(t); });
+                    }
+                } catch(e) { console.error("Grid Restore Failed", e); }
+            }
+        }
+
+        // --- 5. TOMORROW.IO METEOROLOGICAL PIPELINE ---
         async function fetchWeather() {
             const weatherContainer = document.getElementById('weatherContainer');
-            const CACHE_KEY = 'ssp_weather_v2.2';
-            const TTL = 300000; // 5 Minutes strict caching limit per Tomorrow.io Protocol
+            const CACHE_KEY = 'ssp_weather_v3';
+            const TTL = 300000; // 5 Minutes per Tomorrow.io Protocol
 
             const codeMap = {
                 1000: "☀️", 1100: "🌤", 1101: "⛅", 1102: "☁️", 1001: "☁️",
@@ -291,16 +444,20 @@
 
             function renderWeather(data) {
                 try {
-                    // Protocol Enforcement: Robust Array/Object Extraction
-                    const timelines = data.timelines ? data.timelines : data.data?.timelines;
-                    if (!timelines) throw new Error('Schema Failure: Missing Timelines');
+                    // Protocol Enforcement: Robust Array/Object Extraction for V4 APIs
+                    const t = data.timelines || data.data?.timelines;
+                    if (!t) throw new Error('Schema Failure: Missing Timelines');
                     
-                    const minutely = timelines.minutely || (Array.isArray(timelines) ? (timelines.find(t => t.timestep === '1m' || t.timestep === 'current')?.intervals || timelines[0].intervals) : []);
-                    const daily = timelines.daily || (Array.isArray(timelines) ? (timelines.find(t => t.timestep === '1d')?.intervals || timelines[1]?.intervals || timelines[0].intervals) : []);
+                    const minutely = Array.isArray(t) ? t.find(x => x.timestep === '1m' || x.timestep === 'current')?.intervals : t.minutely;
+                    const daily = Array.isArray(t) ? t.find(x => x.timestep === '1d')?.intervals : t.daily;
                     
-                    if (!minutely.length || !daily.length) throw new Error('Schema Failure: Empty Arrays');
+                    // Fallback to whatever array exists if explicit names are missing
+                    const activeMinute = minutely || (Array.isArray(t) ? t[0]?.intervals : []);
+                    const activeDaily = daily || (Array.isArray(t) ? (t[1]?.intervals || t[0]?.intervals) : []);
+                    
+                    if (!activeMinute.length || !activeDaily.length) throw new Error('Schema Failure: Empty Intervals');
 
-                    const currentVals = minutely[0].values;
+                    const currentVals = activeMinute[0].values;
                     const currentTemp = Math.round(currentVals.temperature || 0);
                     const currentCode = currentVals.weatherCode || 1000;
                     const currentIcon = codeMap[currentCode] || '🌤';
@@ -312,10 +469,9 @@
 
                     let weatherHTML = '<div class="flex flex-wrap sm:flex-nowrap justify-between gap-4 w-full">';
                     
-                    for (let i = 0; i < 5 && i < daily.length; i++) {
-                        const dayData = daily[i];
-                        // Safety fallback for start time formatting
-                        const date = new Date(dayData.time || dayData.startTime);
+                    for (let i = 0; i < 5 && i < activeDaily.length; i++) {
+                        const dayData = activeDaily[i];
+                        const date = new Date(dayData.startTime || dayData.time);
                         let dayName = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
                         if (i === 0) dayName = 'TDA';
                         
@@ -374,206 +530,11 @@
             }
         }
 
-        // --- 4. REGISTRY INTERCEPT & RENDER PIPELINE ---
-        
-        // 2050 Ultra-thin SVG Overrides for Clinical Hub Elements
-        const iconOverrides = {
-            'clinical-hub': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3"/>',
-            'workflow': '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />',
-            'pharm-flow': '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />'
-        };
-
-        const folderData = {
-            'links': {
-                title: 'System Links',
-                links: [
-                    { name: 'andykozicki/ssp-apps', url: 'https://github.com/andykozicki/ssp-apps' },
-                    { name: 'Kzick Dashboard Repo', url: 'https://github.com/kzick001/dashboard' },
-                    { name: 'Weather Worker Pipeline', url: 'https://dash.cloudflare.com/b161c0d78599ee2ead9d5aa4a03d1c40/workers/services/view/kzick-weather/production' },
-                    { name: 'Personal Dash Live', url: 'https://kzick001.github.io/dashboard/' }
-                ]
-            }
-        };
-
-        const modal = document.getElementById('folderModal');
-        const modalContent = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalLinks = document.getElementById('modalLinks');
-        
-        function openModal(folderId) {
-            const data = folderData[folderId];
-            if (!data) return;
-            
-            modalTitle.textContent = data.title;
-            modalLinks.innerHTML = data.links.map(link => `
-                <a href="${link.url}" target="_blank" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
-                    ${link.name} <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
-                </a>
-            `).join('');
-            
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    modal.classList.remove('opacity-0');
-                    modalContent.classList.remove('scale-95');
-                    modalContent.classList.add('scale-100');
-                });
-            });
-        }
-
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-        document.getElementById('modalBackdrop').addEventListener('click', closeModal);
-
-        // --- 5. INITIALIZATION & SMART GLASS PHYSICS ---
-        function attachSmartGlassListeners() {
-            document.querySelectorAll('.app-tile').forEach(tile => {
-                tile.addEventListener('mousemove', e => {
-                    const rect = tile.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    tile.style.setProperty('--mouse-x', `${x}px`);
-                    tile.style.setProperty('--mouse-y', `${y}px`);
-                });
-            });
-        }
-
-        function setupDragAndDrop() {
-            const board = document.getElementById('appGrid');
-            let draggedItem = null;
-            let isDragging = false;
-
-            board.addEventListener('dragstart', e => {
-                const tile = e.target.closest('.app-tile');
-                if(!tile) return;
-                isDragging = true;
-                draggedItem = tile;
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', tile.getAttribute('data-id') || 'tile'); 
-                setTimeout(() => draggedItem.style.opacity = '0.3', 0);
-            });
-
-            board.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-
-            board.addEventListener('drop', e => {
-                e.preventDefault();
-                const targetItem = e.target.closest('.app-tile');
-                if (targetItem && draggedItem && targetItem !== draggedItem) {
-                    const nodes = Array.from(board.children);
-                    const draggedIdx = nodes.indexOf(draggedItem);
-                    const targetIdx = nodes.indexOf(targetItem);
-                    
-                    if (draggedIdx < targetIdx) targetItem.after(draggedItem);
-                    else targetItem.before(draggedItem);
-                    
-                    const newOrder = Array.from(board.children).map(t => t.getAttribute('data-id'));
-                    localStorage.setItem('ssp_grid_v2', JSON.stringify(newOrder));
-                }
-                if(draggedItem) draggedItem.style.opacity = '1';
-            });
-
-            board.addEventListener('dragend', () => {
-                if(draggedItem) draggedItem.style.opacity = '1';
-                draggedItem = null;
-                setTimeout(() => { isDragging = false; }, 100);
-            });
-
-            board.addEventListener('click', e => {
-                if (isDragging) return;
-                const folderTile = e.target.closest('[data-folder]');
-                if (folderTile) openModal(folderTile.getAttribute('data-folder'));
-            });
-        }
-
-        function restoreLayout() {
-            const savedLayout = localStorage.getItem('ssp_grid_v2');
-            if (savedLayout) {
-                try {
-                    const order = JSON.parse(savedLayout);
-                    const board = document.getElementById('appGrid');
-                    if(board) {
-                        const tiles = Array.from(board.children);
-                        const tileMap = {};
-                        tiles.forEach(t => tileMap[t.getAttribute('data-id')] = t);
-                        
-                        order.forEach(id => { if (tileMap[id]) board.appendChild(tileMap[id]); });
-                        tiles.forEach(t => { if (!order.includes(t.getAttribute('data-id'))) board.appendChild(t); });
-                    }
-                } catch(e) { console.error("Grid Restore Failed", e); }
-            }
-        }
-
+        // Initialize Core Routines
         document.addEventListener("DOMContentLoaded", () => {
-            const appGrid = document.getElementById('appGrid');
-            
-            if (typeof appRegistry !== 'undefined') {
-                appGrid.innerHTML = '';
-                
-                const auxApps = ['pomodoro-timer', 'sports-network', 'zen-snake'];
-                
-                appRegistry.forEach(app => {
-                    // Exclude weather standalone widget
-                    if (app.id === 'weather-center') return;
-
-                    // Intercept and push non-clinical tools to modal
-                    if (auxApps.includes(app.id)) {
-                        folderData.links.push({
-                            name: app.name,
-                            url: app.folder.startsWith('http') ? app.folder : `${app.folder}/index.html`
-                        });
-                        return;
-                    }
-
-                    // Render core clinical tools strictly overriding registry.js SVGs to prevent viewBox collisions
-                    const isExternal = app.folder.startsWith('http');
-                    const target = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
-                    const href = isExternal ? app.folder : `${app.folder}/index.html`;
-                    
-                    const svgAsset = iconOverrides[app.id] || '<path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />';
-                    const sizeClass = app.id === 'clinical-hub' ? 'w-14 h-14 sm:w-16 sm:h-16' : 'w-10 h-10 sm:w-12 sm:h-12';
-
-                    const cardHTML = `
-                        <a href="${href}" ${target} data-id="${app.id}" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                            <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
-                                <svg class="${sizeClass} drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                                    ${svgAsset}
-                                </svg>
-                            </div>
-                            <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">${app.name}</span>
-                        </a>
-                    `;
-                    appGrid.insertAdjacentHTML('beforeend', cardHTML);
-                });
-
-                // Explicitly inject System Links Tile
-                const linksTile = `
-                    <div data-id="system-links" data-folder="links" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square select-none">
-                        <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3 pointer-events-none">
-                            <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path></svg>
-                        </div>
-                        <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 pointer-events-none">System Links</span>
-                    </div>
-                `;
-                appGrid.insertAdjacentHTML('beforeend', linksTile);
-
-            } else {
-                appGrid.innerHTML = `
-                    <div class="col-span-full text-center text-red-500 font-mono tracking-widest text-xs p-8 rounded-[2rem] border border-red-500/20 bg-red-500/5">
-                        CRITICAL ERROR: REGISTRY.JS NOT FOUND
-                    </div>
-                `;
-            }
-
             restoreLayout();
             attachSmartGlassListeners();
             setupDragAndDrop();
-
             updateNetworkStatus();
             fetchWeather();
         });
