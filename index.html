@@ -30,7 +30,7 @@
         }
     </script>
     <script>
-        // STRICT FOUC PREVENTION (Executes before DOM render)
+        // STRICT FOUC PREVENTION
         if (localStorage.getItem('ssp-theme') === 'dark' || !('ssp-theme' in localStorage)) { 
             document.documentElement.classList.add('dark'); 
         } else {
@@ -58,7 +58,7 @@
         html.dark {
             --glass-bg: rgba(255, 255, 255, 0.015);
             --glass-border: rgba(255, 255, 255, 0.05);
-            --glass-shine: rgba(22, 163, 74, 0.12); /* Sterling Green Glow */
+            --glass-shine: rgba(22, 163, 74, 0.12);
             --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
         }
 
@@ -154,23 +154,24 @@
             <p class="text-sterling-green font-mono text-[10px] tracking-[0.3em] uppercase mt-4">Sterling Specialty Operations</p>
         </header>
 
-        <main class="w-full max-w-4xl flex flex-col gap-10">
+        <main class="w-full max-w-4xl flex flex-col gap-8 sm:gap-10">
             
             <div id="appGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full">
                 
                 <a href="https://calc.sterlingspecialtyrx.com/" target="_blank" rel="noopener noreferrer" data-id="clinical-hub" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
-                        <svg class="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-3-3v6m-9 3l3-3m12-6l3-3m-3 12l3 3M6 6l-3-3M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                            <circle cx="12" cy="12" r="5" fill="currentColor" opacity="0.1" />
+                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                        <div class="absolute inset-0 m-auto w-10 h-10 sm:w-14 sm:h-14 bg-sterling-green rounded-full blur-[15px] opacity-20 group-hover:opacity-70 transition-opacity duration-700"></div>
+                        <svg class="relative z-10 w-full h-full drop-shadow-lg" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.5c0-1.25-1-2.25-2.25-2.25S9.75 8.25 9.75 9.5c0 1.5 4.5 1.5 4.5 3.5 0 1.25-1 2.25-2.25 2.25S9.75 14.25 9.75 13" stroke-width="1.5" />
                         </svg>
                     </div>
                     <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Clinical Hub</span>
                 </a>
 
                 <a href="/ssp-apps/workflow/index.html" data-id="workflow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
-                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                        <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                         </svg>
                     </div>
@@ -178,17 +179,17 @@
                 </a>
 
                 <a href="/ssp-apps/pharm-flow/index.html" data-id="pharm-flow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3">
-                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                        <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M5 15v-6 M10 20V5 M15 17V8 M20 14v-4" stroke-width="2" />
                         </svg>
                     </div>
                     <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Pharmacy Flow</span>
                 </a>
 
                 <div onclick="openModal()" data-id="system-links" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square select-none">
-                    <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-500 mb-3 pointer-events-none">
-                        <svg class="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500 pointer-events-none">
+                        <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                         </svg>
                     </div>
@@ -217,7 +218,7 @@
     </div>
 
     <footer class="text-slate-400 font-mono text-[10px] tracking-widest uppercase text-center pb-8 w-full relative z-10">
-        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V3.0.1</p>
+        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V3.0.2</p>
     </footer>
 
     <div id="folderModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
@@ -399,7 +400,7 @@
                     else targetItem.before(draggedItem);
                     
                     const newOrder = Array.from(board.children).map(t => t.getAttribute('data-id'));
-                    localStorage.setItem('ssp_grid_v3', JSON.stringify(newOrder));
+                    localStorage.setItem('ssp_grid_v4', JSON.stringify(newOrder));
                 }
                 if(draggedItem) draggedItem.style.opacity = '1';
             });
@@ -411,7 +412,7 @@
         }
 
         function restoreLayout() {
-            const savedLayout = localStorage.getItem('ssp_grid_v3');
+            const savedLayout = localStorage.getItem('ssp_grid_v4');
             if (savedLayout) {
                 try {
                     const order = JSON.parse(savedLayout);
@@ -444,14 +445,12 @@
 
             function renderWeather(data) {
                 try {
-                    // Protocol Enforcement: Robust Array/Object Extraction for V4 APIs
                     const t = data.timelines || data.data?.timelines;
                     if (!t) throw new Error('Schema Failure: Missing Timelines');
                     
                     const minutely = Array.isArray(t) ? t.find(x => x.timestep === '1m' || x.timestep === 'current')?.intervals : t.minutely;
                     const daily = Array.isArray(t) ? t.find(x => x.timestep === '1d')?.intervals : t.daily;
                     
-                    // Fallback to whatever array exists if explicit names are missing
                     const activeMinute = minutely || (Array.isArray(t) ? t[0]?.intervals : []);
                     const activeDaily = daily || (Array.isArray(t) ? (t[1]?.intervals || t[0]?.intervals) : []);
                     
