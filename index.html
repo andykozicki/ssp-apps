@@ -1,134 +1,202 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Sterling Specialty</title>
+    <title>Clinical Tool Hub | Sterling Specialty</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M 15 75 A 35 35 0 0 1 85 75%22 fill=%22none%22 stroke=%22%2316a34a%22 stroke-width=%2212%22 stroke-linecap=%22round%22/><circle cx=%2250%22 cy=%2275%22 r=%2210%22 fill=%22%2316a34a%22/><line x1=%2250%22 y1=%2275%22 x2=%2270%22 y2=%2245%22 stroke=%22%2316a34a%22 stroke-width=%228%22 stroke-linecap=%22round%22/></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { 
-            darkMode: 'class' 
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'sterling-green': '#16a34a',
+                    },
+                    animation: {
+                        'breathe': 'breathe 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        breathe: {
+                            '0%, 100%': { opacity: '0.3', transform: 'scale(0.95)' },
+                            '50%': { opacity: '1', transform: 'scale(1.1)' },
+                        }
+                    }
+                }
+            }
         }
     </script>
     <script>
         // Strictly adhering to SSP Dark Mode Rules for FOUC prevention
-        if (localStorage.getItem('ssp-theme') === 'dark') { 
+        if (localStorage.getItem('ssp-theme') === 'dark' || !('ssp-theme' in localStorage)) { 
             document.documentElement.classList.add('dark'); 
+        } else {
+            document.documentElement.classList.remove('dark');
         }
     </script>
     
     <script src="registry.js"></script>
     
     <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .sterling-green { color: #16a34a; }
-        .bg-sterling-green { background-color: #16a34a; }
+        :root {
+            --glass-bg: rgba(0, 0, 0, 0.03);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-shine: rgba(0, 0, 0, 0.04);
+            --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark {
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shine: rgba(255, 255, 255, 0.06);
+            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            transition: background-color 0.5s ease; 
+        }
+
+        /* SMART GLASS TILE ENGINE (Sterling Cupertino Variant) */
+        .app-tile {
+            position: relative;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1), border-color 0.3s ease, background 0.3s ease, opacity 0.2s ease;
+            cursor: pointer;
+        }
+
+        .app-tile::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                var(--glass-shine), 
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .app-tile:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(22, 163, 74, 0.3); /* Sterling Green Tint */
+            background: html.dark ? rgba(255, 255, 255, 0.04) : rgba(0, 0, 0, 0.05);
+            z-index: 20;
+        }
         
-        /* Card Hover Animations */
-        .hover-scale { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
-        .hover-scale:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        
-        /* Custom Toggle Pill Styling */
-        .toggle-checkbox:checked { right: 0; border-color: #16a34a; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; }
+        .app-tile:hover::before { opacity: 1; }
+
+        /* OVERRIDE TOGGLE UI */
+        .toggle-checkbox { left: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1); }
+        .toggle-checkbox:checked { left: 16px; border-color: #16a34a; } 
+        .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; box-shadow: 0 0 12px rgba(22, 163, 74, 0.5); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+<body class="bg-slate-50 dark:bg-[#050505] dark:bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] dark:from-green-900/10 dark:via-[#050505] dark:to-black min-h-screen flex flex-col text-slate-800 dark:text-slate-300 antialiased selection:bg-sterling-green/30 selection:text-white transition-colors duration-500">
 
-    <div class="hidden bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 bg-pink-100 dark:bg-pink-900/40 text-pink-800 dark:text-pink-300 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700 bg-red-400 bg-red-500 bg-yellow-400 bg-yellow-500 bg-green-400 bg-green-500"></div>
+    <div class="hidden bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 bg-teal-50 dark:bg-teal-900/30 text-teal-500 dark:text-teal-400 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400"></div>
 
-    <div class="w-full p-4 flex justify-between items-center">
-        <div class="relative flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-300 cursor-help group">
-            <div class="relative flex h-3 w-3">
-              <span id="net-ping-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span id="net-ping-dot" class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </div>
-            <span id="net-ping-text">-- ms</span>
+    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0">
+        
+        <div class="relative flex items-center gap-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] cursor-help group select-none">
+            <span id="net-ping-ring" class="w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-breathe"></span>
+            <span id="net-status-text" class="text-slate-500 dark:text-slate-400 font-medium transition-colors">SYS.ONLINE</span>
+            <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">|</span>
+            <span id="net-ping-text" class="text-slate-400 dark:text-slate-500 hidden sm:inline">-- ms</span>
 
-            <div class="absolute left-0 top-full mt-2 w-48 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <div class="font-bold border-b border-gray-600 pb-1 mb-2">Network Diagnostics</div>
-                <div class="flex justify-between"><span>Status:</span> <span id="net-status-tip" class="font-semibold text-green-400">Online</span></div>
-                <div class="flex justify-between mt-1.5"><span>Downlink:</span> <span id="net-down-tip" class="font-semibold">-- Mbps</span></div>
-                <div class="flex justify-between mt-1.5"><span>Connection:</span> <span id="net-type-tip" class="font-semibold uppercase">--</span></div>
+            <div class="absolute left-0 top-full mt-4 w-56 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-xl shadow-2xl p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                <div class="font-bold border-b border-black/10 dark:border-white/10 pb-2 mb-3 tracking-widest text-sterling-green">DIAGNOSTICS</div>
+                <div class="flex justify-between mb-2"><span>Status:</span> <span id="net-status-tip" class="font-semibold text-green-500">Online</span></div>
+                <div class="flex justify-between mb-2"><span>Downlink:</span> <span id="net-down-tip" class="font-mono">-- Mbps</span></div>
+                <div class="flex justify-between"><span>Connection:</span> <span id="net-type-tip" class="font-mono uppercase">--</span></div>
             </div>
         </div>
-
+        
         <div class="flex items-center gap-6">
-            
-            <div id="miniWeather" class="hidden flex items-center text-gray-700 dark:text-gray-300 font-medium bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
-                <span id="miniWeatherIcon" class="text-lg mr-1.5"></span>
-                <span id="miniWeatherTemp" class="text-sm"></span>
+            <div id="miniWeather" class="hidden items-center gap-2 font-mono text-xs text-slate-500 uppercase tracking-widest bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full">
+                <span id="miniWeatherIcon" class="text-sm"></span>
+                <span id="miniWeatherTemp"></span>
             </div>
 
             <div class="flex items-center">
-                <span class="mr-2 text-sm text-gray-500 dark:text-gray-400">Dark Mode</span>
-                <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" name="toggle" id="darkModeToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 z-10 top-0 bottom-0 m-auto right-4"/>
-                    <label for="darkModeToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+                <span class="mr-3 text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em]">DARK</span>
+                <div class="relative inline-block w-8 h-4 align-middle select-none">
+                    <input type="checkbox" id="darkModeToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border border-slate-300 dark:border-white/20 appearance-none cursor-pointer z-10 top-0 m-auto"/>
+                    <label for="darkModeToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-200 dark:bg-white/5 shadow-inner cursor-pointer transition-all duration-300"></label>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center px-4 w-full">
+    <div class="flex-1 flex flex-col items-center px-6 w-full pt-16 pb-32 relative z-10">
         
-        <header class="mb-12 text-center w-full max-w-6xl">
-            <h1 class="text-4xl font-bold tracking-tight mb-2">Dashboard</h1>
-            <p class="text-gray-500 dark:text-gray-400 font-medium">Sterling Specialty Pharmacy Internal Tool</p>
+        <header class="mb-16 text-center w-full max-w-6xl">
+            <h1 class="text-5xl sm:text-7xl font-light tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-br from-slate-800 to-slate-400 dark:from-white dark:to-slate-500">Clinical Tool Hub</h1>
+            <p class="text-slate-500 font-mono text-xs tracking-[0.3em] uppercase mt-4">Sterling Specialty Pharmacy Internal</p>
         </header>
 
-        <main class="w-full max-w-6xl flex flex-col gap-8">
+        <main class="w-full max-w-6xl flex flex-col gap-10">
             
-            <div id="appGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="appGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 </div>
 
-            <div class="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover-scale">
-                <div class="flex items-center mb-4">
-                    <div class="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
-                        <svg class="w-6 h-6 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
-                        </svg>
-                    </div>
+            <div class="app-tile rounded-[2rem] backdrop-blur-3xl p-8 w-full mt-6">
+                <div class="flex justify-between items-start w-full relative z-10 mb-8 border-b border-black/5 dark:border-white/5 pb-4">
                     <div>
-                        <h2 class="text-xl font-bold">Mendota Heights Forecast</h2>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm">5-Day Outlook</p>
+                        <h2 class="text-lg font-medium text-slate-800 dark:text-slate-300 tracking-wide mb-1">Mendota Heights</h2>
+                        <p class="text-slate-500 font-mono text-xs tracking-[0.1em] uppercase">5-Day Meteorological Outlook</p>
                     </div>
+                    <svg class="w-8 h-8 text-sterling-green" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
                 </div>
                 
-                <div id="weatherContainer" class="w-full min-h-[100px] flex items-center justify-center">
-                    <div class="animate-pulse flex space-x-4 w-full">
-                        <div class="flex-1 h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div class="flex-1 h-20 bg-gray-200 dark:bg-gray-700 rounded hidden sm:block"></div>
-                        <div class="flex-1 h-20 bg-gray-200 dark:bg-gray-700 rounded hidden sm:block"></div>
-                        <div class="flex-1 h-20 bg-gray-200 dark:bg-gray-700 rounded hidden sm:block"></div>
-                        <div class="flex-1 h-20 bg-gray-200 dark:bg-gray-700 rounded hidden sm:block"></div>
-                    </div>
+                <div id="weatherContainer" class="w-full relative z-10 flex items-center justify-center font-mono text-xs text-slate-500 min-h-[100px]">
+                    <div class="animate-pulse tracking-widest">SYNCING PIPELINE...</div>
                 </div>
             </div>
-        </main>
 
+        </main>
     </div>
 
-    <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full">
-        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy. Internal Use Only.</p>
+    <footer class="text-slate-400 font-mono text-[10px] tracking-widest uppercase text-center pb-8 w-full relative z-10">
+        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy</p>
     </footer>
 
+    <div id="folderModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div id="modalBackdrop" class="absolute inset-0 bg-white/60 dark:bg-black/70 backdrop-blur-md cursor-pointer transition-opacity"></div>
+        
+        <div id="modalContent" class="relative w-[90%] max-w-2xl bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-[2.5rem] shadow-2xl p-8 transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6 border-b border-black/10 dark:border-white/5 pb-4">
+                <h3 id="modalTitle" class="text-2xl font-light tracking-wide text-slate-800 dark:text-white">Folder</h3>
+                <button id="closeModalBtn" class="p-2 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none">
+                    <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modalLinks" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+                </div>
+        </div>
+    </div>
+
     <script>
-        // Set dynamic copyright year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        // Dark Mode Logic conforming to ssp-dashboard-rules.md
+        // --- 1. THEME ENGINE ---
         const htmlElement = document.documentElement;
         const darkModeToggle = document.getElementById('darkModeToggle');
 
-        const isDarkMode = localStorage.getItem('ssp-theme') === 'dark' || 
-                           (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-        if (isDarkMode) {
-            htmlElement.classList.add('dark');
+        if (htmlElement.classList.contains('dark')) {
             darkModeToggle.checked = true;
         }
 
@@ -142,69 +210,64 @@
             }
         });
 
-        // --- Network Health Logic ---
+        // --- 2. NETWORK SUBSYSTEM ---
         function updateNetworkStatus() {
+            const statusText = document.getElementById('net-status-text');
             const pingText = document.getElementById('net-ping-text');
             const statusTip = document.getElementById('net-status-tip');
             const downTip = document.getElementById('net-down-tip');
             const typeTip = document.getElementById('net-type-tip');
+            const pingRing = document.getElementById('net-ping-ring');
 
             if (!navigator.onLine) {
+                statusText.textContent = 'NO SIGNAL';
+                statusText.className = 'text-red-500 font-bold';
                 pingText.textContent = 'Offline';
-                setNetColors('bg-red-400', 'bg-red-500', false);
+                pingRing.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse';
+                
                 statusTip.textContent = 'Offline';
-                statusTip.className = 'font-semibold text-red-400';
+                statusTip.className = 'font-semibold text-red-500';
                 downTip.textContent = '0 Mbps';
                 typeTip.textContent = 'None';
                 return;
             }
 
-            // Chromium/Edge Network Information API
             if (navigator.connection) {
                 const conn = navigator.connection;
-                const rtt = conn.rtt; // Estimated Ping in ms
-                let down = conn.downlink; // Estimated Downlink in Mbps (Maxes at 10 in Chrome)
-                const type = conn.effectiveType; // '4g', '3g', etc.
+                const rtt = conn.rtt;
+                let down = conn.downlink;
+                const type = conn.effectiveType;
 
-                // Format downlink text to indicate the 10Mbps cap
                 const downText = down >= 10 ? '10+ Mbps' : down + ' Mbps';
 
+                statusText.textContent = 'SYS.ONLINE';
+                statusText.className = 'text-slate-500 dark:text-slate-400 font-medium';
                 pingText.textContent = rtt + ' ms';
                 statusTip.textContent = 'Online';
                 downTip.textContent = downText;
                 typeTip.textContent = type;
 
-                // Adjusted Real-World Threshold Logic
                 if (rtt > 300 || down < 0.5 || type === '2g' || type === 'slow-2g') {
-                    // Critical: Severe latency or practically no bandwidth
-                    setNetColors('bg-red-400', 'bg-red-500', true); 
-                    statusTip.className = 'font-semibold text-red-400';
+                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse';
+                    statusTip.className = 'font-semibold text-red-500';
                 } else if (rtt > 150 || down < 2 || type === '3g') {
-                    // Warning: Noticeable slowdowns
-                    setNetColors('bg-yellow-400', 'bg-yellow-500', true); 
-                    statusTip.className = 'font-semibold text-yellow-400';
+                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.8)] animate-pulse';
+                    statusTip.className = 'font-semibold text-yellow-500';
                 } else {
-                    // Optimal: Healthy web-layer response times
-                    setNetColors('bg-green-400', 'bg-green-500', true); 
-                    statusTip.className = 'font-semibold text-green-400';
+                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-breathe';
+                    statusTip.className = 'font-semibold text-green-500';
                 }
             } else {
-                // Fallback for browsers without navigator.connection (Safari/Firefox)
-                pingText.textContent = 'Online';
-                setNetColors('bg-green-400', 'bg-green-500', true);
+                statusText.textContent = 'SYS.ONLINE';
+                statusText.className = 'text-slate-500 dark:text-slate-400 font-medium';
+                pingText.textContent = 'Connected';
+                pingRing.className = 'w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-breathe';
+                
                 statusTip.textContent = 'Online';
-                statusTip.className = 'font-semibold text-green-400';
-                downTip.textContent = 'N/A (Browser unsupported)';
+                statusTip.className = 'font-semibold text-green-500';
+                downTip.textContent = 'N/A';
                 typeTip.textContent = 'N/A';
             }
-        }
-
-        function setNetColors(ringColor, dotColor, isPulsing) {
-            const ring = document.getElementById('net-ping-ring');
-            const dot = document.getElementById('net-ping-dot');
-            
-            ring.className = `absolute inline-flex h-full w-full rounded-full opacity-75 ${ringColor} ${isPulsing ? 'animate-ping' : 'hidden'}`;
-            dot.className = `relative inline-flex rounded-full h-3 w-3 ${dotColor}`;
         }
 
         window.addEventListener('online', updateNetworkStatus);
@@ -213,66 +276,79 @@
             navigator.connection.addEventListener('change', updateNetworkStatus);
         }
 
-        // --- Fetch Weather ---
+        // --- 3. WEATHER PIPELINE (Updated to Cloudflare Worker) ---
         async function fetchWeather() {
             const weatherContainer = document.getElementById('weatherContainer');
             try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=44.8897&longitude=-93.146&current=temperature_2m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago&temperature_unit=fahrenheit');
+                // Now targeting the custom worker proxy provided in requirements
+                const res = await fetch('https://kzick-weather.askozicki.workers.dev?lat=44.8897&lon=-93.146');
                 
                 if (!res.ok) throw new Error('Network response was not ok');
-                const data = await res.json();
+                const rawData = await res.json();
                 
-                const currentTemp = Math.round(data.current.temperature_2m);
-                const currentCode = data.current.weathercode;
+                // The worker might wrap response in a 'data' object based on Tomorrow.io standard format
+                // If it's a direct Open-Meteo proxy, structure remains identical. 
+                // We'll handle the Open-Meteo schema as previously written since it matches the UI code.
+                const data = rawData.data ? rawData.data : rawData; 
                 
-                let currentIcon = '☀️';
-                if (currentCode >= 1 && currentCode <= 3) currentIcon = '⛅';
-                if (currentCode >= 45 && currentCode <= 48) currentIcon = '🌫️';
-                if (currentCode >= 51 && currentCode <= 67) currentIcon = '🌧️';
-                if (currentCode >= 71 && currentCode <= 77) currentIcon = '❄️';
-                if (currentCode >= 80 && currentCode <= 82) currentIcon = '🌦️';
-                if (currentCode >= 95 && currentCode <= 99) currentIcon = '⛈️';
+                if (!data.current || !data.daily) throw new Error('Invalid Schema');
+
+                const currentTemp = Math.round(data.current.temperature_2m || data.current.temperature || 0);
+                const currentCode = data.current.weathercode || data.current.weatherCode || 0;
+                
+                // Extended code map to safely catch Open-Meteo and Tomorrow.io common codes
+                const codeMap = {
+                    0: '☀️', 1000: '☀️', 1: '🌤', 1100: '🌤', 2: '⛅', 1101: '⛅', 3: '☁️', 1001: '☁️', 1102: '☁️',
+                    45: '🌫️', 2000: '🌫️', 48: '🌫️', 2100: '🌫️',
+                    51: '🌧️', 4000: '🌧️', 53: '🌧️', 55: '🌧️', 56: '🌧️', 57: '🌧️',
+                    61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️',
+                    71: '❄️', 5000: '❄️', 73: '❄️', 75: '❄️', 77: '❄️',
+                    80: '🌦️', 81: '🌦️', 82: '🌦️',
+                    85: '❄️', 86: '❄️',
+                    95: '⛈️', 8000: '⛈️', 96: '⛈️', 99: '⛈️'
+                };
+                
+                const currentIcon = codeMap[currentCode] || '🌤';
 
                 document.getElementById('miniWeatherIcon').textContent = currentIcon;
-                document.getElementById('miniWeatherTemp').textContent = currentTemp + '°F';
+                document.getElementById('miniWeatherTemp').textContent = currentTemp + '°';
                 document.getElementById('miniWeather').classList.remove('hidden');
+                document.getElementById('miniWeather').classList.add('flex');
 
                 let weatherHTML = '<div class="flex flex-col sm:flex-row justify-between gap-4 w-full">';
                 
+                // Arrays to support both schema types
+                const times = data.daily.time || data.daily.map(d => d.time);
+                const maxTemps = data.daily.temperature_2m_max || data.daily.map(d => d.temperatureMax);
+                const minTemps = data.daily.temperature_2m_min || data.daily.map(d => d.temperatureMin);
+                const codes = data.daily.weathercode || data.daily.map(d => d.weatherCode);
+                const precips = data.daily.precipitation_probability_max || data.daily.map(d => d.precipitationProbability || 0);
+
                 for (let i = 0; i < 5; i++) {
-                    const dateStr = data.daily.time[i] + 'T00:00:00';
+                    const dateStr = times[i] + (times[i].includes('T') ? '' : 'T00:00:00');
                     const date = new Date(dateStr);
                     
                     let dayName = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
-                    if (i === 0) dayName = 'Today';
+                    if (i === 0) dayName = 'TDA';
                     
-                    const dateFormatted = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
-                    const maxTemp = Math.round(data.daily.temperature_2m_max[i]);
-                    const minTemp = Math.round(data.daily.temperature_2m_min[i]);
-                    const code = data.daily.weathercode[i];
-                    const precipProb = data.daily.precipitation_probability_max[i];
+                    const maxTemp = Math.round(maxTemps[i]);
+                    const minTemp = Math.round(minTemps[i]);
+                    const code = codes[i];
+                    const precipProb = precips[i];
                     
-                    let icon = '☀️';
-                    if (code >= 1 && code <= 3) icon = '⛅';
-                    if (code >= 45 && code <= 48) icon = '🌫️';
-                    if (code >= 51 && code <= 67) icon = '🌧️';
-                    if (code >= 71 && code <= 77) icon = '❄️';
-                    if (code >= 80 && code <= 82) icon = '🌦️';
-                    if (code >= 95 && code <= 99) icon = '⛈️';
+                    const icon = codeMap[code] || '🌤';
 
                     const precipDisplay = precipProb > 20 
-                        ? `<div class="text-xs text-blue-500 dark:text-blue-400 font-bold flex items-center mt-1" title="Precipitation Probability"><svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.5c-3.033 0-5.5-2.467-5.5-5.5 0-2.333 1.583-4.833 5.5-9.833 3.917 5 5.5 7.5 5.5 9.833 0 3.033-2.467 5.5-5.5 5.5z"/></svg>${precipProb}%</div>`
-                        : `<div class="text-xs opacity-0 mt-1">0%</div>`;
+                        ? `<div class="text-[10px] text-blue-500 dark:text-blue-400 font-bold flex items-center mt-2 tracking-widest"><svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.5c-3.033 0-5.5-2.467-5.5-5.5 0-2.333 1.583-4.833 5.5-9.833 3.917 5 5.5 7.5 5.5 9.833 0 3.033-2.467 5.5-5.5 5.5z"/></svg>${precipProb}%</div>`
+                        : `<div class="text-[10px] opacity-0 mt-2">0%</div>`;
 
                     weatherHTML += `
-                        <div class="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 flex-1 border border-gray-100 dark:border-gray-600">
-                            <span class="font-bold text-sm text-gray-700 dark:text-gray-300 uppercase tracking-wide">${dayName}</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">${dateFormatted}</span>
-                            <span class="text-3xl my-1">${icon}</span>
-                            <div class="text-sm font-semibold">
-                                <span class="text-gray-900 dark:text-white">${maxTemp}°</span>
-                                <span class="text-gray-300 dark:text-gray-500 mx-1">|</span>
-                                <span class="text-gray-500 dark:text-gray-400">${minTemp}°</span>
+                        <div class="flex flex-col items-center flex-1 py-4">
+                            <span class="text-xs text-slate-500 uppercase tracking-[0.2em] mb-3">${dayName}</span>
+                            <span class="text-3xl mb-3 drop-shadow-md">${icon}</span>
+                            <div class="flex items-baseline gap-2 font-mono">
+                                <span class="text-lg text-slate-800 dark:text-slate-200 font-medium">${maxTemp}°</span>
+                                <span class="text-xs text-slate-400 dark:text-slate-500">${minTemp}°</span>
                             </div>
                             ${precipDisplay}
                         </div>
@@ -284,46 +360,210 @@
 
             } catch (error) {
                 console.error("Weather fetch failed:", error);
-                weatherContainer.innerHTML = `
-                    <div class="text-center text-red-500 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800 w-full">
-                        Unable to connect to weather service. Firewall may be blocking external API calls.
-                    </div>
-                `;
+                weatherContainer.innerHTML = `<div class="text-red-500 dark:text-red-400 font-bold tracking-widest text-xs">PIPELINE UNREACHABLE</div>`;
             }
         }
 
-        // Render Apps from Registry
+        // --- 4. MODAL SUBSYSTEM ---
+        const folderData = {
+            'links': {
+                title: 'System Links',
+                links: [
+                    { name: 'andykozicki/ssp-apps', url: 'https://github.com/andykozicki/ssp-apps' },
+                    { name: 'Kzick Dashboard Repo', url: 'https://github.com/kzick001/dashboard' },
+                    { name: 'Weather Worker Pipeline', url: 'https://dash.cloudflare.com/b161c0d78599ee2ead9d5aa4a03d1c40/workers/services/view/kzick-weather/production' },
+                    { name: 'Personal Dash Live', url: 'https://kzick001.github.io/dashboard/' }
+                ]
+            }
+        };
+
+        const modal = document.getElementById('folderModal');
+        const modalContent = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalLinks = document.getElementById('modalLinks');
+        
+        function openModal(folderId) {
+            const data = folderData[folderId];
+            if (!data) return;
+            
+            modalTitle.textContent = data.title;
+            modalLinks.innerHTML = data.links.map(link => `
+                <a href="${link.url}" target="_blank" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-white/20">
+                    ${link.name} <span class="text-slate-400 text-xs">↗</span>
+                </a>
+            `).join('');
+            
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                });
+            });
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('modalBackdrop').addEventListener('click', closeModal);
+
+        // --- 5. INITIALIZATION & SMART GLASS LOGIC ---
+        function attachSmartGlassListeners() {
+            document.querySelectorAll('.app-tile').forEach(tile => {
+                tile.addEventListener('mousemove', e => {
+                    const rect = tile.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    tile.style.setProperty('--mouse-x', `${x}px`);
+                    tile.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        }
+
+        function setupDragAndDrop() {
+            const board = document.getElementById('appGrid');
+            let draggedItem = null;
+            let isDragging = false;
+
+            board.addEventListener('dragstart', e => {
+                const tile = e.target.closest('.app-tile');
+                if(!tile) return;
+                isDragging = true;
+                draggedItem = tile;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', tile.getAttribute('data-id') || 'tile'); 
+                setTimeout(() => draggedItem.style.opacity = '0.4', 0);
+            });
+
+            board.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            board.addEventListener('drop', e => {
+                e.preventDefault();
+                const targetItem = e.target.closest('.app-tile');
+                if (targetItem && draggedItem && targetItem !== draggedItem) {
+                    const nodes = Array.from(board.children);
+                    const draggedIdx = nodes.indexOf(draggedItem);
+                    const targetIdx = nodes.indexOf(targetItem);
+                    
+                    if (draggedIdx < targetIdx) targetItem.after(draggedItem);
+                    else targetItem.before(draggedItem);
+                    
+                    const newOrder = Array.from(board.children).map(t => t.getAttribute('data-id'));
+                    localStorage.setItem('ssp_layout_v1', JSON.stringify(newOrder));
+                }
+                if(draggedItem) draggedItem.style.opacity = '1';
+            });
+
+            board.addEventListener('dragend', () => {
+                if(draggedItem) draggedItem.style.opacity = '1';
+                draggedItem = null;
+                setTimeout(() => { isDragging = false; }, 100);
+            });
+
+            window.addEventListener('dragend', () => {
+                if(draggedItem) draggedItem.style.opacity = '1';
+                draggedItem = null;
+                setTimeout(() => { isDragging = false; }, 100);
+            });
+
+            // Catch Modal clicks and ignore if dragging
+            board.addEventListener('click', e => {
+                if (isDragging) return;
+                const folderTile = e.target.closest('[data-folder]');
+                if (folderTile) {
+                    openModal(folderTile.getAttribute('data-folder'));
+                }
+            });
+        }
+
+        function restoreLayout() {
+            const savedLayout = localStorage.getItem('ssp_layout_v1');
+            if (savedLayout) {
+                try {
+                    const order = JSON.parse(savedLayout);
+                    const board = document.getElementById('appGrid');
+                    if(board) {
+                        const tiles = Array.from(board.children);
+                        const tileMap = {};
+                        tiles.forEach(t => tileMap[t.getAttribute('data-id')] = t);
+                        
+                        order.forEach(id => {
+                            if (tileMap[id]) board.appendChild(tileMap[id]);
+                        });
+                        
+                        tiles.forEach(t => {
+                            if (!order.includes(t.getAttribute('data-id'))) {
+                                board.appendChild(t);
+                            }
+                        });
+                    }
+                } catch(e) { console.error("Grid Restore Failed", e); }
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const appGrid = document.getElementById('appGrid');
             
             if (typeof appRegistry !== 'undefined') {
                 appGrid.innerHTML = '';
 
+                // 1. Inject Registry Tiles
                 appRegistry.forEach(app => {
+                    const isExternal = app.folder.startsWith('http');
+                    const target = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
+                    const href = isExternal ? app.folder : `${app.folder}/index.html`;
+
                     const cardHTML = `
-                        <a href="${app.folder}/index.html" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover-scale">
-                            <div class="flex items-center mb-4">
-                                <div class="${app.iconBg} p-3 rounded-lg mr-4">
-                                    <svg class="w-6 h-6 ${app.iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a href="${href}" ${target} data-id="${app.id}" draggable="true" class="app-tile group flex flex-col p-6 rounded-[2rem] backdrop-blur-3xl overflow-hidden min-h-[160px]">
+                            <div class="flex items-center mb-4 relative z-10">
+                                <div class="text-slate-500 dark:text-slate-400 group-hover:text-sterling-green dark:group-hover:text-sterling-green transition-colors duration-500 mr-4">
+                                    <svg class="w-8 h-8 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         ${app.svg}
                                     </svg>
                                 </div>
-                                <h2 class="text-xl font-bold">${app.name}</h2>
+                                <h2 class="text-xl font-medium tracking-wide text-slate-800 dark:text-slate-200 group-hover:text-black dark:group-hover:text-white transition-colors">${app.name}</h2>
                             </div>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm">${app.description}</p>
+                            <p class="text-slate-500 text-sm font-light relative z-10 leading-relaxed">${app.description}</p>
                         </a>
                     `;
                     appGrid.insertAdjacentHTML('beforeend', cardHTML);
                 });
+
+                // 2. Inject Static 'Links' Folder Tile
+                const linksTile = `
+                    <div data-id="system-links" data-folder="links" draggable="true" class="app-tile group flex flex-col p-6 rounded-[2rem] backdrop-blur-3xl overflow-hidden min-h-[160px] select-none">
+                        <div class="flex items-center mb-4 relative z-10 pointer-events-none">
+                            <div class="text-slate-500 dark:text-slate-400 group-hover:text-blue-500 transition-colors duration-500 mr-4">
+                                <svg class="w-8 h-8 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"></path></svg>
+                            </div>
+                            <h2 class="text-xl font-medium tracking-wide text-slate-800 dark:text-slate-200 group-hover:text-black dark:group-hover:text-white transition-colors">System Links</h2>
+                        </div>
+                        <p class="text-slate-500 text-sm font-light relative z-10 leading-relaxed pointer-events-none">External repositories and infrastructure pipelines.</p>
+                    </div>
+                `;
+                appGrid.insertAdjacentHTML('beforeend', linksTile);
+
             } else {
                 appGrid.innerHTML = `
-                    <div class="col-span-full text-center text-red-500 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                        Failed to load the tool registry. Ensure registry.js is configured correctly and in the same folder.
+                    <div class="col-span-full text-center text-red-500 font-mono tracking-widest text-xs p-8 rounded-[2rem] border border-red-500/20 bg-red-500/5">
+                        REGISTRY.JS NOT FOUND
                     </div>
                 `;
             }
 
-            // Initialize Dashboard Modules
+            restoreLayout();
+            attachSmartGlassListeners();
+            setupDragAndDrop();
+
             updateNetworkStatus();
             fetchWeather();
         });
