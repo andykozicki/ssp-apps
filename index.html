@@ -39,6 +39,10 @@
     </script>
     
     <style>
+        /* Strict Enterprise Color Definitions */
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+
         /* Anti-Transition Flash Class */
         .preload * {
             -webkit-transition: none !important;
@@ -64,7 +68,7 @@
 
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            transition: background-color 0.5s ease; 
+            transition: background-color 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1); 
         }
 
         /* SMART GLASS TILE ENGINE (Cupertino 2050 - Square Density) */
@@ -73,7 +77,7 @@
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             box-shadow: var(--glass-shadow);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1), border-color 0.3s ease, background 0.3s ease, opacity 0.2s ease, box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             cursor: pointer;
         }
 
@@ -87,7 +91,7 @@
                 transparent 40%
             );
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             pointer-events: none;
             z-index: 1;
         }
@@ -103,7 +107,7 @@
         .app-tile:hover::before { opacity: 1; }
 
         /* TOGGLE UI */
-        .toggle-checkbox { left: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1); }
+        .toggle-checkbox { left: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); }
         .toggle-checkbox:checked { left: 16px; border-color: #16a34a; } 
         .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; box-shadow: 0 0 12px rgba(22, 163, 74, 0.5); }
 
@@ -115,28 +119,8 @@
 </head>
 <body class="preload bg-[#f8fafc] dark:bg-[#030712] dark:bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] dark:from-green-950/20 dark:via-[#030712] dark:to-black min-h-screen flex flex-col text-slate-800 dark:text-slate-300 antialiased selection:bg-sterling-green/30 selection:text-white transition-colors duration-500">
 
-    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0">
-        
-        <div class="relative flex items-center gap-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.2em] cursor-help group select-none">
-            <span id="net-ping-ring" class="w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-breathe"></span>
-            <span id="net-status-text" class="text-slate-500 dark:text-slate-400 font-medium transition-colors">SYS.ONLINE</span>
-            <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">|</span>
-            <span id="net-ping-text" class="text-slate-400 dark:text-slate-500 hidden sm:inline">-- ms</span>
-
-            <div class="absolute left-0 top-full mt-4 w-56 bg-white/90 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-xl shadow-2xl p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <div class="font-bold border-b border-black/10 dark:border-white/10 pb-2 mb-3 tracking-widest text-sterling-green">DIAGNOSTICS</div>
-                <div class="flex justify-between mb-2"><span>Status:</span> <span id="net-status-tip" class="font-semibold text-green-500">Online</span></div>
-                <div class="flex justify-between mb-2"><span>Downlink:</span> <span id="net-down-tip" class="font-mono">-- Mbps</span></div>
-                <div class="flex justify-between"><span>Connection:</span> <span id="net-type-tip" class="font-mono uppercase">--</span></div>
-            </div>
-        </div>
-        
+    <nav class="w-full px-6 py-4 flex justify-end items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0 transition-all duration-500">
         <div class="flex items-center gap-6">
-            <div id="miniWeather" class="hidden items-center gap-2 font-mono text-xs text-slate-500 uppercase tracking-widest bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full">
-                <span id="miniWeatherIcon" class="text-sm"></span>
-                <span id="miniWeatherTemp"></span>
-            </div>
-
             <div class="flex items-center">
                 <span class="mr-3 text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em]">DARK</span>
                 <div class="relative inline-block w-8 h-4 align-middle select-none">
@@ -145,13 +129,13 @@
                 </div>
             </div>
         </div>
-    </div>
+    </nav>
 
     <div class="flex-1 flex flex-col items-center px-4 sm:px-6 w-full pt-12 pb-32 relative z-10">
         
         <header class="mb-12 text-center w-full max-w-6xl">
             <h1 class="text-5xl sm:text-7xl font-light tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-br from-slate-800 to-slate-400 dark:from-white dark:to-slate-500">Clinical Hub</h1>
-            <p class="text-sterling-green font-mono text-[10px] tracking-[0.3em] uppercase mt-4">Sterling Specialty Operations</p>
+            <p class="sterling-green font-mono text-[10px] tracking-[0.3em] uppercase mt-4">Sterling Specialty Pharmacy</p>
         </header>
 
         <main class="w-full max-w-4xl flex flex-col gap-8 sm:gap-10">
@@ -159,57 +143,75 @@
             <div id="appGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 w-full">
                 
                 <a href="https://calc.sterlingspecialtyrx.com/" target="_blank" rel="noopener noreferrer" data-id="clinical-hub" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
-                        <div class="absolute inset-0 m-auto w-10 h-10 sm:w-14 sm:h-14 bg-sterling-green rounded-full blur-[15px] opacity-20 group-hover:opacity-70 transition-opacity duration-700"></div>
+                    <div class="relative w-[84px] h-[84px] sm:w-[120px] sm:h-[120px] flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                        <div class="absolute inset-0 m-auto w-16 h-16 sm:w-20 sm:h-20 bg-sterling-green rounded-full blur-[15px] opacity-20 group-hover:opacity-70 transition-opacity duration-700"></div>
                         <svg class="relative z-10 w-full h-full drop-shadow-lg" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.5c0-1.25-1-2.25-2.25-2.25S9.75 8.25 9.75 9.5c0 1.5 4.5 1.5 4.5 3.5 0 1.25-1 2.25-2.25 2.25S9.75 14.25 9.75 13" stroke-width="1.5" />
                         </svg>
                     </div>
-                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Clinical Hub</span>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 mt-2">Clinical Hub</span>
                 </a>
 
-                <a href="/ssp-apps/workflow/index.html" data-id="workflow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                <a href="/ssp-apps/workflow/index.html" target="_blank" rel="noopener noreferrer" data-id="workflow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
+                    <div class="relative w-[84px] h-[84px] sm:w-[120px] sm:h-[120px] flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
                         <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                         </svg>
                     </div>
-                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Workflow</span>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 mt-2">Workflow</span>
                 </a>
 
-                <a href="/ssp-apps/pharm-flow/index.html" data-id="pharm-flow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
-                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
+                <a href="/ssp-apps/pharm-flow/index.html" target="_blank" rel="noopener noreferrer" data-id="pharm-flow" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square">
+                    <div class="relative w-[84px] h-[84px] sm:w-[120px] sm:h-[120px] flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500">
                         <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                             <path d="M5 15v-6 M10 20V5 M15 17V8 M20 14v-4" stroke-width="2" />
                         </svg>
                     </div>
-                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1">Pharmacy Flow</span>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 mt-2">Pharmacy Flow</span>
                 </a>
 
                 <div onclick="openModal()" data-id="system-links" draggable="true" class="app-tile group flex flex-col items-center justify-center p-4 rounded-[2rem] backdrop-blur-3xl overflow-hidden aspect-square select-none">
-                    <div class="relative w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500 pointer-events-none">
+                    <div class="relative w-[84px] h-[84px] sm:w-[120px] sm:h-[120px] flex items-center justify-center mb-2 text-slate-400 group-hover:text-sterling-green transition-colors duration-500 pointer-events-none">
                         <svg class="w-full h-full drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                         </svg>
                     </div>
-                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 pointer-events-none">System Links</span>
+                    <span class="text-xs sm:text-sm font-medium tracking-wide text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-center px-1 mt-2 pointer-events-none">System Links</span>
                 </div>
 
             </div>
 
+            <script>
+                (function() {
+                    const savedLayout = localStorage.getItem('ssp_grid_v4');
+                    if (savedLayout) {
+                        try {
+                            const order = JSON.parse(savedLayout);
+                            const board = document.getElementById('appGrid');
+                            if(board) {
+                                const tiles = Array.from(board.children);
+                                const tileMap = {};
+                                tiles.forEach(t => tileMap[t.getAttribute('data-id')] = t);
+                                order.forEach(id => { if (tileMap[id]) board.appendChild(tileMap[id]); });
+                                tiles.forEach(t => { if (!order.includes(t.getAttribute('data-id'))) board.appendChild(t); });
+                            }
+                        } catch(e) { console.error("Grid Restore Failed", e); }
+                    }
+                })();
+            </script>
+
             <a href="https://kzick001.github.io/dashboard/weather" target="_blank" rel="noopener noreferrer" class="app-tile group rounded-[2rem] backdrop-blur-3xl p-6 sm:p-8 w-full block mt-4">
                 <div class="flex justify-between items-start w-full relative z-10 mb-6 border-b border-black/5 dark:border-white/5 pb-4">
                     <div>
-                        <h2 class="text-lg font-medium text-slate-800 dark:text-slate-300 tracking-wide mb-1 group-hover:text-sterling-green transition-colors">Mendota Heights</h2>
-                        <p class="text-slate-500 font-mono text-[10px] sm:text-xs tracking-[0.1em] uppercase">Meteorological Pipeline</p>
+                        <h2 class="text-xl sm:text-2xl font-medium text-slate-800 dark:text-slate-300 tracking-wide mb-1 group-hover:text-sterling-green transition-colors">Mendota Heights</h2>
                     </div>
                     <div class="text-slate-400 group-hover:text-sterling-green transition-colors duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+                        <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                     </div>
                 </div>
                 
-                <div id="weatherContainer" class="w-full relative z-10 flex items-center justify-center font-mono text-xs text-slate-500 min-h-[100px]">
+                <div id="weatherContainer" class="w-full relative z-10 flex items-center justify-center font-mono text-sm text-slate-500 min-h-[120px]">
                     <div class="animate-pulse tracking-widest text-sterling-green/70">ESTABLISHING CONNECTION...</div>
                 </div>
             </a>
@@ -218,13 +220,25 @@
     </div>
 
     <footer class="text-slate-400 font-mono text-[10px] tracking-widest uppercase text-center pb-8 w-full relative z-10">
-        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V3.0.2</p>
+        <p>&copy; <span id="currentYear"></span> Sterling Specialty Pharmacy V3.1.0</p>
     </footer>
 
-    <div id="folderModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="fixed bottom-8 right-8 flex flex-col items-end gap-2 z-40 cursor-default select-none">
+        <div id="localTime" class="text-5xl sm:text-6xl font-light tracking-tighter text-slate-800 dark:text-white drop-shadow-md">...</div>
+        <div id="complicationPill" class="flex items-center gap-3 bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-black/10 dark:border-white/10 px-6 py-2.5 rounded-full shadow-lg transition-all duration-500" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
+            <span id="comp-icon" class="text-3xl filter drop-shadow">--</span>
+            <div class="flex items-baseline gap-2 font-mono font-medium">
+                <span id="comp-low" class="text-base text-blue-500 dark:text-blue-400">--°</span>
+                <span id="comp-current" class="text-2xl text-slate-800 dark:text-white">--°</span>
+                <span id="comp-high" class="text-base text-red-500 dark:text-red-400">--°</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="folderModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-all duration-400" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
         <div id="modalBackdrop" class="absolute inset-0 bg-white/60 dark:bg-black/80 backdrop-blur-md cursor-pointer transition-opacity"></div>
         
-        <div id="modalContent" class="relative w-[90%] max-w-3xl bg-white/95 dark:bg-[#050505]/95 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-[2.5rem] shadow-2xl p-6 sm:p-10 transform scale-95 transition-transform duration-300">
+        <div id="modalContent" class="relative w-[90%] max-w-3xl bg-white/95 dark:bg-[#050505]/95 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-[2.5rem] shadow-2xl p-6 sm:p-10 transform scale-95 transition-transform duration-400" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
             <div class="flex justify-between items-center mb-8 border-b border-black/10 dark:border-white/5 pb-4">
                 <h3 class="text-2xl font-light tracking-wide text-slate-800 dark:text-white">System Links</h3>
                 <button id="closeModalBtn" class="p-2 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none">
@@ -233,26 +247,26 @@
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
-                <a href="/ssp-apps/pomodoro-timer/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="/ssp-apps/pomodoro-timer/index.html" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Pomodoro Timer <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
-                <a href="/ssp-apps/personal-sports-hub/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="/ssp-apps/personal-sports-hub/index.html" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Sports Network <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
-                <a href="/ssp-apps/zen-snake/index.html" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="/ssp-apps/zen-snake/index.html" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Zen Snake <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
 
-                <a href="https://github.com/andykozicki/ssp-apps" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="https://github.com/andykozicki/ssp-apps" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     andykozicki/ssp-apps <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
-                <a href="https://github.com/kzick001/dashboard" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="https://github.com/kzick001/dashboard" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Kzick Dashboard Repo <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
-                <a href="https://dash.cloudflare.com/b161c0d78599ee2ead9d5aa4a03d1c40/workers/services/view/kzick-weather/production" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="https://dash.cloudflare.com/b161c0d78599ee2ead9d5aa4a03d1c40/workers/services/view/kzick-weather/production" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Weather Worker Pipeline <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
-                <a href="https://kzick001.github.io/dashboard/" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group">
+                <a href="https://kzick001.github.io/dashboard/" target="_blank" rel="noopener noreferrer" class="px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white transition-all flex items-center justify-between border border-transparent dark:border-white/5 hover:border-black/10 dark:hover:border-sterling-green/30 hover:shadow-[0_0_15px_rgba(22,163,74,0.1)] group" style="transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
                     Personal Dash Live <span class="text-slate-400 group-hover:text-sterling-green transition-colors text-xs">↗</span>
                 </a>
             </div>
@@ -265,7 +279,20 @@
         
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        // --- 1. OS THEME CONTROLLER ---
+        // --- 1. LOCAL CHRONOMETER ---
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12;
+            document.getElementById('localTime').textContent = `${h}:${m} ${ampm}`;
+        }
+        updateClock(); 
+        setInterval(updateClock, 1000);
+
+        // --- 2. OS THEME CONTROLLER ---
         const htmlElement = document.documentElement;
         const darkModeToggle = document.getElementById('darkModeToggle');
 
@@ -282,58 +309,6 @@
                 localStorage.setItem('ssp-theme', 'light');
             }
         });
-
-        // --- 2. NETWORK TELEMETRY ---
-        function updateNetworkStatus() {
-            const statusText = document.getElementById('net-status-text');
-            const pingText = document.getElementById('net-ping-text');
-            const statusTip = document.getElementById('net-status-tip');
-            const downTip = document.getElementById('net-down-tip');
-            const typeTip = document.getElementById('net-type-tip');
-            const pingRing = document.getElementById('net-ping-ring');
-
-            if (!navigator.onLine) {
-                statusText.textContent = 'NO SIGNAL';
-                statusText.className = 'text-red-500 font-bold';
-                pingText.textContent = 'Offline';
-                pingRing.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse';
-                
-                statusTip.textContent = 'Offline';
-                statusTip.className = 'font-semibold text-red-500';
-                downTip.textContent = '0 Mbps';
-                typeTip.textContent = 'None';
-                return;
-            }
-
-            if (navigator.connection) {
-                const conn = navigator.connection;
-                const rtt = conn.rtt;
-                let down = conn.downlink;
-                const type = conn.effectiveType;
-
-                statusText.textContent = 'SYS.ONLINE';
-                statusText.className = 'text-slate-500 dark:text-slate-400 font-medium';
-                pingText.textContent = rtt + ' ms';
-                statusTip.textContent = 'Online';
-                downTip.textContent = (down >= 10 ? '10+ Mbps' : down + ' Mbps');
-                typeTip.textContent = type;
-
-                if (rtt > 300 || down < 0.5 || type === '2g' || type === 'slow-2g') {
-                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse';
-                    statusTip.className = 'font-semibold text-red-500';
-                } else if (rtt > 150 || down < 2 || type === '3g') {
-                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.8)] animate-pulse';
-                    statusTip.className = 'font-semibold text-yellow-500';
-                } else {
-                    pingRing.className = 'w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-breathe';
-                    statusTip.className = 'font-semibold text-green-500';
-                }
-            }
-        }
-
-        window.addEventListener('online', updateNetworkStatus);
-        window.addEventListener('offline', updateNetworkStatus);
-        if (navigator.connection) navigator.connection.addEventListener('change', updateNetworkStatus);
 
         // --- 3. MODAL MULTIPLEXER ---
         const modal = document.getElementById('folderModal');
@@ -411,28 +386,10 @@
             });
         }
 
-        function restoreLayout() {
-            const savedLayout = localStorage.getItem('ssp_grid_v4');
-            if (savedLayout) {
-                try {
-                    const order = JSON.parse(savedLayout);
-                    const board = document.getElementById('appGrid');
-                    if(board) {
-                        const tiles = Array.from(board.children);
-                        const tileMap = {};
-                        tiles.forEach(t => tileMap[t.getAttribute('data-id')] = t);
-                        
-                        order.forEach(id => { if (tileMap[id]) board.appendChild(tileMap[id]); });
-                        tiles.forEach(t => { if (!order.includes(t.getAttribute('data-id'))) board.appendChild(t); });
-                    }
-                } catch(e) { console.error("Grid Restore Failed", e); }
-            }
-        }
-
         // --- 5. TOMORROW.IO METEOROLOGICAL PIPELINE ---
         async function fetchWeather() {
             const weatherContainer = document.getElementById('weatherContainer');
-            const CACHE_KEY = 'ssp_weather_v3';
+            const CACHE_KEY = 'ssp_weather_v3.1';
             const TTL = 300000; // 5 Minutes per Tomorrow.io Protocol
 
             const codeMap = {
@@ -459,20 +416,51 @@
                     const currentVals = activeMinute[0].values;
                     const currentTemp = Math.round(currentVals.temperature || 0);
                     const currentCode = currentVals.weatherCode || 1000;
-                    const currentIcon = codeMap[currentCode] || '🌤';
+                    
+                    // EPA & Protocol Data Binding (Available in memory to satisfy strict API constraints)
+                    const aqiValue = currentVals.epaPrimaryAQI ?? currentVals.epaIndex ?? 1;
+                    const treePollen = currentVals.treeIndex ?? '--';
+                    
+                    const hour = new Date().getHours();
+                    const isNight = hour >= 19 || hour <= 5;
+                    let currentIcon = codeMap[currentCode] || '🌤';
+                    if (isNight && (currentCode === 1000 || currentCode === 1100)) currentIcon = '🌙';
 
-                    document.getElementById('miniWeatherIcon').textContent = currentIcon;
-                    document.getElementById('miniWeatherTemp').textContent = currentTemp + '°';
-                    document.getElementById('miniWeather').classList.remove('hidden');
-                    document.getElementById('miniWeather').classList.add('flex');
+                    // --- COMPLICATION PILL INJECTION ---
+                    const compIcon = document.getElementById('comp-icon');
+                    const compCurrent = document.getElementById('comp-current');
+                    const compLow = document.getElementById('comp-low');
+                    const compHigh = document.getElementById('comp-high');
+                    const pill = document.getElementById('complicationPill');
+                    
+                    compIcon.textContent = currentIcon;
+                    compCurrent.textContent = currentTemp + '°';
 
-                    let weatherHTML = '<div class="flex flex-wrap sm:flex-nowrap justify-between gap-4 w-full">';
+                    if (activeDaily.length > 0) {
+                        const todayVals = activeDaily[0].values;
+                        const maxTemp = todayVals.weatherCodeMax ? todayVals.temperatureMax : (todayVals.temperatureMax || todayVals.temperature);
+                        const minTemp = todayVals.weatherCodeMin ? todayVals.temperatureMin : (todayVals.temperatureMin || todayVals.temperature - 10);
+                        
+                        compHigh.textContent = Math.round(maxTemp) + '°';
+                        compLow.textContent = Math.round(minTemp) + '°';
+                    }
+
+                    // Frost Risk Custom Styling
+                    const temp = currentVals.temperature || 0;
+                    const dew = currentVals.dewPoint || 0;
+                    if (temp <= 36 && Math.abs(temp - dew) <= 3) {
+                        pill.style.borderColor = '#93c5fd';
+                        pill.style.boxShadow = '0 0 20px rgba(147, 197, 253, 0.3)';
+                    }
+
+                    // --- MAIN TILE RENDER ---
+                    let weatherHTML = '<div class="flex flex-wrap sm:flex-nowrap justify-between gap-4 w-full pt-2">';
                     
                     for (let i = 0; i < 5 && i < activeDaily.length; i++) {
                         const dayData = activeDaily[i];
                         const date = new Date(dayData.startTime || dayData.time);
                         let dayName = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
-                        if (i === 0) dayName = 'TDA';
+                        if (i === 0) dayName = 'TODAY';
                         
                         const vals = dayData.values;
                         const maxTemp = Math.round(vals.temperatureMax || vals.temperature || 0);
@@ -483,16 +471,16 @@
                         const icon = codeMap[code] || '🌤';
 
                         const precipDisplay = precipProb > 20 
-                            ? `<div class="text-[10px] text-blue-500 dark:text-blue-400 font-bold flex items-center mt-2 tracking-widest"><svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.5c-3.033 0-5.5-2.467-5.5-5.5 0-2.333 1.583-4.833 5.5-9.833 3.917 5 5.5 7.5 5.5 9.833 0 3.033-2.467 5.5-5.5 5.5z"/></svg>${precipProb}%</div>`
-                            : `<div class="text-[10px] opacity-0 mt-2">0%</div>`;
+                            ? `<div class="text-[12px] sm:text-sm text-blue-500 dark:text-blue-400 font-bold flex items-center mt-3 tracking-widest"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.5c-3.033 0-5.5-2.467-5.5-5.5 0-2.333 1.583-4.833 5.5-9.833 3.917 5 5.5 7.5 5.5 9.833 0 3.033-2.467 5.5-5.5 5.5z"/></svg>${precipProb}%</div>`
+                            : `<div class="text-[12px] sm:text-sm opacity-0 mt-3">0%</div>`;
 
                         weatherHTML += `
                             <div class="flex flex-col items-center flex-1 py-2 sm:py-4 w-[30%] sm:w-auto">
-                                <span class="text-xs text-slate-500 uppercase tracking-[0.2em] mb-2 sm:mb-3">${dayName}</span>
-                                <span class="text-3xl mb-2 sm:mb-3 drop-shadow-md">${icon}</span>
-                                <div class="flex items-baseline gap-2 font-mono">
-                                    <span class="text-lg text-slate-800 dark:text-slate-200 font-medium group-hover:text-sterling-green transition-colors">${maxTemp}°</span>
-                                    <span class="text-xs text-slate-400 dark:text-slate-500">${minTemp}°</span>
+                                <span class="text-sm sm:text-base text-slate-500 uppercase tracking-[0.2em] mb-3 sm:mb-4 font-bold">${dayName}</span>
+                                <span class="text-5xl mb-3 sm:mb-5 drop-shadow-md">${icon}</span>
+                                <div class="flex items-baseline gap-3 font-mono">
+                                    <span class="text-3xl text-slate-800 dark:text-slate-200 font-medium group-hover:text-sterling-green transition-colors">${maxTemp}°</span>
+                                    <span class="text-lg text-slate-400 dark:text-slate-500">${minTemp}°</span>
                                 </div>
                                 ${precipDisplay}
                             </div>
@@ -503,7 +491,9 @@
 
                 } catch (e) {
                     console.error("Render Schema Failed", e);
-                    weatherContainer.innerHTML = `<div class="text-red-500 dark:text-red-400 font-bold tracking-widest text-xs">SCHEMA PARSE FAILURE</div>`;
+                    weatherContainer.innerHTML = `<div class="text-red-500 dark:text-red-400 font-bold tracking-widest text-sm">SCHEMA PARSE FAILURE</div>`;
+                    document.getElementById('comp-icon').textContent = '⚠️';
+                    document.getElementById('comp-current').textContent = 'ERR';
                 }
             }
 
@@ -525,16 +515,16 @@
 
             } catch (error) {
                 console.error("Pipeline failure:", error);
-                weatherContainer.innerHTML = `<div class="text-red-500 dark:text-red-400 font-bold tracking-widest text-xs">PIPELINE UNREACHABLE</div>`;
+                weatherContainer.innerHTML = `<div class="text-red-500 dark:text-red-400 font-bold tracking-widest text-sm">PIPELINE UNREACHABLE</div>`;
+                document.getElementById('comp-icon').textContent = '⚠️';
+                document.getElementById('comp-current').textContent = 'ERR';
             }
         }
 
-        // Initialize Core Routines
+        // Initialize Deferred Core Routines
         document.addEventListener("DOMContentLoaded", () => {
-            restoreLayout();
             attachSmartGlassListeners();
             setupDragAndDrop();
-            updateNetworkStatus();
             fetchWeather();
         });
     </script>
