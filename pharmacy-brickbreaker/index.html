@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pharmacy Breaker</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
+    <style>
+        :root {
+            --bg: #1e272e;
+            --text: #2d3436;
+            --ui-bg: rgba(255, 255, 255, 0.95);
+            --danger: #d63031;
+            --safe: #00b894;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Courier New', Courier, monospace; 
+            overflow: hidden; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+        }
+        
+        #game-wrapper {
+            position: relative;
+            width: 600px;
+            height: 900px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            background: #222;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Strict Header UI [150px height] */
+        #header-ui {
+            width: 600px; height: 150px;
+            background: #fff8a6;
+            border-bottom: 4px solid #555;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px;
+            z-index: 10;
+        }
+
+        #btn-pause-toggle {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: #333; color: white;
+            border: none; padding: 5px 15px;
+            border-radius: 4px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            padding-right: 80px; /* Room for pause button */
+        }
+
+        #rx-title { font-weight: bold; font-size: 20px; text-transform: uppercase; }
+        
+        #rx-list {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex-grow: 1;
+        }
+        .rx-item {
+            background: rgba(0,0,0,0.05);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .rx-color-swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; }
+        .rx-complete { opacity: 0.4; text-decoration: line-through; }
+
+        #tolerance-container {
+            width: 100%;
+            margin-top: auto;
+        }
+        #tolerance-label {
+            font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;
+        }
+        #tolerance-bar-bg {
+            width: 100%; height: 16px; background: #333; border-radius: 8px; overflow: hidden;
+        }
+        #tolerance-bar-fill {
+            width: 100%; height: 100%; background: var(--safe); transition: width 0.2s, background 0.2s;
+        }
+
+        /* Phaser Canvas Container [750px height] */
+        #phaser-container {
+            width: 600px;
+            height: 750px;
+            position: relative;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; color: white;
+        }
+        .hidden { display: none !important; }
+        .panel {
+            background: var(--ui-bg); color: var(--text);
+            padding: 30px; border-radius: 4px; border: 3px solid #333;
+            max-width: 400px; text-align: center;
+        }
+        h1 { margin-bottom: 10px; text-transform: uppercase; }
+        p { margin-bottom: 20px; font-weight: bold; }
+        button.action-btn {
+            background: #0984e3; color: white; border: none;
+            padding: 12px 24px; font-size: 16px; cursor: pointer;
+            border-radius: 4px; font-family: inherit; font-weight: bold;
+            text-transform: uppercase; width: 100%; margin-bottom: 10px;
+        }
+        button.action-btn:hover { filter: brightness(1.1); }
+        .danger-text { color: var(--danger); }
+        .safe-text { color: var(--safe); }
+
+        #dev-toggle {
+            position: absolute; bottom: 10px; left: 10px; z-index: 200;
+            background: rgba(255,255,255,0.2); border: 1px solid #fff; color: #fff;
+            padding: 5px 10px; cursor: pointer; border-radius: 4px; width: auto; font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <div id="header-ui">
+        <button id="btn-pause-toggle">Pause</button>
+        <div class="header-top">
+            <div id="rx-title">Rx: Level 1</div>
+        </div>
+        <div id="rx-list"></div>
+        <div id="tolerance-container">
+            <div id="tolerance-label">Tolerance Buffer</div>
+            <div id="tolerance-bar-bg"><div id="tolerance-bar-fill"></div></div>
+        </div>
+    </div>
+
+    <div id="phaser-container">
+        <button id="dev-toggle">Toggle Config</button>
+    </div>
+
+    <!-- Menus -->
+    <div id="menu-start" class="overlay">
+        <div class="panel">
+            <h1>Pharmacy Breaker</h1>
+            <p>Fill scripts. Maintain tolerance.</p>
+            <button id="btn-play" class="action-btn">Clock In</button>
+        </div>
+    </div>
+
+    <div id="menu-pause" class="overlay hidden">
+        <div class="panel">
+            <h1>Paused</h1>
+            <button id="btn-resume" class="action-btn">Resume</button>
+            <button id="btn-restart-pause" class="action-btn" style="background:#555;">Restart Level</button>
+        </div>
+    </div>
+
+    <div id="menu-gameover" class="overlay hidden">
+        <div class="panel">
+            <h1 class="danger-text">Dispensing Error</h1>
+            <p>Tolerance Buffer depleted. Contract terminated.</p>
+            <button id="btn-retry" class="action-btn">Restart Shift</button>
+        </div>
+    </div>
+
+    <div id="menu-win" class="overlay hidden">
+        <div class="panel">
+            <h1 class="safe-text">Script Filled</h1>
+            <p>Quota met. Awaiting next patient.</p>
+            <button id="btn-next" class="action-btn">Next Script</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- GLOBAL CONFIGURATION OBJECT ---
+const CONFIG = {
+    physics: {
+        baseVelocity: 550,
+        maxVelocity: 1400,
+        velocityMultiplier: 1.03,
+        hitboxRadius: 8
+    },
+    launcher: {
+        minAngleDeg: 15,
+        laserLengthPx: 400,
+        maxActiveTablets: 1
+    },
+    rules: {
+        baseTolerance: 500,
+        toleranceDecayPerLevel: 50,
+        wrongColorPenalty: 35
+    },
+    modifiers: {
+        generationProbability: {
+            split: 0.05,
+            pierce: 0.05,
+            placebo: 0.08
+        },
+        strength: {
+            splitCount: 3,
+            pierceLimit: 2
+        }
+    },
+    feedback: {
+        shakeIntensityPx: 5,
+        shakeDurationMs: 100,
+        blastRadiusPx: 120
+    }
+};
+
+// --- GAME STATE SCHEMA ---
+const gameState = {
+    level: 1,
+    currentTolerance: 0,
+    maxTolerance: 0,
+    rxQuota: {},
+    isAiming: true,
+    activeTablets: 0
+};
+
+// --- CONSTANTS & SCHEMAS ---
+const COLORS = {
+    'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 'Yellow': 0xfdcb6e,
+    'Pink': 0xfd79a8, 'Red': 0xd63031, 'White': 0xffffff,
+    'Purple': 0xa29bfe, 'Cyan': 0x00cec9
+};
+
+const CAPSULE_SCHEMA = {
+    "Standard":  { hp: 1, type: "script", visual: "solid_color" },
+    "XR":        { hp: 2, type: "script", visual: "stamped_XR" },
+    "Explosive": { hp: 1, type: "hazard", visual: "red_volatile" },
+    "Placebo":   { hp: 1, type: "neutral", visual: "stamped_PLACEBO" },
+    "Splitter":  { hp: 1, type: "powerup", buff: "split", visual: "stamped_SPLIT" },
+    "Pierce":    { hp: 1, type: "powerup", buff: "pierce", visual: "stamped_PIERCE" }
+};
+
+// --- UI BINDINGS ---
+const DOM = {
+    tolFill: document.getElementById('tolerance-bar-fill'),
+    rxTitle: document.getElementById('rx-title'),
+    rxList: document.getElementById('rx-list')
+};
+
+// --- LIL-GUI SETUP ---
+let gui;
+function setupGUI() {
+    gui = new lil.GUI({ title: 'Engine Tuning' });
+    gui.domElement.style.position = 'absolute';
+    gui.domElement.style.top = '10px';
+    gui.domElement.style.right = '10px';
+    gui.domElement.style.zIndex = '1000';
+    gui.hide();
+
+    const p = gui.addFolder('Physics');
+    p.add(CONFIG.physics, 'baseVelocity', 200, 1000);
+    p.add(CONFIG.physics, 'maxVelocity', 800, 2000);
+    p.add(CONFIG.physics, 'velocityMultiplier', 1.0, 1.1);
+
+    const l = gui.addFolder('Launcher');
+    l.add(CONFIG.launcher, 'minAngleDeg', 5, 45);
+    l.add(CONFIG.launcher, 'maxActiveTablets', 1, 5, 1);
+
+    const r = gui.addFolder('Rules');
+    r.add(CONFIG.rules, 'baseTolerance', 100, 1000);
+    r.add(CONFIG.rules, 'toleranceDecayPerLevel', 10, 100);
+    r.add(CONFIG.rules, 'wrongColorPenalty', 5, 100);
+}
+
+document.getElementById('dev-toggle').addEventListener('click', () => {
+    if (gui._hidden) gui.show(); else gui.hide();
+});
+
+// --- PHASER ENGINE ---
+class MainScene extends Phaser.Scene {
+    constructor() { super({ key: 'MainScene' }); }
+
+    preload() {
+        this.generateAssets();
+    }
+
+    generateAssets() {
+        let g = this.make.graphics({x:0, y:0, add:false});
+        g.fillStyle(0xffffff, 1);
+        g.fillCircle(CONFIG.physics.hitboxRadius, CONFIG.physics.hitboxRadius, CONFIG.physics.hitboxRadius);
+        g.generateTexture('tablet_tex', CONFIG.physics.hitboxRadius*2, CONFIG.physics.hitboxRadius*2);
+
+        g.clear();
+        g.fillStyle(0xbdc3c7, 1);
+        g.fillRect(0, 0, 16, 90);
+        g.fillStyle(0x95a5a6, 1);
+        g.fillRect(4, 2, 8, 86);
+        g.generateTexture('spatula_tex', 16, 90);
+
+        const drawPill = (key, colorHex, text) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 50; canvas.height = 20;
+            const ctx = canvas.getContext('2d');
+            const r = 10;
+            
+            ctx.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
+            ctx.beginPath();
+            ctx.moveTo(r, 0); ctx.lineTo(40, 0); ctx.arcTo(50, 0, 50, 20, r);
+            ctx.lineTo(50, 10); ctx.arcTo(50, 20, 0, 20, r);
+            ctx.lineTo(10, 20); ctx.arcTo(0, 20, 0, 0, r);
+            ctx.lineTo(0, 10); ctx.arcTo(0, 0, 50, 0, r);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath(); ctx.roundRect(4, 2, 42, 5, 2); ctx.fill();
+
+            if (text) {
+                ctx.fillStyle = colorHex === COLORS['White'] ? '#333' : '#fff';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(text, 25, 11);
+            }
+            this.textures.addImage(key, canvas);
+        };
+
+        drawPill('Blue', COLORS['Blue']);
+        drawPill('Green', COLORS['Green']);
+        drawPill('Orange', COLORS['Orange']);
+        drawPill('Yellow', COLORS['Yellow']);
+        drawPill('XR', COLORS['Pink'], 'XR');
+        drawPill('Explosive', COLORS['Red'], '!!!');
+        drawPill('Placebo', COLORS['White'], 'PLACEBO');
+        drawPill('Splitter', COLORS['Purple'], 'SPLIT');
+        drawPill('Pierce', COLORS['Cyan'], 'PIERCE');
+    }
+
+    create() {
+        setupGUI();
+
+        // Localized 750px physics world
+        this.physics.world.setBounds(0, 0, 600, 750);
+        this.physics.world.setBoundsCollision(true, true, true, false);
+
+        this.capsules = this.physics.add.staticGroup();
+        this.tablets = this.physics.add.group();
+
+        // Launcher origin at bottom center
+        this.launcherOrigin = new Phaser.Math.Vector2(300, 730);
+        this.spatula = this.add.sprite(this.launcherOrigin.x, this.launcherOrigin.y, 'spatula_tex');
+        this.spatula.setOrigin(0.5, 1); 
+        
+        this.trajectoryLine = this.add.graphics();
+
+        this.floor = this.add.zone(300, 760, 600, 20);
+        this.physics.add.existing(this.floor, true);
+
+        this.dust = this.add.particles(0, 0, 'tablet_tex', {
+            speed: { min: 80, max: 200 }, scale: { start: 0.6, end: 0 },
+            lifespan: 250, gravityY: 300, emitting: false
+        });
+
+        this.physics.add.collider(this.tablets, this.capsules, this.onCollisionBounce, this.onCollisionProcess, this);
+        this.physics.add.overlap(this.tablets, this.floor, this.onTabletLost, null, this);
+
+        this.input.on('pointermove', this.updateAim, this);
+        this.input.on('pointerup', this.fireTablet, this);
+
+        this.initLevel(gameState.level);
+    }
+
+    initLevel(levelNumber) {
+        this.capsules.clear(true, true);
+        this.tablets.clear(true, true);
+        this.trajectoryLine.clear();
+
+        gameState.level = levelNumber;
+        gameState.maxTolerance = Math.max(100, CONFIG.rules.baseTolerance - ((levelNumber - 1) * CONFIG.rules.toleranceDecayPerLevel));
+        gameState.currentTolerance = gameState.maxTolerance;
+        gameState.activeTablets = 0;
+        gameState.isAiming = true;
+
+        const targetCount = 10 + (levelNumber * 3);
+        this.generateBoard(targetCount, levelNumber);
+        
+        this.updateUI();
+        switchOverlay(null);
+    }
+
+    generateBoard(targetCount, level) {
+        const standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
+        gameState.rxQuota = {};
+        
+        let primaryColor = Phaser.Math.RND.pick(standardColors);
+        gameState.rxQuota[primaryColor] = targetCount;
+
+        if (level > 2) {
+            let secColor = Phaser.Math.RND.pick(standardColors.filter(c => c !== primaryColor));
+            gameState.rxQuota[secColor] = Math.floor(targetCount / 2);
+        }
+
+        const cols = 9;
+        const rows = 6 + Math.floor(level / 2);
+        const startX = 60, startY = 60; // Offset relative to the new 750px container
+        const spacingX = 60, spacingY = 30;
+
+        let positions = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) positions.push({r, c});
+        }
+        Phaser.Utils.Array.Shuffle(positions);
+
+        let placedTargets = {};
+        Object.keys(gameState.rxQuota).forEach(c => placedTargets[c] = 0);
+
+        positions.forEach(pos => {
+            const x = startX + pos.c * spacingX + (pos.r % 2 === 0 ? 0 : spacingX/2);
+            const y = startY + pos.r * spacingY;
+            
+            let color = 'Blue', typeKey = 'Standard', tex = 'Blue';
+
+            let neededColor = Object.keys(gameState.rxQuota).find(c => placedTargets[c] < gameState.rxQuota[c]);
+            
+            if (neededColor) {
+                color = neededColor; tex = color;
+                placedTargets[color]++;
+            } else {
+                let rand = Math.random();
+                let probs = CONFIG.modifiers.generationProbability;
+
+                if (rand < probs.split) { typeKey = 'Splitter'; color = 'Purple'; tex = 'Splitter'; }
+                else if (rand < probs.split + probs.pierce) { typeKey = 'Pierce'; color = 'Cyan'; tex = 'Pierce'; }
+                else if (rand < probs.split + probs.pierce + probs.placebo) { typeKey = 'Placebo'; color = 'White'; tex = 'Placebo'; }
+                else if (rand < 0.25 && level > 1) { typeKey = 'Explosive'; color = 'Red'; tex = 'Explosive'; }
+                else if (rand < 0.40 && level > 2) { typeKey = 'XR'; color = 'Pink'; tex = 'XR'; }
+                else { color = Phaser.Math.RND.pick(standardColors); tex = color; }
+            }
+
+            let cap = this.capsules.create(x, y, tex);
+            cap.schema = CAPSULE_SCHEMA[typeKey];
+            cap.color = color;
+            cap.hp = cap.schema.hp;
+            cap.body.setSize(50, 20); 
+            cap.body.setOffset(0, 0);
+        });
+    }
+
+    updateAim(pointer) {
+        if (!gameState.isAiming || gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
+
+        let angle = Phaser.Math.Angle.Between(this.launcherOrigin.x, this.launcherOrigin.y, pointer.x, pointer.y);
+        let angleDeg = Phaser.Math.RadToDeg(angle);
+
+        const minD = -180 + CONFIG.launcher.minAngleDeg;
+        const maxD = -CONFIG.launcher.minAngleDeg;
+        
+        if (angleDeg > maxD && angleDeg < 0) angleDeg = maxD;
+        if (angleDeg < minD || angleDeg >= 0) angleDeg = minD;
+
+        let angleRad = Phaser.Math.DegToRad(angleDeg);
+
+        // Visual pivot is 90 degrees offset because sprite is drawn vertically
+        this.spatula.setRotation(angleRad + Math.PI/2); 
+
+        // Launch from the tip of the 90px spatula
+        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90;
+        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
+
+        this.trajectoryLine.clear();
+        this.trajectoryLine.lineStyle(2, 0xffffff, 0.4);
+        
+        let destX = tipX + Math.cos(angleRad) * CONFIG.launcher.laserLengthPx;
+        let destY = tipY + Math.sin(angleRad) * CONFIG.launcher.laserLengthPx;
+        
+        let dx = destX - tipX;
+        let dy = destY - tipY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        let dashLength = 10;
+        let gapLength = 10;
+        let steps = dist / (dashLength + gapLength);
+
+        for(let i=0; i<steps; i++) {
+            let startDashX = tipX + (dx/steps) * i;
+            let startDashY = tipY + (dy/steps) * i;
+            let endDashX = startDashX + (dx/dist) * dashLength;
+            let endDashY = startDashY + (dy/dist) * dashLength;
+            
+            this.trajectoryLine.beginPath();
+            this.trajectoryLine.moveTo(startDashX, startDashY);
+            this.trajectoryLine.lineTo(endDashX, endDashY);
+            this.trajectoryLine.strokePath();
+        }
+    }
+
+    fireTablet() {
+        if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
+        
+        gameState.isAiming = false;
+        this.trajectoryLine.clear();
+        
+        let angleRad = this.spatula.rotation - Math.PI/2;
+        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90;
+        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
+
+        this.spawnTablet(tipX, tipY, angleRad);
+        gameState.activeTablets++;
+    }
+
+    spawnTablet(x, y, angleRad) {
+        let t = this.tablets.create(x, y, 'tablet_tex');
+        t.setCircle(CONFIG.physics.hitboxRadius);
+        t.setBounce(1);
+        t.setFriction(0);
+        t.setCollideWorldBounds(true);
+        t.setData('pierceCount', 0);
+
+        this.physics.velocityFromRotation(angleRad, CONFIG.physics.baseVelocity, t.body.velocity);
+    }
+
+    onTabletLost(floor, tablet) {
+        tablet.destroy();
+        gameState.activeTablets--;
+        if (gameState.activeTablets <= 0) {
+            gameState.isAiming = true;
+            gameState.activeTablets = 0;
+            
+            let pointer = this.input.activePointer;
+            if (pointer.x > 0 && pointer.y > 0) this.updateAim(pointer);
+        }
+    }
+
+    onCollisionProcess(tablet, capsule) {
+        if (tablet.getData('pierceCount') > 0) {
+            tablet.incData('pierceCount', -1);
+            this.damageCapsule(capsule, tablet);
+            return false; 
+        }
+        return true; 
+    }
+
+    onCollisionBounce(tablet, capsule) {
+        let v = tablet.body.velocity.clone(); 
+        v.scale(CONFIG.physics.velocityMultiplier);
+        
+        if (v.length() > CONFIG.physics.maxVelocity) {
+            v.normalize().scale(CONFIG.physics.maxVelocity);
+        }
+        tablet.setVelocity(v.x, v.y);
+        
+        this.damageCapsule(capsule, tablet);
+    }
+
+    damageCapsule(capsule, tablet) {
+        if (!capsule.active || capsule.isDying) return;
+
+        capsule.hp--;
+        if (capsule.hp > 0) {
+            capsule.setTint(0x7f8c8d);
+            return;
+        }
+        
+        capsule.isDying = true; // Prevent recursive explosion calls
+
+        const type = capsule.schema.type;
+        const color = capsule.color;
+
+        this.dust.setParticleTint(COLORS[color] || 0xffffff);
+        this.dust.emitParticleAt(capsule.x, capsule.y, 12);
+
+        switch(type) {
+            case "script":
+                if (gameState.rxQuota[color] !== undefined && gameState.rxQuota[color] > 0) {
+                    gameState.rxQuota[color]--;
+                } else if (gameState.rxQuota[color] === undefined && color !== 'Pink' && color !== 'White') {
+                    gameState.currentTolerance -= CONFIG.rules.wrongColorPenalty;
+                    this.cameras.main.shake(CONFIG.feedback.shakeDurationMs, CONFIG.feedback.shakeIntensityPx / 1000);
+                }
+                break;
+            case "hazard":
+                this.cameras.main.shake(CONFIG.feedback.shakeDurationMs * 2, (CONFIG.feedback.shakeIntensityPx * 2) / 1000);
+                this.destroyAdjacentCapsules(capsule.x, capsule.y, CONFIG.feedback.blastRadiusPx, tablet);
+                break;
+            case "powerup":
+                this.activateModifier(capsule.schema.buff, tablet);
+                this.spawnFloatingText(capsule.x, capsule.y, capsule.schema.buff.toUpperCase(), COLORS[color]);
+                break;
+            case "neutral":
+                break;
+        }
+
+        capsule.destroy();
+        this.updateUI();
+        this.checkWinLossState();
+    }
+
+    destroyAdjacentCapsules(x, y, radius, tablet) {
+        let blast = new Phaser.Geom.Circle(x, y, radius);
+        this.capsules.getChildren().forEach(cap => {
+            if (cap.active && !cap.isDying && Phaser.Geom.Intersects.CircleToRectangle(blast, cap.getBounds())) {
+                this.damageCapsule(cap, tablet); 
+            }
+        });
+    }
+
+    activateModifier(buff, tablet) {
+        if (buff === "split") {
+            let v = tablet.body.velocity;
+            let currentAngle = Math.atan2(v.y, v.x);
+            this.spawnTablet(tablet.x, tablet.y, currentAngle + 0.35);
+            this.spawnTablet(tablet.x, tablet.y, currentAngle - 0.35);
+            gameState.activeTablets += 2; 
+        }
+        if (buff === "pierce") {
+            tablet.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit);
+            tablet.setTint(0x00ffff); 
+        }
+    }
+
+    spawnFloatingText(x, y, text, colorHex) {
+        let colorStr = '#' + colorHex.toString(16).padStart(6, '0');
+        let floatText = this.add.text(x, y, text, {
+            fontSize: '18px', fontFamily: 'monospace', fontStyle: 'bold', color: colorStr, stroke: '#000', strokeThickness: 3
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+            targets: floatText, y: y - 40, alpha: 0, duration: 1200, ease: 'Power1',
+            onComplete: () => floatText.destroy()
+        });
+    }
+
+    updateUI() {
+        DOM.rxTitle.innerText = `Rx: Level ${gameState.level}`;
+        DOM.rxList.innerHTML = '';
+        
+        for (const [color, count] of Object.entries(gameState.rxQuota)) {
+            let div = document.createElement('div');
+            div.className = `rx-item ${count <= 0 ? 'rx-complete' : ''}`;
+            
+            let swatch = document.createElement('div');
+            swatch.className = 'rx-color-swatch';
+            swatch.style.backgroundColor = '#' + COLORS[color].toString(16).padStart(6, '0');
+            
+            let text = document.createElement('span');
+            text.innerText = `${color}: ${Math.max(0, count)}`;
+            
+            div.appendChild(swatch);
+            div.appendChild(text);
+            DOM.rxList.appendChild(div);
+        }
+
+        let pct = Math.max(0, (gameState.currentTolerance / gameState.maxTolerance) * 100);
+        DOM.tolFill.style.width = `${pct}%`;
+        
+        if (pct > 50) DOM.tolFill.style.background = 'var(--safe)';
+        else if (pct > 25) DOM.tolFill.style.background = '#fdcb6e';
+        else DOM.tolFill.style.background = 'var(--danger)';
+    }
+
+    checkWinLossState() {
+        if (gameState.currentTolerance <= 0) {
+            this.scene.pause();
+            switchOverlay('menu-gameover');
+        } else {
+            const remainingRx = Object.values(gameState.rxQuota).reduce((a, b) => a + Math.max(0, b), 0);
+            if (remainingRx === 0) {
+                this.scene.pause();
+                switchOverlay('menu-win');
+            }
+        }
+    }
+}
+
+// --- INITIALIZATION ---
+const gameConfig = {
+    type: Phaser.AUTO,
+    parent: 'phaser-container',
+    width: 600,
+    height: 750,
+    transparent: true,
+    physics: {
+        default: 'arcade',
+        arcade: { debug: false }
+    },
+    scene: MainScene
+};
+
+const game = new Phaser.Game(gameConfig);
+
+function switchOverlay(id) {
+    document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    if (id) document.getElementById(id).classList.remove('hidden');
+}
+
+// DOM Events
+document.getElementById('btn-play').addEventListener('click', () => {
+    switchOverlay(null);
+    game.scene.resume('MainScene');
+});
+document.getElementById('btn-retry').addEventListener('click', () => {
+    game.scene.resume('MainScene');
+    game.scene.getScene('MainScene').initLevel(1);
+});
+document.getElementById('btn-next').addEventListener('click', () => {
+    game.scene.resume('MainScene');
+    game.scene.getScene('MainScene').initLevel(gameState.level + 1);
+});
+document.getElementById('btn-pause-toggle').addEventListener('click', () => {
+    game.scene.pause('MainScene');
+    switchOverlay('menu-pause');
+});
+document.getElementById('btn-resume').addEventListener('click', () => {
+    switchOverlay(null);
+    game.scene.resume('MainScene');
+});
+document.getElementById('btn-restart-pause').addEventListener('click', () => {
+    game.scene.resume('MainScene');
+    game.scene.getScene('MainScene').initLevel(gameState.level);
+});
+</script>
+</body>
+</html>
