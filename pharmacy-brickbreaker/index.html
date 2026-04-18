@@ -403,7 +403,7 @@ class MainScene extends Phaser.Scene {
 
         g.clear();
         g.fillStyle(0x8b4513, 1);
-        g.fillEllipse(8, 70, 16, 40);
+        g.fillRoundedRect(0, 50, 16, 40, 8);
         g.fillStyle(0xbdc3c7, 1);
         g.fillRoundedRect(4, 0, 8, 60, 4);
         g.generateTexture('spatula_tex', 16, 90);
@@ -456,7 +456,7 @@ class MainScene extends Phaser.Scene {
         this.capsules = this.physics.add.staticGroup();
         this.tablets = this.physics.add.group();
 
-        this.launcherOrigin = new Phaser.Math.Vector2(300, 730);
+        this.launcherOrigin = new Phaser.Math.Vector2(300, 690);
         this.spatula = this.add.sprite(this.launcherOrigin.x, this.launcherOrigin.y, 'spatula_tex');
         this.spatula.setOrigin(0.5, 1); 
         this.spatula.setRotation(0); 
