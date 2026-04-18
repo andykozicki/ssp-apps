@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pharmacy Breaker</title>
+    <title>Pharmacy Breaker v0.1.4</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
@@ -40,7 +40,6 @@
             flex-direction: column;
         }
 
-        /* Strict Header UI [150px height] */
         #header-ui {
             width: 100%; height: 150px; flex-shrink: 0;
             background-color: #fdfae3;
@@ -82,7 +81,7 @@
             border-bottom: 2px solid #333;
             padding-bottom: 5px;
             margin-bottom: 5px;
-            padding-right: 120px; /* Room for pause/recall buttons */
+            padding-right: 120px;
         }
 
         #rx-title { font-size: 28px; color: #2c3e50; text-shadow: 1px 1px 0 #fff; line-height: 1; }
@@ -109,7 +108,7 @@
         
         #tolerance-label { font-size: 12px; font-weight: bold; text-transform: uppercase; }
         
-        #powerup-queue { display: flex; gap: 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        #powerup-queue { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; text-align: right; }
 
         #tolerance-bar-bg {
             width: 100%; height: 18px; background: #333; border-radius: 9px; overflow: hidden;
@@ -124,12 +123,10 @@
             z-index: 2; text-shadow: 1px 1px 0 #000;
         }
 
-        /* Phaser Canvas Container */
         #phaser-container {
             width: 100%; flex-grow: 1; position: relative;
         }
 
-        /* Overlays */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
@@ -165,8 +162,12 @@
             <div class="header-bottom-row">
                 <div id="tolerance-label">Mis-dispense Tracking</div>
                 <div id="powerup-queue">
-                    <span id="queue-split" style="color:#a29bfe; text-shadow: 1px 1px 0 #000;">Split: 0</span>
-                    <span id="queue-pierce" style="color:#00cec9; text-shadow: 1px 1px 0 #000;">Pierce: 0</span>
+                    <span style="color:#a29bfe; text-shadow: 1px 1px 0 #000;">
+                        Split: <span id="active-split">0</span> (Bank: <span id="queue-split">0</span>)
+                    </span>
+                    <span style="color:#00cec9; text-shadow: 1px 1px 0 #000;">
+                        Pierce: <span id="active-pierce">0</span> (Bank: <span id="queue-pierce">0</span>)
+                    </span>
                 </div>
             </div>
             <div id="tolerance-bar-bg">
@@ -178,7 +179,6 @@
 
     <div id="phaser-container"></div>
 
-    <!-- Menus -->
     <div id="menu-start" class="overlay">
         <div class="panel">
             <h1>Pharmacy Breaker</h1>
@@ -188,11 +188,32 @@
         </div>
     </div>
 
+    <div id="menu-settings" class="overlay hidden">
+        <div class="panel">
+            <h1>Settings</h1>
+            <p>Engine adjustments.</p>
+            <button id="btn-dev-toggle" class="action-btn" style="background:#e17055;">Toggle Dev Tools</button>
+            <button id="btn-close-settings" class="action-btn" style="background:#555;">Close</button>
+        </div>
+    </div>
+
+    <div id="menu-level-briefing" class="overlay hidden">
+        <div class="panel">
+            <h2 id="briefing-color" style="text-transform: uppercase;">Color Pills</h2>
+            <h1 id="briefing-title" style="font-family: 'Caveat', cursive; color: #2c3e50; font-size: 32px;">Take 1, twice daily...</h1>
+            <p id="briefing-condition" style="font-size: 14px; color: #555; text-align: left;">Indication: ...</p>
+            <div style="background: #e8f4f8; padding: 10px; border-left: 4px solid #0984e3; margin-bottom: 20px; text-align: left;">
+                <p id="briefing-tip" style="margin: 0; font-size: 12px; font-family: monospace;">Note: ...</p>
+            </div>
+            <button id="btn-start-level" class="action-btn">Acknowledge</button>
+        </div>
+    </div>
+
     <div id="menu-pause" class="overlay hidden">
         <div class="panel">
             <h1>Paused</h1>
             <button id="btn-resume" class="action-btn">Resume</button>
-            <button id="btn-restart-pause" class="action-btn" style="background:#555;">Restart Level</button>
+            <button id="btn-restart-pause" class="action-btn" style="background:#555;">Restart Shift</button>
         </div>
     </div>
 
@@ -217,17 +238,15 @@
 </div>
 
 <script>
-// --- GLOBAL CONFIGURATION OBJECT ---
 const CONFIG = {
     physics: {
         baseVelocity: 550,
-        maxVelocity: 1400,
+        maxVelocity: 950,
         velocityMultiplier: 1.03,
         hitboxRadius: 8
     },
     launcher: {
         minAngleDeg: 15,
-        laserLengthPx: 400,
         maxActiveTablets: 1
     },
     rules: {
@@ -236,11 +255,6 @@ const CONFIG = {
         wrongColorPenalty: 35
     },
     modifiers: {
-        generationProbability: {
-            split: 0.05,
-            pierce: 0.05,
-            placebo: 0.08
-        },
         strength: {
             splitCount: 3,
             pierceLimit: 2
@@ -253,7 +267,30 @@ const CONFIG = {
     }
 };
 
-// --- GAME STATE SCHEMA ---
+const LORE_DB = {
+    conditions: [
+        "Acute Pixelitis", 
+        "Restless Cursor Syndrome", 
+        "Carpal Tunnel Variance",
+        "Chronic Refresh Fatigue",
+        "Elevated Ping Rate",
+        "Tab Hoarding Disorder"
+    ],
+    tutorials: {
+        1: "Drag to aim. Fill the script. Avoid off-label colors.",
+        2: "Cyan capsules grant Pierce. Tablets punch through targets.",
+        3: "Purple capsules grant Split. Three for the price of one.",
+        5: "Red means volatile. Keep your distance."
+    }
+};
+
+const FREQUENCY_MAP = {
+    1: "once",
+    2: "twice",
+    3: "three times",
+    4: "four times"
+};
+
 const gameState = {
     level: 1,
     currentTolerance: 0,
@@ -261,10 +298,10 @@ const gameState = {
     rxQuota: {},
     isAiming: true,
     activeTablets: 0,
-    powerupQueue: { split: 0, pierce: 0 }
+    powerupQueue: { split: 0, pierce: 0 },
+    activeRounds: { split: 0, pierce: 0 }
 };
 
-// --- CONSTANTS & SCHEMAS ---
 const COLORS = {
     'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 'Yellow': 0xfdcb6e,
     'Pink': 0xfd79a8, 'Red': 0xd63031, 'White': 0xffffff,
@@ -280,17 +317,46 @@ const CAPSULE_SCHEMA = {
     "Pierce":    { hp: 1, type: "powerup", buff: "pierce", visual: "stamped_PIERCE" }
 };
 
-// --- UI BINDINGS ---
 const DOM = {
     tolFill: document.getElementById('tolerance-bar-fill'),
     tolText: document.getElementById('tolerance-text'),
     rxTitle: document.getElementById('rx-title'),
     rxList: document.getElementById('rx-list'),
     queueSplit: document.getElementById('queue-split'),
-    queuePierce: document.getElementById('queue-pierce')
+    queuePierce: document.getElementById('queue-pierce'),
+    activeSplit: document.getElementById('active-split'),
+    activePierce: document.getElementById('active-pierce')
 };
 
-// --- LIL-GUI SETUP ---
+function generatePrescriptionText(level, targetCount) {
+    const condition = Phaser.Utils.Array.GetRandom(LORE_DB.conditions);
+    const tip = LORE_DB.tutorials[level] || "Standard dispensing protocol.";
+    
+    let dosage = 1, freq = 1; 
+    if (targetCount % 4 === 0) { dosage = 2; freq = 2; }
+    else if (targetCount % 3 === 0) { dosage = 1; freq = 3; }
+    else if (targetCount % 2 === 0) { dosage = 1; freq = 2; }
+    
+    const days = targetCount / (dosage * freq); 
+    const freqString = FREQUENCY_MAP[freq] || `${freq} times`;
+    const title = `Take ${dosage}, ${freqString} daily for ${days} days.`;
+    
+    return { title, condition: `Indication: ${condition}`, tip: `Note: ${tip}` };
+}
+
+function getCapsuleSpawnPool(level) {
+    const standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
+    let pool = { colors: standardColors.slice(0, 2), modifiers: [] };
+
+    if (level >= 2) pool.modifiers.push({ type: 'Pierce', color: 'Cyan' });
+    if (level >= 3) pool.modifiers.push({ type: 'Splitter', color: 'Purple' });
+    if (level >= 4) pool.colors = standardColors.slice(0, 3);
+    if (level >= 5) pool.modifiers.push({ type: 'Explosive', color: 'Red' });
+    if (level >= 6) pool.colors = standardColors;
+    
+    return pool;
+}
+
 let gui;
 function setupGUI() {
     gui = new lil.GUI({ title: 'Engine Tuning' });
@@ -315,7 +381,6 @@ function setupGUI() {
     r.add(CONFIG.rules, 'wrongColorPenalty', 5, 100);
 }
 
-// --- PHASER ENGINE ---
 class MainScene extends Phaser.Scene {
     constructor() { super({ key: 'MainScene' }); }
 
@@ -325,16 +390,23 @@ class MainScene extends Phaser.Scene {
 
     generateAssets() {
         let g = this.make.graphics({x:0, y:0, add:false});
-        g.fillStyle(0xffffff, 1);
-        g.fillCircle(CONFIG.physics.hitboxRadius, CONFIG.physics.hitboxRadius, CONFIG.physics.hitboxRadius);
-        g.generateTexture('tablet_tex', CONFIG.physics.hitboxRadius*2, CONFIG.physics.hitboxRadius*2);
+        
+        g.clear();
+        g.fillStyle(0xf5f6fa, 1);
+        g.fillCircle(8, 8, 8);
+        g.lineStyle(2, 0x2d3436, 0.8);
+        g.beginPath();
+        g.moveTo(2, 8);
+        g.lineTo(14, 8);
+        g.strokePath();
+        g.generateTexture('tablet_tex', 16, 16);
 
         g.clear();
+        g.fillStyle(0x8b4513, 1);
+        g.fillEllipse(8, 70, 16, 40);
         g.fillStyle(0xbdc3c7, 1);
-        g.fillRect(0, 0, 16, 45); // Scaled down base
-        g.fillStyle(0x95a5a6, 1);
-        g.fillRect(4, 2, 8, 41);  // Scaled down highlight
-        g.generateTexture('spatula_tex', 16, 45);
+        g.fillRoundedRect(4, 0, 8, 60, 4);
+        g.generateTexture('spatula_tex', 16, 90);
 
         const drawPill = (key, colorHex, text) => {
             const canvas = document.createElement('canvas');
@@ -375,6 +447,8 @@ class MainScene extends Phaser.Scene {
 
     create() {
         setupGUI();
+        
+        this.victoryEmitters = [];
 
         this.physics.world.setBounds(0, 0, 600, 750);
         this.physics.world.setBoundsCollision(true, true, true, false);
@@ -385,8 +459,7 @@ class MainScene extends Phaser.Scene {
         this.launcherOrigin = new Phaser.Math.Vector2(300, 730);
         this.spatula = this.add.sprite(this.launcherOrigin.x, this.launcherOrigin.y, 'spatula_tex');
         this.spatula.setOrigin(0.5, 1); 
-        
-        this.trajectoryLine = this.add.graphics();
+        this.spatula.setRotation(0); 
 
         this.floor = this.add.zone(300, 760, 600, 20);
         this.physics.add.existing(this.floor, true);
@@ -402,42 +475,45 @@ class MainScene extends Phaser.Scene {
         this.input.on('pointermove', this.updateAim, this);
         this.input.on('pointerup', this.fireTablet, this);
 
-        this.initLevel(gameState.level);
+        switchOverlay('menu-start');
+        this.prepareLevelData(1);
     }
 
-    initLevel(levelNumber) {
-        this.capsules.clear(true, true);
-        this.tablets.clear(true, true);
-        this.trajectoryLine.clear();
-
+    prepareLevelData(levelNumber) {
         gameState.level = levelNumber;
         gameState.maxTolerance = Math.max(100, CONFIG.rules.baseTolerance - ((levelNumber - 1) * CONFIG.rules.toleranceDecayPerLevel));
         gameState.currentTolerance = gameState.maxTolerance;
+        
+        const targetCount = 10 + (levelNumber * 3);
+        const pool = getCapsuleSpawnPool(levelNumber);
+        
+        gameState.rxQuota = {};
+        let primaryColor = Phaser.Math.RND.pick(pool.colors);
+        gameState.rxQuota[primaryColor] = targetCount;
+        
+        if (levelNumber > 2) {
+            let secColor = Phaser.Math.RND.pick(pool.colors.filter(c => c !== primaryColor));
+            if (secColor) gameState.rxQuota[secColor] = Math.floor(targetCount / 2);
+        }
+    }
+
+    renderLevelBoard() {
+        this.capsules.clear(true, true);
+        this.tablets.clear(true, true);
+        
+        if (this.victoryEmitters && this.victoryEmitters.length > 0) {
+            this.victoryEmitters.forEach(e => e.destroy());
+            this.victoryEmitters = [];
+        }
+
         gameState.activeTablets = 0;
         gameState.isAiming = true;
         gameState.powerupQueue = { split: 0, pierce: 0 };
+        gameState.activeRounds = { split: 0, pierce: 0 };
 
-        const targetCount = 10 + (levelNumber * 3);
-        this.generateBoard(targetCount, levelNumber);
-        
-        this.updateUI();
-        switchOverlay(null);
-    }
-
-    generateBoard(targetCount, level) {
-        const standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
-        gameState.rxQuota = {};
-        
-        let primaryColor = Phaser.Math.RND.pick(standardColors);
-        gameState.rxQuota[primaryColor] = targetCount;
-
-        if (level > 2) {
-            let secColor = Phaser.Math.RND.pick(standardColors.filter(c => c !== primaryColor));
-            gameState.rxQuota[secColor] = Math.floor(targetCount / 2);
-        }
-
+        const pool = getCapsuleSpawnPool(gameState.level);
         const cols = 9;
-        const rows = 6 + Math.floor(level / 2);
+        const rows = 6 + Math.floor(gameState.level / 2);
         const startX = 60, startY = 60;
         const spacingX = 60, spacingY = 30;
 
@@ -455,7 +531,6 @@ class MainScene extends Phaser.Scene {
             const y = startY + pos.r * spacingY;
             
             let color = 'Blue', typeKey = 'Standard', tex = 'Blue';
-
             let neededColor = Object.keys(gameState.rxQuota).find(c => placedTargets[c] < gameState.rxQuota[c]);
             
             if (neededColor) {
@@ -463,14 +538,15 @@ class MainScene extends Phaser.Scene {
                 placedTargets[color]++;
             } else {
                 let rand = Math.random();
-                let probs = CONFIG.modifiers.generationProbability;
+                let hasMods = pool.modifiers.length > 0;
 
-                if (rand < probs.split) { typeKey = 'Splitter'; color = 'Purple'; tex = 'Splitter'; }
-                else if (rand < probs.split + probs.pierce) { typeKey = 'Pierce'; color = 'Cyan'; tex = 'Pierce'; }
-                else if (rand < probs.split + probs.pierce + probs.placebo) { typeKey = 'Placebo'; color = 'White'; tex = 'Placebo'; }
-                else if (rand < 0.25 && level > 1) { typeKey = 'Explosive'; color = 'Red'; tex = 'Explosive'; }
-                else if (rand < 0.40 && level > 2) { typeKey = 'XR'; color = 'Pink'; tex = 'XR'; }
-                else { color = Phaser.Math.RND.pick(standardColors); tex = color; }
+                if (hasMods && rand < 0.15) {
+                    let mod = Phaser.Math.RND.pick(pool.modifiers);
+                    typeKey = mod.type; color = mod.color; tex = mod.type;
+                }
+                else if (rand < 0.25) { typeKey = 'Placebo'; color = 'White'; tex = 'Placebo'; }
+                else if (rand < 0.35 && gameState.level > 2) { typeKey = 'XR'; color = 'Pink'; tex = 'XR'; }
+                else { color = Phaser.Math.RND.pick(pool.colors); tex = color; }
             }
 
             let cap = this.capsules.create(x, y, tex);
@@ -480,6 +556,8 @@ class MainScene extends Phaser.Scene {
             cap.body.setSize(50, 20); 
             cap.body.setOffset(0, 0);
         });
+
+        this.updateUI();
     }
 
     updateAim(pointer) {
@@ -495,51 +573,29 @@ class MainScene extends Phaser.Scene {
         if (angleDeg < minD || angleDeg >= 0) angleDeg = minD;
 
         let angleRad = Phaser.Math.DegToRad(angleDeg);
-
         this.spatula.setRotation(angleRad + Math.PI/2); 
-
-        // Launch from the 45px tip
-        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 45;
-        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 45;
-
-        this.trajectoryLine.clear();
-        this.trajectoryLine.lineStyle(2, 0xffffff, 0.4);
-        
-        let destX = tipX + Math.cos(angleRad) * CONFIG.launcher.laserLengthPx;
-        let destY = tipY + Math.sin(angleRad) * CONFIG.launcher.laserLengthPx;
-        
-        let dx = destX - tipX;
-        let dy = destY - tipY;
-        let dist = Math.sqrt(dx*dx + dy*dy);
-        let dashLength = 10;
-        let gapLength = 10;
-        let steps = dist / (dashLength + gapLength);
-
-        for(let i=0; i<steps; i++) {
-            let startDashX = tipX + (dx/steps) * i;
-            let startDashY = tipY + (dy/steps) * i;
-            let endDashX = startDashX + (dx/dist) * dashLength;
-            let endDashY = startDashY + (dy/dist) * dashLength;
-            
-            this.trajectoryLine.beginPath();
-            this.trajectoryLine.moveTo(startDashX, startDashY);
-            this.trajectoryLine.lineTo(endDashX, endDashY);
-            this.trajectoryLine.strokePath();
-        }
     }
 
     fireTablet() {
         if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
         
         gameState.isAiming = false;
-        this.trajectoryLine.clear();
         
         let angleRad = this.spatula.rotation - Math.PI/2;
-        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 45;
-        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 45;
+        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90;
+        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
 
-        let isPiercing = gameState.powerupQueue.pierce > 0;
-        let isSplitting = gameState.powerupQueue.split > 0;
+        if (gameState.activeRounds.split === 0 && gameState.powerupQueue.split > 0) {
+            gameState.powerupQueue.split--;
+            gameState.activeRounds.split = 1; 
+        }
+        if (gameState.activeRounds.pierce === 0 && gameState.powerupQueue.pierce > 0) {
+            gameState.powerupQueue.pierce--;
+            gameState.activeRounds.pierce = 3; 
+        }
+
+        let isPiercing = gameState.activeRounds.pierce > 0;
+        let isSplitting = gameState.activeRounds.split > 0;
 
         let t1 = this.spawnTablet(tipX, tipY, angleRad);
         gameState.activeTablets++;
@@ -550,29 +606,30 @@ class MainScene extends Phaser.Scene {
         }
 
         if (isSplitting) {
-            let t2 = this.spawnTablet(tipX, tipY, angleRad + 0.35);
-            let t3 = this.spawnTablet(tipX, tipY, angleRad - 0.35);
+            let t2 = this.spawnTablet(tipX, tipY, angleRad + 0.15);
+            let t3 = this.spawnTablet(tipX, tipY, angleRad - 0.15);
             gameState.activeTablets += 2;
             
             if (isPiercing) {
                 t2.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t2.setTint(0x00ffff);
                 t3.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t3.setTint(0x00ffff);
             }
-            gameState.powerupQueue.split--;
+            gameState.activeRounds.split--;
         }
 
-        if (isPiercing) gameState.powerupQueue.pierce--;
+        if (isPiercing) gameState.activeRounds.pierce--;
         this.updateUI();
     }
 
     spawnTablet(x, y, angleRad) {
         let t = this.tablets.create(x, y, 'tablet_tex');
-        t.setCircle(CONFIG.physics.hitboxRadius);
+        t.setCircle(8); 
         t.setBounce(1);
         t.setFriction(0);
         t.setCollideWorldBounds(true);
         t.setData('pierceCount', 0);
         t.setData('combo', 0);
+        t.setAngularVelocity(Phaser.Math.Between(-400, 400));
 
         this.physics.velocityFromRotation(angleRad, CONFIG.physics.baseVelocity, t.body.velocity);
         return t;
@@ -593,6 +650,9 @@ class MainScene extends Phaser.Scene {
     onCollisionProcess(tablet, capsule) {
         if (tablet.getData('pierceCount') > 0) {
             tablet.incData('pierceCount', -1);
+            if (tablet.getData('pierceCount') <= 0) {
+                tablet.clearTint();
+            }
             this.damageCapsule(capsule, tablet);
             return false; 
         }
@@ -601,9 +661,15 @@ class MainScene extends Phaser.Scene {
 
     onCollisionBounce(tablet, capsule) {
         let v = tablet.body.velocity.clone(); 
+        
+        // Break infinite horizontal loops
+        if (Math.abs(v.y) < 40) {
+            v.y += (v.y >= 0 ? 60 : -60);
+        }
+        
         v.scale(CONFIG.physics.velocityMultiplier);
         
-        if (v.length() > CONFIG.physics.maxVelocity) {
+        if (v.length() > 0 && v.length() > CONFIG.physics.maxVelocity) {
             v.normalize().scale(CONFIG.physics.maxVelocity);
         }
         tablet.setVelocity(v.x, v.y);
@@ -617,16 +683,35 @@ class MainScene extends Phaser.Scene {
         capsule.hp--;
         if (capsule.hp > 0) {
             capsule.setTint(0x7f8c8d);
+            
+            this.tweens.killTweensOf(capsule);
+            capsule.setScale(1); 
+            
+            this.tweens.add({
+                targets: capsule,
+                scaleX: 1.2, scaleY: 0.8,
+                duration: 40,
+                yoyo: true
+            });
             return;
         }
         
-        capsule.isDying = true; 
+        capsule.isDying = true;
+        capsule.body.enable = false;
 
         const type = capsule.schema.type;
         const color = capsule.color;
 
-        this.dust.setParticleTint(COLORS[color] || 0xffffff);
-        this.dust.emitParticleAt(capsule.x, capsule.y, 12);
+        this.tweens.add({
+            targets: capsule,
+            scaleX: 1.5, scaleY: 1.5,
+            alpha: 0,
+            duration: 100,
+            onComplete: () => capsule.destroy()
+        });
+
+        this.dust.particleTint = COLORS[color] || 0xffffff;
+        this.dust.emitParticleAt(capsule.x, capsule.y, 20);
 
         switch(type) {
             case "script":
@@ -654,13 +739,12 @@ class MainScene extends Phaser.Scene {
                 break;
             case "powerup":
                 gameState.powerupQueue[capsule.schema.buff] += 3;
-                this.spawnFloatingText(capsule.x, capsule.y, capsule.schema.buff.toUpperCase(), COLORS[color]);
+                this.spawnFloatingText(capsule.x, capsule.y, "+3 " + capsule.schema.buff.toUpperCase(), COLORS[color]);
                 break;
             case "neutral":
                 break;
         }
 
-        capsule.destroy();
         this.updateUI();
         this.checkWinLossState();
     }
@@ -714,8 +798,10 @@ class MainScene extends Phaser.Scene {
         else DOM.tolFill.style.background = 'var(--danger)';
 
         DOM.tolText.innerText = `${Math.floor(gameState.currentTolerance)} / ${gameState.maxTolerance}`;
-        DOM.queueSplit.innerText = `Split: ${gameState.powerupQueue.split}`;
-        DOM.queuePierce.innerText = `Pierce: ${gameState.powerupQueue.pierce}`;
+        DOM.queueSplit.innerText = gameState.powerupQueue.split;
+        DOM.queuePierce.innerText = gameState.powerupQueue.pierce;
+        DOM.activeSplit.innerText = gameState.activeRounds.split;
+        DOM.activePierce.innerText = gameState.activeRounds.pierce;
     }
 
     checkWinLossState() {
@@ -737,14 +823,32 @@ class MainScene extends Phaser.Scene {
         } else {
             const remainingRx = Object.values(gameState.rxQuota).reduce((a, b) => a + Math.max(0, b), 0);
             if (remainingRx === 0) {
-                this.scene.pause();
-                switchOverlay('menu-win');
+                this.physics.pause(); 
+                gameState.isAiming = false;
+                
+                const colors = [0xf1c40f, 0x2ecc71, 0x3498db, 0xe74c3c, 0x9b59b6];
+                colors.forEach((color, index) => {
+                    let emitter = this.add.particles(100 + (index * 100), 700, 'tablet_tex', {
+                        speed: { min: 200, max: 600 },
+                        angle: { min: 240, max: 300 },
+                        scale: { start: 0.5, end: 0 },
+                        gravityY: 800,
+                        tint: color,
+                        lifespan: 1500,
+                        frequency: 50
+                    });
+                    this.victoryEmitters.push(emitter);
+                });
+                
+                this.time.delayedCall(1500, () => {
+                    this.scene.pause();
+                    switchOverlay('menu-win');
+                });
             }
         }
     }
 }
 
-// --- INITIALIZATION ---
 const gameConfig = {
     type: Phaser.AUTO,
     parent: 'phaser-container',
@@ -769,22 +873,53 @@ function switchOverlay(id) {
     if (id) document.getElementById(id).classList.remove('hidden');
 }
 
-// DOM Events
 document.getElementById('btn-play').addEventListener('click', () => {
+    const keys = Object.keys(gameState.rxQuota);
+    let totalCount = 0;
+    let titleParts = [];
+    
+    keys.forEach(k => {
+        totalCount += gameState.rxQuota[k];
+        titleParts.push(`${gameState.rxQuota[k]} ${k}`);
+    });
+    
+    const flavor = generatePrescriptionText(gameState.level, totalCount);
+    
+    document.getElementById('briefing-color').innerText = titleParts.join(' & ') + " Capsules";
+    document.getElementById('briefing-title').innerText = flavor.title;
+    document.getElementById('briefing-condition').innerText = flavor.condition;
+    document.getElementById('briefing-tip').innerText = flavor.tip;
+    
+    switchOverlay('menu-level-briefing');
+});
+
+document.getElementById('btn-start-level').addEventListener('click', () => {
     switchOverlay(null);
-    game.scene.resume('MainScene');
+    let scene = game.scene.getScene('MainScene');
+    scene.physics.resume(); 
+    scene.renderLevelBoard();
 });
-document.getElementById('btn-settings').addEventListener('click', () => {
-    if (gui._hidden) gui.show(); else gui.hide();
-});
+
+document.getElementById('btn-settings').addEventListener('click', () => switchOverlay('menu-settings'));
+document.getElementById('btn-close-settings').addEventListener('click', () => switchOverlay('menu-start'));
+document.getElementById('btn-dev-toggle').addEventListener('click', () => { if (gui._hidden) gui.show(); else gui.hide(); });
+
 document.getElementById('btn-retry').addEventListener('click', () => {
     game.scene.resume('MainScene');
-    game.scene.getScene('MainScene').initLevel(1);
+    let scene = game.scene.getScene('MainScene');
+    scene.physics.resume();
+    scene.prepareLevelData(1);
+    document.getElementById('btn-play').click();
 });
+
 document.getElementById('btn-next').addEventListener('click', () => {
     game.scene.resume('MainScene');
-    game.scene.getScene('MainScene').initLevel(gameState.level + 1);
+    let scene = game.scene.getScene('MainScene');
+    scene.physics.resume();
+    scene.prepareLevelData(gameState.level + 1);
+    document.getElementById('btn-play').click();
 });
+
 document.getElementById('btn-pause-toggle').addEventListener('click', () => {
     game.scene.pause('MainScene');
     switchOverlay('menu-pause');
@@ -795,14 +930,20 @@ document.getElementById('btn-resume').addEventListener('click', () => {
 });
 document.getElementById('btn-restart-pause').addEventListener('click', () => {
     game.scene.resume('MainScene');
-    game.scene.getScene('MainScene').initLevel(gameState.level);
+    let scene = game.scene.getScene('MainScene');
+    scene.physics.resume();
+    scene.prepareLevelData(gameState.level);
+    document.getElementById('btn-play').click();
 });
+
 document.getElementById('btn-recall').addEventListener('click', () => {
     let scene = game.scene.getScene('MainScene');
+    if(scene.physics.world.isPaused) return; 
     scene.tablets.clear(true, true); 
     gameState.activeTablets = 0;
     gameState.isAiming = true;
     gameState.powerupQueue = { split: 0, pierce: 0 }; 
+    gameState.activeRounds = { split: 0, pierce: 0 }; 
     scene.updateUI();
 });
 </script>
