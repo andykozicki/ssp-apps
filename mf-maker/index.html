@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kzick OS // Dev-Sync Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+        
+        body {
+            background-color: #000;
+            color: #f4f4f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* Matrix Canvas */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Smart Glass Tile Component */
+        .glass-tile {
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(64px);
+            -webkit-backdrop-filter: blur(64px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 2rem;
+            overflow: hidden;
+            transition: all 0.4s var(--spring);
+            z-index: 10;
+        }
+
+        /* Localized Radial Shine */
+        .glass-tile::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glass-tile:hover::before {
+            opacity: 1;
+        }
+
+        .glass-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Micro-interactions */
+        .spring-btn {
+            transition: transform 0.3s var(--spring), background 0.2s ease, opacity 0.2s ease;
+        }
+        
+        .spring-btn:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .spring-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .drop-zone {
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            transition: all 0.4s var(--spring);
+        }
+
+        .drop-zone.active {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.02);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* --- THE MATRIX OVERRIDE --- */
+        body.matrix-mode {
+            background-color: #000;
+        }
+        
+        body.matrix-mode #matrix-canvas {
+            opacity: 1;
+        }
+
+        body.matrix-mode .glass-tile {
+            background: rgba(0, 15, 0, 0.85);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-color: #0f0;
+            color: #0f0;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+
+        body.matrix-mode .glass-tile::before {
+            display: none; /* Flatten glass effect */
+        }
+
+        body.matrix-mode .text-zinc-400, 
+        body.matrix-mode .text-zinc-500,
+        body.matrix-mode .bg-white,
+        body.matrix-mode .text-black {
+            color: #0f0 !important;
+            background-color: rgba(0, 255, 0, 0.1) !important;
+            border-color: #0f0 !important;
+        }
+
+        body.matrix-mode svg {
+            stroke: #0f0 !important;
+        }
+        
+        body.matrix-mode .drop-zone {
+            border-color: #0f0;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="max-w-7xl mx-auto relative z-10 flex flex-col h-[calc(100vh-4rem)]">
+        
+        <header class="mb-8 px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight text-white mb-1">Dev-Sync Apparat</h1>
+                <p class="text-xs text-zinc-500 font-medium tracking-wide uppercase">Kzick OS // Build Sequence Protocol</p>
+            </div>
+            <button id="matrix-toggle" class="spring-btn flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 flex-grow">
+            
+            <div class="glass-tile col-span-1 md:col-span-2 flex flex-col p-6">
+                <div class="glass-content h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-semibold text-white tracking-wide">1. SOURCE ASSETS</h2>
+                        <span id="file-count" class="text-xs bg-white/10 px-3 py-1 rounded-full border border-white/5">0 FILES</span>
+                    </div>
+
+                    <div id="drop-zone" class="drop-zone flex-grow min-h-[160px] rounded-2xl flex flex-col items-center justify-center cursor-pointer mb-6">
+                        <svg class="w-10 h-10 text-white/40 mb-3 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"></path>
+                        </svg>
+                        <p class="text-sm font-medium text-white/80">Drag & Drop</p>
+                        <p class="text-xs text-white/40 mt-1">HTML, CSS, JS</p>
+                        <input type="file" id="file-input" multiple class="hidden">
+                    </div>
+
+                    <div id="file-list" class="max-h-[200px] overflow-y-auto space-y-2 pr-2">
+                        <div class="text-xs text-white/30 text-center py-4 font-medium">Pipeline Empty.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-tile col-span-1 md:col-span-2 lg:col-span-3 flex flex-col p-6">
+                <div class="glass-content h-full flex flex-col">
+                    
+                    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                        <h2 class="text-sm font-semibold text-white tracking-wide">2. BUILD SEQUENCE</h2>
+                        <div class="flex gap-2">
+                            <button id="clear-btn" class="spring-btn text-xs px-4 py-2 rounded-full border border-white/10 text-white/70 hover:bg-white/5 font-medium">Wipe</button>
+                            <button id="generate-btn" class="spring-btn text-xs px-5 py-2 rounded-full bg-white text-black font-semibold hover:bg-zinc-200" disabled>Compile Pipeline</button>
+                        </div>
+                    </div>
+
+                    <div class="relative flex-grow bg-black/50 border border-white/5 rounded-2xl p-4 flex flex-col mb-4 overflow-hidden">
+                        <textarea id="output" readonly 
+                            class="flex-grow bg-transparent text-white/80 font-mono text-[11px] leading-relaxed focus:outline-none resize-none"
+                            placeholder="Awaiting assets..."></textarea>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span id="char-count" class="text-[10px] text-white/40 font-mono uppercase tracking-widest">0 BYTES</span>
+                        <div class="flex gap-2">
+                            <button id="copy-btn" class="spring-btn flex items-center gap-2 text-xs px-4 py-2 rounded-full border border-white/10 text-white hover:bg-white/10 font-medium" disabled>
+                                <svg class="w-3 h-3 stroke-[1.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"></path></svg>
+                                Copy Output
+                            </button>
+                            <button id="download-btn" class="spring-btn flex items-center gap-2 text-xs px-4 py-2 rounded-full border border-white/10 text-white hover:bg-white/10 font-medium" disabled>
+                                <svg class="w-3 h-3 stroke-[1.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                                Save .TXT
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SMART GLASS PHYSICS ---
+        document.querySelectorAll('.glass-tile').forEach(tile => {
+            tile.addEventListener('mousemove', e => {
+                const rect = tile.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                tile.style.setProperty('--mouse-x', `${x}px`);
+                tile.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // --- 2. PIPELINE LOGIC ---
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileListDisplay = document.getElementById('file-list');
+        const generateBtn = document.getElementById('generate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const output = document.getElementById('output');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const charCount = document.getElementById('char-count');
+        const fileCount = document.getElementById('file-count');
+
+        let loadedFiles = [];
+
+        dropZone.onclick = () => fileInput.click();
+        
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        };
+
+        dropZone.ondragleave = () => dropZone.classList.remove('active');
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            handleFiles(e.dataTransfer.files);
+        };
+
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                if (loadedFiles.some(f => f.name === file.name)) continue;
+                const content = await file.text();
+                loadedFiles.push({ name: file.name, content: content });
+            }
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileListDisplay.innerHTML = '';
+            if (loadedFiles.length === 0) {
+                fileListDisplay.innerHTML = '<div class="text-xs text-white/30 text-center py-4 font-medium">Pipeline Empty.</div>';
+                generateBtn.disabled = true;
+            } else {
+                loadedFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center bg-white/5 rounded-xl px-4 py-2 border border-white/5';
+                    item.innerHTML = `
+                        <span class="text-xs text-white/90 truncate pr-2 font-medium">${file.name}</span>
+                        <button class="text-white/40 hover:text-white transition-colors p-1" onclick="removeFile(${index})">
+                            <svg class="w-3 h-3 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    `;
+                    fileListDisplay.appendChild(item);
+                });
+                generateBtn.disabled = false;
+            }
+            fileCount.innerText = `${loadedFiles.length} FILES`;
+        }
+
+        window.removeFile = (index) => {
+            loadedFiles.splice(index, 1);
+            updateFileList();
+        };
+
+        clearBtn.onclick = () => {
+            loadedFiles = [];
+            output.value = '';
+            updateFileList();
+            updateStats();
+            copyBtn.disabled = true;
+            downloadBtn.disabled = true;
+        };
+
+        generateBtn.onclick = () => {
+            let result = "// ==================================================\n";
+            result += "// KZICK OS - MASTER SOURCE SYNC BLOCK\n";
+            result += "// GENERATED: " + new Date().toISOString() + "\n";
+            result += "// ==================================================\n\n";
+
+            loadedFiles.forEach(file => {
+                result += `// --- START FILE: ${file.name} ---\n`;
+                result += file.content.trim();
+                result += `\n// --- END FILE: ${file.name} ---\n\n`;
+            });
+
+            output.value = result;
+            copyBtn.disabled = false;
+            downloadBtn.disabled = false;
+            updateStats();
+        };
+
+        function updateStats() {
+            charCount.innerText = `${output.value.length} BYTES`;
+        }
+
+        copyBtn.onclick = () => {
+            output.select();
+            document.execCommand('copy');
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<svg class="w-3 h-3 stroke-[1.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Copied';
+            setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
+        };
+
+        downloadBtn.onclick = () => {
+            const blob = new Blob([output.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kzick_master_sync_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // --- 3. THE MATRIX OVERRIDE (30FPS Throttled) ---
+        const matrixToggle = document.getElementById('matrix-toggle');
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        let matrixInterval;
+        let isMatrixActive = false;
+
+        matrixToggle.onclick = () => {
+            isMatrixActive = !isMatrixActive;
+            document.body.classList.toggle('matrix-mode', isMatrixActive);
+            
+            if (isMatrixActive) {
+                startMatrix();
+            } else {
+                clearInterval(matrixInterval);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        };
+
+        function startMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const katakana = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+            const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const nums = '0123456789';
+            const alphabet = katakana + latin + nums;
+
+            const fontSize = 16;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            for (let x = 0; x < columns; x++) drops[x] = 1;
+
+            const draw = () => {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0F0';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            };
+
+            // Strict 30 FPS throttle (1000ms / 30 = ~33.3ms)
+            matrixInterval = setInterval(draw, 33);
+        }
+
+        window.addEventListener('resize', () => {
+            if (isMatrixActive) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+
+    </script>
+</body>
+</html>
