@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pharmacy Breaker v0.1.4</title>
+    <title>Pharmacy Breaker v0.3</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
+    
+    <script src="config.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,6 +18,7 @@
             --ui-bg: rgba(255, 255, 255, 0.95);
             --danger: #d63031;
             --safe: #00b894;
+            --warning: #fdcb6e;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body { 
@@ -28,42 +33,33 @@
         }
         
         #game-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            height: 100dvh;
-            max-height: 900px;
-            margin: 0 auto;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            background: #222;
-            display: flex;
-            flex-direction: column;
+            position: relative; width: 100%; max-width: 600px; height: 100dvh;
+            max-height: 900px; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            background: #222; display: flex; flex-direction: column;
         }
 
+        /* --- Header UI --- */
         #header-ui {
             width: 100%; height: 150px; flex-shrink: 0;
             background-color: #fdfae3;
             background-image: repeating-linear-gradient(transparent, transparent 24px, #add8e6 25px);
-            font-family: 'Caveat', 'Comic Sans MS', cursive;
-            border-bottom: 4px solid #555;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            padding: 15px 20px;
-            z-index: 10;
+            font-family: 'Caveat', cursive; border-bottom: 4px solid #555;
+            position: relative; display: flex; flex-direction: column;
+            padding: 15px 20px; z-index: 10;
         }
 
         #header-controls {
-            position: absolute;
-            top: 15px; right: 15px;
+            position: absolute; top: 15px; right: 15px;
             display: flex; gap: 10px;
         }
 
+        /* --- Buttons --- */
         button.action-btn {
             background: #0984e3; color: white; border: none;
             padding: 12px 24px; font-size: 16px; cursor: pointer;
             border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold;
             text-transform: uppercase; width: 100%; margin-bottom: 10px;
+            transition: filter 0.2s;
         }
         button.action-btn:hover { filter: brightness(1.1); }
         
@@ -73,77 +69,122 @@
             border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold;
             text-transform: uppercase; width: auto; margin: 0;
         }
+        button.small-btn.active-toggle { background: #00b894; }
 
+        /* --- Patient & Rx List --- */
         .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-            padding-right: 120px;
+            display: flex; flex-direction: column; align-items: flex-start;
+            border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 5px;
+            padding-right: 120px; line-height: 1.1;
         }
-
-        #rx-title { font-size: 28px; color: #2c3e50; text-shadow: 1px 1px 0 #fff; line-height: 1; }
+        #rx-patient { font-size: 16px; color: #555; font-family: 'Courier New', monospace; font-weight: bold; }
+        #rx-title { font-size: 26px; color: #2c3e50; text-shadow: 1px 1px 0 #fff; }
         
         #rx-list {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            flex-grow: 1;
-            font-family: 'Courier New', monospace;
-            align-content: flex-start;
+            display: flex; gap: 10px; flex-wrap: wrap; flex-grow: 1;
+            font-family: 'Courier New', monospace; align-content: flex-start;
         }
         .rx-item {
             background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 4px;
             font-weight: bold; display: flex; align-items: center; gap: 8px;
-            border: 1px solid rgba(0,0,0,0.1); font-size: 14px;
+            border: 1px solid rgba(0,0,0,0.1); font-size: 14px; transition: all 0.3s ease;
         }
         .rx-color-swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; }
-        .rx-complete { opacity: 0.4; text-decoration: line-through; }
+        
+        /* Phase 2: Over-Dispense "FILLED" UI Animation */
+        .rx-filled {
+            background: rgba(0, 184, 148, 0.2);
+            border-color: var(--safe);
+            color: #555;
+            text-decoration: line-through;
+            animation: pulseFilled 0.5s ease-out forwards;
+        }
+        @keyframes pulseFilled {
+            0% { transform: scale(1); background: rgba(0, 184, 148, 0.5); }
+            50% { transform: scale(1.1); background: rgba(0, 184, 148, 0.8); color: #000; }
+            100% { transform: scale(1); background: rgba(0, 184, 148, 0.2); }
+        }
 
+        /* --- Tolerance Bar & Queue --- */
         #tolerance-container { width: 100%; margin-top: auto; font-family: 'Courier New', monospace; }
-        
         .header-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
-        
         #tolerance-label { font-size: 12px; font-weight: bold; text-transform: uppercase; }
         
-        #powerup-queue { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; text-align: right; }
+        #powerup-queue { display: flex; gap: 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+
+        /* Tooltip implementation */
+        .tooltip { position: relative; cursor: help; border-bottom: 1px dotted #666; }
+        .tooltip .tooltip-text {
+            visibility: hidden; width: 140px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 4px; padding: 5px; position: absolute;
+            z-index: 100; bottom: 125%; left: 50%; margin-left: -70px; opacity: 0;
+            transition: opacity 0.3s; font-size: 10px; font-weight: normal; text-transform: none;
+            text-shadow: none; pointer-events: none; line-height: 1.2;
+        }
+        .tooltip .tooltip-text::after {
+            content: ""; position: absolute; top: 100%; left: 50%;
+            margin-left: -5px; border-width: 5px; border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
 
         #tolerance-bar-bg {
             width: 100%; height: 18px; background: #333; border-radius: 9px; overflow: hidden;
             position: relative; display: flex; justify-content: center; align-items: center;
+            border: 2px solid #222;
         }
         #tolerance-bar-fill {
             position: absolute; left: 0; top: 0; height: 100%; background: var(--safe);
-            transition: width 0.2s, background 0.2s; z-index: 1;
+            transition: width 0.2s ease-out, background 0.2s ease-out; z-index: 1;
         }
         #tolerance-text {
             color: white; font-size: 12px; font-family: monospace; font-weight: bold;
             z-index: 2; text-shadow: 1px 1px 0 #000;
         }
 
-        #phaser-container {
-            width: 100%; flex-grow: 1; position: relative;
-        }
-
+        /* --- Engine Container & Overlays --- */
+        #phaser-container { width: 100%; flex-grow: 1; position: relative; background: #111; }
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 100; color: white;
+            background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100; color: white;
+            backdrop-filter: blur(2px);
         }
         .hidden { display: none !important; }
         .panel {
             background: var(--ui-bg); color: var(--text);
-            padding: 30px; border-radius: 4px; border: 3px solid #333;
-            max-width: 400px; text-align: center;
+            padding: 30px; border-radius: 8px; border: 4px solid #333;
+            max-width: 450px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 90%;
         }
-        h1 { margin-bottom: 10px; text-transform: uppercase; font-family: 'Courier New', monospace; }
+        h1 { margin-bottom: 10px; text-transform: uppercase; font-family: 'Courier New', monospace; font-size: 24px;}
         p { margin-bottom: 20px; font-weight: bold; }
         .danger-text { color: var(--danger); }
         .safe-text { color: var(--safe); }
-        .stats-block { text-align: left; background: #eee; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-family: monospace;}
+        .stats-block { text-align: left; background: #eee; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-family: monospace;}
+        
+        /* Break Room UI */
+        .upgrade-container {
+            display: flex; gap: 15px; margin-bottom: 20px; justify-content: center;
+        }
+        .upgrade-card {
+            background: #fff; border: 2px solid #555; border-radius: 8px; padding: 15px 10px;
+            width: 120px; cursor: pointer; transition: transform 0.1s, border-color 0.1s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .upgrade-card:hover { transform: translateY(-5px); border-color: var(--safe); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .card-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; width: 100%; }
+        .card-desc { font-size: 11px; font-weight: normal; color: #555; }
+        .card-type { font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: #0984e3; font-weight: bold;}
+        .card-type.consumable { color: #e17055; }
+
+        /* Game HUD Elements (Lives/Score) */
+        #hud-top {
+            position: absolute; top: 160px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between; z-index: 5;
+            font-family: monospace; font-weight: bold; color: white; text-shadow: 1px 1px 0 #000;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -151,22 +192,25 @@
 <div id="game-wrapper">
     <div id="header-ui">
         <div id="header-controls">
-            <button id="btn-recall" class="small-btn" style="background: #e17055;">Recall</button>
+            <button id="btn-mute" class="small-btn">Mute: Off</button>
             <button id="btn-pause-toggle" class="small-btn">Pause</button>
         </div>
         <div class="header-top">
-            <div id="rx-title">Rx: Level 1</div>
+            <div id="rx-patient">Pt: Loading...</div>
+            <div id="rx-title">Rx: Loading...</div>
         </div>
         <div id="rx-list"></div>
         <div id="tolerance-container">
             <div class="header-bottom-row">
-                <div id="tolerance-label">Mis-dispense Tracking</div>
+                <div id="tolerance-label">Mis-dispense</div>
                 <div id="powerup-queue">
-                    <span style="color:#a29bfe; text-shadow: 1px 1px 0 #000;">
-                        Split: <span id="active-split">0</span> (Bank: <span id="queue-split">0</span>)
+                    <span class="tooltip" style="color:#a29bfe; text-shadow: 1px 1px 0 #fff;">
+                        SPL: <span id="active-split">0</span>
+                        <span class="tooltip-text">Split Rounds: Fragments into 3 tablets on launch.</span>
                     </span>
-                    <span style="color:#00cec9; text-shadow: 1px 1px 0 #000;">
-                        Pierce: <span id="active-pierce">0</span> (Bank: <span id="queue-pierce">0</span>)
+                    <span class="tooltip" style="color:#00cec9; text-shadow: 1px 1px 0 #fff;">
+                        PRC: <span id="active-pierce">0</span>
+                        <span class="tooltip-text">Pierce Rounds: Punches through targets without bouncing.</span>
                     </span>
                 </div>
             </div>
@@ -177,12 +221,17 @@
         </div>
     </div>
 
-    <div id="phaser-container"></div>
+    <div id="phaser-container">
+        <div id="hud-top">
+            <div>Lives: <span id="hud-lives">3</span></div>
+            <div>Score: <span id="hud-score">00000</span></div>
+        </div>
+    </div>
 
     <div id="menu-start" class="overlay">
         <div class="panel">
             <h1>Pharmacy Breaker</h1>
-            <p>Fill prescriptions. Avoid dispensing errors.</p>
+            <p>Fill prescriptions. Avoid off-label colors.</p>
             <button id="btn-play" class="action-btn">Clock In</button>
             <button id="btn-settings" class="action-btn" style="background:#555;">Settings</button>
         </div>
@@ -200,7 +249,7 @@
     <div id="menu-level-briefing" class="overlay hidden">
         <div class="panel">
             <h2 id="briefing-color" style="text-transform: uppercase;">Color Pills</h2>
-            <h1 id="briefing-title" style="font-family: 'Caveat', cursive; color: #2c3e50; font-size: 32px;">Take 1, twice daily...</h1>
+            <h1 id="briefing-title" style="font-family: 'Caveat', cursive; color: #2c3e50; font-size: 32px; line-height: 1.1; margin: 10px 0;">Take 1, twice daily...</h1>
             <p id="briefing-condition" style="font-size: 14px; color: #555; text-align: left;">Indication: ...</p>
             <div style="background: #e8f4f8; padding: 10px; border-left: 4px solid #0984e3; margin-bottom: 20px; text-align: left;">
                 <p id="briefing-tip" style="margin: 0; font-size: 12px; font-family: monospace;">Note: ...</p>
@@ -209,22 +258,35 @@
         </div>
     </div>
 
+    <div id="menu-breakroom" class="overlay hidden">
+        <div class="panel">
+            <h1 style="color: #0984e3;">The Break Room</h1>
+            <p style="font-size: 14px;">Select one upgrade for the remainder of your shift.</p>
+            
+            <div id="upgrade-cards" class="upgrade-container">
+                </div>
+            
+            <button id="btn-skip-break" class="action-btn" style="background:#555;">Skip Upgrade</button>
+        </div>
+    </div>
+
     <div id="menu-pause" class="overlay hidden">
         <div class="panel">
             <h1>Paused</h1>
             <button id="btn-resume" class="action-btn">Resume</button>
-            <button id="btn-restart-pause" class="action-btn" style="background:#555;">Restart Shift</button>
+            <button id="btn-restart-run" class="action-btn" style="background:#d63031;">End Shift</button>
         </div>
     </div>
 
     <div id="menu-gameover" class="overlay hidden">
         <div class="panel">
-            <h1 class="danger-text">Dispensing Error</h1>
+            <h1 class="danger-text">Shift Terminated</h1>
+            <p>You have lost all your lives.</p>
             <div class="stats-block">
+                <p style="margin:0;">Final Score: <span id="stats-score">0</span></p>
                 <p style="margin:0;">Scripts Filled: <span id="stats-filled">0</span></p>
-                <p style="margin:0;">Best Shift: <span id="stats-best">0</span></p>
             </div>
-            <button id="btn-retry" class="action-btn">Restart Shift</button>
+            <button id="btn-retry" class="action-btn">Start New Shift</button>
         </div>
     </div>
 
@@ -237,715 +299,32 @@
     </div>
 </div>
 
+<script src="game.js"></script>
+
 <script>
-const CONFIG = {
-    physics: {
-        baseVelocity: 550,
-        maxVelocity: 950,
-        velocityMultiplier: 1.03,
-        hitboxRadius: 8
-    },
-    launcher: {
-        minAngleDeg: 15,
-        maxActiveTablets: 1
-    },
-    rules: {
-        baseTolerance: 500,
-        toleranceDecayPerLevel: 50,
-        wrongColorPenalty: 35
-    },
-    modifiers: {
-        strength: {
-            splitCount: 3,
-            pierceLimit: 2
-        }
-    },
-    feedback: {
-        shakeIntensityPx: 5,
-        shakeDurationMs: 100,
-        blastRadiusPx: 120
-    }
-};
-
-const LORE_DB = {
-    conditions: [
-        "Acute Pixelitis", 
-        "Restless Cursor Syndrome", 
-        "Carpal Tunnel Variance",
-        "Chronic Refresh Fatigue",
-        "Elevated Ping Rate",
-        "Tab Hoarding Disorder"
-    ],
-    tutorials: {
-        1: "Drag to aim. Fill the script. Avoid off-label colors.",
-        2: "Cyan capsules grant Pierce. Tablets punch through targets.",
-        3: "Purple capsules grant Split. Three for the price of one.",
-        5: "Red means volatile. Keep your distance."
-    }
-};
-
-const FREQUENCY_MAP = {
-    1: "once",
-    2: "twice",
-    3: "three times",
-    4: "four times"
-};
-
-const gameState = {
-    level: 1,
-    currentTolerance: 0,
-    maxTolerance: 0,
-    rxQuota: {},
-    isAiming: true,
-    activeTablets: 0,
-    powerupQueue: { split: 0, pierce: 0 },
-    activeRounds: { split: 0, pierce: 0 }
-};
-
-const COLORS = {
-    'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 'Yellow': 0xfdcb6e,
-    'Pink': 0xfd79a8, 'Red': 0xd63031, 'White': 0xffffff,
-    'Purple': 0xa29bfe, 'Cyan': 0x00cec9
-};
-
-const CAPSULE_SCHEMA = {
-    "Standard":  { hp: 1, type: "script", visual: "solid_color" },
-    "XR":        { hp: 2, type: "script", visual: "stamped_XR" },
-    "Explosive": { hp: 1, type: "hazard", visual: "red_volatile" },
-    "Placebo":   { hp: 1, type: "neutral", visual: "stamped_PLACEBO" },
-    "Splitter":  { hp: 1, type: "powerup", buff: "split", visual: "stamped_SPLIT" },
-    "Pierce":    { hp: 1, type: "powerup", buff: "pierce", visual: "stamped_PIERCE" }
-};
-
-const DOM = {
-    tolFill: document.getElementById('tolerance-bar-fill'),
-    tolText: document.getElementById('tolerance-text'),
-    rxTitle: document.getElementById('rx-title'),
-    rxList: document.getElementById('rx-list'),
-    queueSplit: document.getElementById('queue-split'),
-    queuePierce: document.getElementById('queue-pierce'),
-    activeSplit: document.getElementById('active-split'),
-    activePierce: document.getElementById('active-pierce')
-};
-
-function generatePrescriptionText(level, targetCount) {
-    const condition = Phaser.Utils.Array.GetRandom(LORE_DB.conditions);
-    const tip = LORE_DB.tutorials[level] || "Standard dispensing protocol.";
-    
-    let dosage = 1, freq = 1; 
-    if (targetCount % 4 === 0) { dosage = 2; freq = 2; }
-    else if (targetCount % 3 === 0) { dosage = 1; freq = 3; }
-    else if (targetCount % 2 === 0) { dosage = 1; freq = 2; }
-    
-    const days = targetCount / (dosage * freq); 
-    const freqString = FREQUENCY_MAP[freq] || `${freq} times`;
-    const title = `Take ${dosage}, ${freqString} daily for ${days} days.`;
-    
-    return { title, condition: `Indication: ${condition}`, tip: `Note: ${tip}` };
-}
-
-function getCapsuleSpawnPool(level) {
-    const standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
-    let pool = { colors: standardColors.slice(0, 2), modifiers: [] };
-
-    if (level >= 2) pool.modifiers.push({ type: 'Pierce', color: 'Cyan' });
-    if (level >= 3) pool.modifiers.push({ type: 'Splitter', color: 'Purple' });
-    if (level >= 4) pool.colors = standardColors.slice(0, 3);
-    if (level >= 5) pool.modifiers.push({ type: 'Explosive', color: 'Red' });
-    if (level >= 6) pool.colors = standardColors;
-    
-    return pool;
-}
-
-let gui;
-function setupGUI() {
-    gui = new lil.GUI({ title: 'Engine Tuning' });
-    gui.domElement.style.position = 'absolute';
-    gui.domElement.style.top = '10px';
-    gui.domElement.style.right = '10px';
-    gui.domElement.style.zIndex = '1000';
-    gui.hide();
-
-    const p = gui.addFolder('Physics');
-    p.add(CONFIG.physics, 'baseVelocity', 200, 1000);
-    p.add(CONFIG.physics, 'maxVelocity', 800, 2000);
-    p.add(CONFIG.physics, 'velocityMultiplier', 1.0, 1.1);
-
-    const l = gui.addFolder('Launcher');
-    l.add(CONFIG.launcher, 'minAngleDeg', 5, 45);
-    l.add(CONFIG.launcher, 'maxActiveTablets', 1, 5, 1);
-
-    const r = gui.addFolder('Rules');
-    r.add(CONFIG.rules, 'baseTolerance', 100, 1000);
-    r.add(CONFIG.rules, 'toleranceDecayPerLevel', 10, 100);
-    r.add(CONFIG.rules, 'wrongColorPenalty', 5, 100);
-}
-
-class MainScene extends Phaser.Scene {
-    constructor() { super({ key: 'MainScene' }); }
-
-    preload() {
-        this.generateAssets();
-    }
-
-    generateAssets() {
-        let g = this.make.graphics({x:0, y:0, add:false});
+    document.addEventListener('DOMContentLoaded', () => {
+        const muteBtn = document.getElementById('btn-mute');
+        let settings = JSON.parse(localStorage.getItem('pharmacy_settings')) || { mute: false };
         
-        g.clear();
-        g.fillStyle(0xf5f6fa, 1);
-        g.fillCircle(8, 8, 8);
-        g.lineStyle(2, 0x2d3436, 0.8);
-        g.beginPath();
-        g.moveTo(2, 8);
-        g.lineTo(14, 8);
-        g.strokePath();
-        g.generateTexture('tablet_tex', 16, 16);
-
-        g.clear();
-        g.fillStyle(0x8b4513, 1);
-        g.fillRoundedRect(0, 50, 16, 40, 8);
-        g.fillStyle(0xbdc3c7, 1);
-        g.fillRoundedRect(4, 0, 8, 60, 4);
-        g.generateTexture('spatula_tex', 16, 90);
-
-        const drawPill = (key, colorHex, text) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 50; canvas.height = 20;
-            const ctx = canvas.getContext('2d');
-            const r = 10;
-            
-            ctx.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
-            ctx.beginPath();
-            ctx.moveTo(r, 0); ctx.lineTo(40, 0); ctx.arcTo(50, 0, 50, 20, r);
-            ctx.lineTo(50, 10); ctx.arcTo(50, 20, 0, 20, r);
-            ctx.lineTo(10, 20); ctx.arcTo(0, 20, 0, 0, r);
-            ctx.lineTo(0, 10); ctx.arcTo(0, 0, 50, 0, r);
-            ctx.fill();
-
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.beginPath(); ctx.roundRect(4, 2, 42, 5, 2); ctx.fill();
-
-            if (text) {
-                ctx.fillStyle = colorHex === COLORS['White'] ? '#333' : '#fff';
-                ctx.font = 'bold 10px monospace';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(text, 25, 11);
-            }
-            this.textures.addImage(key, canvas);
+        const updateMuteUI = () => {
+            muteBtn.innerText = settings.mute ? 'Mute: ON' : 'Mute: OFF';
+            if(settings.mute) muteBtn.classList.add('active-toggle');
+            else muteBtn.classList.remove('active-toggle');
+            // game.js will hook into this state to mute Phaser's sound manager
         };
 
-        drawPill('Blue', COLORS['Blue']);
-        drawPill('Green', COLORS['Green']);
-        drawPill('Orange', COLORS['Orange']);
-        drawPill('Yellow', COLORS['Yellow']);
-        drawPill('XR', COLORS['Pink'], 'XR');
-        drawPill('Explosive', COLORS['Red'], '!!!');
-        drawPill('Placebo', COLORS['White'], 'PLACEBO');
-        drawPill('Splitter', COLORS['Purple'], 'SPLIT');
-        drawPill('Pierce', COLORS['Cyan'], 'PIERCE');
-    }
-
-    create() {
-        setupGUI();
-        
-        this.victoryEmitters = [];
-
-        this.physics.world.setBounds(0, 0, 600, 750);
-        this.physics.world.setBoundsCollision(true, true, true, false);
-
-        this.capsules = this.physics.add.staticGroup();
-        this.tablets = this.physics.add.group();
-
-        this.launcherOrigin = new Phaser.Math.Vector2(300, 690);
-        this.spatula = this.add.sprite(this.launcherOrigin.x, this.launcherOrigin.y, 'spatula_tex');
-        this.spatula.setOrigin(0.5, 1); 
-        this.spatula.setRotation(0); 
-
-        this.floor = this.add.zone(300, 760, 600, 20);
-        this.physics.add.existing(this.floor, true);
-
-        this.dust = this.add.particles(0, 0, 'tablet_tex', {
-            speed: { min: 80, max: 200 }, scale: { start: 0.6, end: 0 },
-            lifespan: 250, gravityY: 300, emitting: false
+        muteBtn.addEventListener('click', () => {
+            settings.mute = !settings.mute;
+            localStorage.setItem('pharmacy_settings', JSON.stringify(settings));
+            updateMuteUI();
+            
+            // Dispatch event for game.js to catch
+            window.dispatchEvent(new CustomEvent('muteToggled', { detail: settings.mute }));
         });
 
-        this.physics.add.collider(this.tablets, this.capsules, this.onCollisionBounce, this.onCollisionProcess, this);
-        this.physics.add.overlap(this.tablets, this.floor, this.onTabletLost, null, this);
-
-        this.input.on('pointermove', this.updateAim, this);
-        this.input.on('pointerup', this.fireTablet, this);
-
-        switchOverlay('menu-start');
-        this.prepareLevelData(1);
-    }
-
-    prepareLevelData(levelNumber) {
-        gameState.level = levelNumber;
-        gameState.maxTolerance = Math.max(100, CONFIG.rules.baseTolerance - ((levelNumber - 1) * CONFIG.rules.toleranceDecayPerLevel));
-        gameState.currentTolerance = gameState.maxTolerance;
-        
-        const targetCount = 10 + (levelNumber * 3);
-        const pool = getCapsuleSpawnPool(levelNumber);
-        
-        gameState.rxQuota = {};
-        let primaryColor = Phaser.Math.RND.pick(pool.colors);
-        gameState.rxQuota[primaryColor] = targetCount;
-        
-        if (levelNumber > 2) {
-            let secColor = Phaser.Math.RND.pick(pool.colors.filter(c => c !== primaryColor));
-            if (secColor) gameState.rxQuota[secColor] = Math.floor(targetCount / 2);
-        }
-    }
-
-    renderLevelBoard() {
-        this.capsules.clear(true, true);
-        this.tablets.clear(true, true);
-        
-        if (this.victoryEmitters && this.victoryEmitters.length > 0) {
-            this.victoryEmitters.forEach(e => e.destroy());
-            this.victoryEmitters = [];
-        }
-
-        gameState.activeTablets = 0;
-        gameState.isAiming = true;
-        gameState.powerupQueue = { split: 0, pierce: 0 };
-        gameState.activeRounds = { split: 0, pierce: 0 };
-
-        const pool = getCapsuleSpawnPool(gameState.level);
-        const cols = 9;
-        const rows = 6 + Math.floor(gameState.level / 2);
-        const startX = 60, startY = 60;
-        const spacingX = 60, spacingY = 30;
-
-        let positions = [];
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) positions.push({r, c});
-        }
-        Phaser.Utils.Array.Shuffle(positions);
-
-        let placedTargets = {};
-        Object.keys(gameState.rxQuota).forEach(c => placedTargets[c] = 0);
-
-        positions.forEach(pos => {
-            const x = startX + pos.c * spacingX + (pos.r % 2 === 0 ? 0 : spacingX/2);
-            const y = startY + pos.r * spacingY;
-            
-            let color = 'Blue', typeKey = 'Standard', tex = 'Blue';
-            let neededColor = Object.keys(gameState.rxQuota).find(c => placedTargets[c] < gameState.rxQuota[c]);
-            
-            if (neededColor) {
-                color = neededColor; tex = color;
-                placedTargets[color]++;
-            } else {
-                let rand = Math.random();
-                let hasMods = pool.modifiers.length > 0;
-
-                if (hasMods && rand < 0.15) {
-                    let mod = Phaser.Math.RND.pick(pool.modifiers);
-                    typeKey = mod.type; color = mod.color; tex = mod.type;
-                }
-                else if (rand < 0.25) { typeKey = 'Placebo'; color = 'White'; tex = 'Placebo'; }
-                else if (rand < 0.35 && gameState.level > 2) { typeKey = 'XR'; color = 'Pink'; tex = 'XR'; }
-                else { color = Phaser.Math.RND.pick(pool.colors); tex = color; }
-            }
-
-            let cap = this.capsules.create(x, y, tex);
-            cap.schema = CAPSULE_SCHEMA[typeKey];
-            cap.color = color;
-            cap.hp = cap.schema.hp;
-            cap.body.setSize(50, 20); 
-            cap.body.setOffset(0, 0);
-        });
-
-        this.updateUI();
-    }
-
-    updateAim(pointer) {
-        if (!gameState.isAiming || gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
-
-        let angle = Phaser.Math.Angle.Between(this.launcherOrigin.x, this.launcherOrigin.y, pointer.x, pointer.y);
-        let angleDeg = Phaser.Math.RadToDeg(angle);
-
-        const minD = -180 + CONFIG.launcher.minAngleDeg;
-        const maxD = -CONFIG.launcher.minAngleDeg;
-        
-        if (angleDeg > maxD && angleDeg < 0) angleDeg = maxD;
-        if (angleDeg < minD || angleDeg >= 0) angleDeg = minD;
-
-        let angleRad = Phaser.Math.DegToRad(angleDeg);
-        this.spatula.setRotation(angleRad + Math.PI/2); 
-    }
-
-    fireTablet() {
-        if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
-        
-        gameState.isAiming = false;
-        
-        let angleRad = this.spatula.rotation - Math.PI/2;
-        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90;
-        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
-
-        if (gameState.activeRounds.split === 0 && gameState.powerupQueue.split > 0) {
-            gameState.powerupQueue.split--;
-            gameState.activeRounds.split = 1; 
-        }
-        if (gameState.activeRounds.pierce === 0 && gameState.powerupQueue.pierce > 0) {
-            gameState.powerupQueue.pierce--;
-            gameState.activeRounds.pierce = 3; 
-        }
-
-        let isPiercing = gameState.activeRounds.pierce > 0;
-        let isSplitting = gameState.activeRounds.split > 0;
-
-        let t1 = this.spawnTablet(tipX, tipY, angleRad);
-        gameState.activeTablets++;
-        
-        if (isPiercing) {
-            t1.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit);
-            t1.setTint(0x00ffff);
-        }
-
-        if (isSplitting) {
-            let t2 = this.spawnTablet(tipX, tipY, angleRad + 0.15);
-            let t3 = this.spawnTablet(tipX, tipY, angleRad - 0.15);
-            gameState.activeTablets += 2;
-            
-            if (isPiercing) {
-                t2.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t2.setTint(0x00ffff);
-                t3.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t3.setTint(0x00ffff);
-            }
-            gameState.activeRounds.split--;
-        }
-
-        if (isPiercing) gameState.activeRounds.pierce--;
-        this.updateUI();
-    }
-
-    spawnTablet(x, y, angleRad) {
-        let t = this.tablets.create(x, y, 'tablet_tex');
-        t.setCircle(8); 
-        t.setBounce(1);
-        t.setFriction(0);
-        t.setCollideWorldBounds(true);
-        t.setData('pierceCount', 0);
-        t.setData('combo', 0);
-        t.setAngularVelocity(Phaser.Math.Between(-400, 400));
-
-        this.physics.velocityFromRotation(angleRad, CONFIG.physics.baseVelocity, t.body.velocity);
-        return t;
-    }
-
-    onTabletLost(floor, tablet) {
-        tablet.destroy();
-        gameState.activeTablets--;
-        if (gameState.activeTablets <= 0) {
-            gameState.isAiming = true;
-            gameState.activeTablets = 0;
-            
-            let pointer = this.input.activePointer;
-            if (pointer.x > 0 && pointer.y > 0) this.updateAim(pointer);
-        }
-    }
-
-    onCollisionProcess(tablet, capsule) {
-        if (tablet.getData('pierceCount') > 0) {
-            tablet.incData('pierceCount', -1);
-            if (tablet.getData('pierceCount') <= 0) {
-                tablet.clearTint();
-            }
-            this.damageCapsule(capsule, tablet);
-            return false; 
-        }
-        return true; 
-    }
-
-    onCollisionBounce(tablet, capsule) {
-        let v = tablet.body.velocity.clone(); 
-        
-        // Break infinite horizontal loops
-        if (Math.abs(v.y) < 40) {
-            v.y += (v.y >= 0 ? 60 : -60);
-        }
-        
-        v.scale(CONFIG.physics.velocityMultiplier);
-        
-        if (v.length() > 0 && v.length() > CONFIG.physics.maxVelocity) {
-            v.normalize().scale(CONFIG.physics.maxVelocity);
-        }
-        tablet.setVelocity(v.x, v.y);
-        
-        this.damageCapsule(capsule, tablet);
-    }
-
-    damageCapsule(capsule, tablet) {
-        if (!capsule.active || capsule.isDying) return;
-
-        capsule.hp--;
-        if (capsule.hp > 0) {
-            capsule.setTint(0x7f8c8d);
-            
-            this.tweens.killTweensOf(capsule);
-            capsule.setScale(1); 
-            
-            this.tweens.add({
-                targets: capsule,
-                scaleX: 1.2, scaleY: 0.8,
-                duration: 40,
-                yoyo: true
-            });
-            return;
-        }
-        
-        capsule.isDying = true;
-        capsule.body.enable = false;
-
-        const type = capsule.schema.type;
-        const color = capsule.color;
-
-        this.tweens.add({
-            targets: capsule,
-            scaleX: 1.5, scaleY: 1.5,
-            alpha: 0,
-            duration: 100,
-            onComplete: () => capsule.destroy()
-        });
-
-        this.dust.particleTint = COLORS[color] || 0xffffff;
-        this.dust.emitParticleAt(capsule.x, capsule.y, 20);
-
-        switch(type) {
-            case "script":
-                if (gameState.rxQuota[color] !== undefined && gameState.rxQuota[color] > 0) {
-                    gameState.rxQuota[color]--;
-                    
-                    let combo = tablet.getData('combo') || 0;
-                    combo++;
-                    tablet.setData('combo', combo);
-                    
-                    if (combo >= 3) {
-                        gameState.currentTolerance = Math.min(gameState.maxTolerance, gameState.currentTolerance + 20);
-                        tablet.setData('combo', 0);
-                        this.spawnFloatingText(capsule.x, capsule.y, "+20 TOLERANCE", COLORS['Green']);
-                    }
-                } else if (gameState.rxQuota[color] === undefined && color !== 'Pink' && color !== 'White') {
-                    gameState.currentTolerance -= CONFIG.rules.wrongColorPenalty;
-                    tablet.setData('combo', 0);
-                    this.cameras.main.shake(CONFIG.feedback.shakeDurationMs, CONFIG.feedback.shakeIntensityPx / 1000);
-                }
-                break;
-            case "hazard":
-                this.cameras.main.shake(CONFIG.feedback.shakeDurationMs * 2, (CONFIG.feedback.shakeIntensityPx * 2) / 1000);
-                this.destroyAdjacentCapsules(capsule.x, capsule.y, CONFIG.feedback.blastRadiusPx, tablet);
-                break;
-            case "powerup":
-                gameState.powerupQueue[capsule.schema.buff] += 3;
-                this.spawnFloatingText(capsule.x, capsule.y, "+3 " + capsule.schema.buff.toUpperCase(), COLORS[color]);
-                break;
-            case "neutral":
-                break;
-        }
-
-        this.updateUI();
-        this.checkWinLossState();
-    }
-
-    destroyAdjacentCapsules(x, y, radius, tablet) {
-        let blast = new Phaser.Geom.Circle(x, y, radius);
-        this.capsules.getChildren().forEach(cap => {
-            if (cap.active && !cap.isDying && Phaser.Geom.Intersects.CircleToRectangle(blast, cap.getBounds())) {
-                this.damageCapsule(cap, tablet); 
-            }
-        });
-    }
-
-    spawnFloatingText(x, y, text, colorHex) {
-        let colorStr = '#' + colorHex.toString(16).padStart(6, '0');
-        let floatText = this.add.text(x, y, text, {
-            fontSize: '18px', fontFamily: 'monospace', fontStyle: 'bold', color: colorStr, stroke: '#000', strokeThickness: 3
-        }).setOrigin(0.5);
-
-        this.tweens.add({
-            targets: floatText, y: y - 40, alpha: 0, duration: 1200, ease: 'Power1',
-            onComplete: () => floatText.destroy()
-        });
-    }
-
-    updateUI() {
-        DOM.rxTitle.innerText = `Rx: Level ${gameState.level}`;
-        DOM.rxList.innerHTML = '';
-        
-        for (const [color, count] of Object.entries(gameState.rxQuota)) {
-            let div = document.createElement('div');
-            div.className = `rx-item ${count <= 0 ? 'rx-complete' : ''}`;
-            
-            let swatch = document.createElement('div');
-            swatch.className = 'rx-color-swatch';
-            swatch.style.backgroundColor = '#' + COLORS[color].toString(16).padStart(6, '0');
-            
-            let text = document.createElement('span');
-            text.innerText = `${color}: ${Math.max(0, count)}`;
-            
-            div.appendChild(swatch);
-            div.appendChild(text);
-            DOM.rxList.appendChild(div);
-        }
-
-        let pct = Math.max(0, (gameState.currentTolerance / gameState.maxTolerance) * 100);
-        DOM.tolFill.style.width = `${pct}%`;
-        
-        if (pct > 50) DOM.tolFill.style.background = 'var(--safe)';
-        else if (pct > 25) DOM.tolFill.style.background = '#fdcb6e';
-        else DOM.tolFill.style.background = 'var(--danger)';
-
-        DOM.tolText.innerText = `${Math.floor(gameState.currentTolerance)} / ${gameState.maxTolerance}`;
-        DOM.queueSplit.innerText = gameState.powerupQueue.split;
-        DOM.queuePierce.innerText = gameState.powerupQueue.pierce;
-        DOM.activeSplit.innerText = gameState.activeRounds.split;
-        DOM.activePierce.innerText = gameState.activeRounds.pierce;
-    }
-
-    checkWinLossState() {
-        if (gameState.currentTolerance <= 0) {
-            this.scene.pause();
-            
-            let scriptsFilled = gameState.level - 1;
-            let highScore = parseInt(localStorage.getItem('pharmacy_highscore')) || 0;
-            
-            if (scriptsFilled > highScore) {
-                highScore = scriptsFilled;
-                localStorage.setItem('pharmacy_highscore', highScore);
-            }
-            
-            document.getElementById('stats-filled').innerText = scriptsFilled;
-            document.getElementById('stats-best').innerText = highScore;
-            
-            switchOverlay('menu-gameover');
-        } else {
-            const remainingRx = Object.values(gameState.rxQuota).reduce((a, b) => a + Math.max(0, b), 0);
-            if (remainingRx === 0) {
-                this.physics.pause(); 
-                gameState.isAiming = false;
-                
-                const colors = [0xf1c40f, 0x2ecc71, 0x3498db, 0xe74c3c, 0x9b59b6];
-                colors.forEach((color, index) => {
-                    let emitter = this.add.particles(100 + (index * 100), 700, 'tablet_tex', {
-                        speed: { min: 200, max: 600 },
-                        angle: { min: 240, max: 300 },
-                        scale: { start: 0.5, end: 0 },
-                        gravityY: 800,
-                        tint: color,
-                        lifespan: 1500,
-                        frequency: 50
-                    });
-                    this.victoryEmitters.push(emitter);
-                });
-                
-                this.time.delayedCall(1500, () => {
-                    this.scene.pause();
-                    switchOverlay('menu-win');
-                });
-            }
-        }
-    }
-}
-
-const gameConfig = {
-    type: Phaser.AUTO,
-    parent: 'phaser-container',
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 600,
-        height: 750
-    },
-    transparent: true,
-    physics: {
-        default: 'arcade',
-        arcade: { debug: false }
-    },
-    scene: MainScene
-};
-
-const game = new Phaser.Game(gameConfig);
-
-function switchOverlay(id) {
-    document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
-    if (id) document.getElementById(id).classList.remove('hidden');
-}
-
-document.getElementById('btn-play').addEventListener('click', () => {
-    const keys = Object.keys(gameState.rxQuota);
-    let totalCount = 0;
-    let titleParts = [];
-    
-    keys.forEach(k => {
-        totalCount += gameState.rxQuota[k];
-        titleParts.push(`${gameState.rxQuota[k]} ${k}`);
+        updateMuteUI();
     });
-    
-    const flavor = generatePrescriptionText(gameState.level, totalCount);
-    
-    document.getElementById('briefing-color').innerText = titleParts.join(' & ') + " Capsules";
-    document.getElementById('briefing-title').innerText = flavor.title;
-    document.getElementById('briefing-condition').innerText = flavor.condition;
-    document.getElementById('briefing-tip').innerText = flavor.tip;
-    
-    switchOverlay('menu-level-briefing');
-});
-
-document.getElementById('btn-start-level').addEventListener('click', () => {
-    switchOverlay(null);
-    let scene = game.scene.getScene('MainScene');
-    scene.physics.resume(); 
-    scene.renderLevelBoard();
-});
-
-document.getElementById('btn-settings').addEventListener('click', () => switchOverlay('menu-settings'));
-document.getElementById('btn-close-settings').addEventListener('click', () => switchOverlay('menu-start'));
-document.getElementById('btn-dev-toggle').addEventListener('click', () => { if (gui._hidden) gui.show(); else gui.hide(); });
-
-document.getElementById('btn-retry').addEventListener('click', () => {
-    game.scene.resume('MainScene');
-    let scene = game.scene.getScene('MainScene');
-    scene.physics.resume();
-    scene.prepareLevelData(1);
-    document.getElementById('btn-play').click();
-});
-
-document.getElementById('btn-next').addEventListener('click', () => {
-    game.scene.resume('MainScene');
-    let scene = game.scene.getScene('MainScene');
-    scene.physics.resume();
-    scene.prepareLevelData(gameState.level + 1);
-    document.getElementById('btn-play').click();
-});
-
-document.getElementById('btn-pause-toggle').addEventListener('click', () => {
-    game.scene.pause('MainScene');
-    switchOverlay('menu-pause');
-});
-document.getElementById('btn-resume').addEventListener('click', () => {
-    switchOverlay(null);
-    game.scene.resume('MainScene');
-});
-document.getElementById('btn-restart-pause').addEventListener('click', () => {
-    game.scene.resume('MainScene');
-    let scene = game.scene.getScene('MainScene');
-    scene.physics.resume();
-    scene.prepareLevelData(gameState.level);
-    document.getElementById('btn-play').click();
-});
-
-document.getElementById('btn-recall').addEventListener('click', () => {
-    let scene = game.scene.getScene('MainScene');
-    if(scene.physics.world.isPaused) return; 
-    scene.tablets.clear(true, true); 
-    gameState.activeTablets = 0;
-    gameState.isAiming = true;
-    gameState.powerupQueue = { split: 0, pierce: 0 }; 
-    gameState.activeRounds = { split: 0, pierce: 0 }; 
-    scene.updateUI();
-});
 </script>
+
 </body>
 </html>
