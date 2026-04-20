@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pharmacy Breaker v0.3.4</title>
+    <title>Pharmacy Breaker v1.0.1</title>
     
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg: #111;
-            --text: #2d3436;
-            --ui-bg: rgba(255, 255, 255, 0.98);
-            --danger: #d63031;
-            --safe: #00b894;
-            --warning: #fdcb6e;
-            --primary: #0984e3;
+            --bg: #111; --text: #2d3436; --ui-bg: rgba(255, 255, 255, 0.98);
+            --danger: #d63031; --safe: #00b894; --warning: #fdcb6e; --primary: #0984e3;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body { 
@@ -33,27 +28,27 @@
         }
 
         #header-ui {
-            width: 100%; height: 180px; flex-shrink: 0;
-            background-color: #ffffff; border-bottom: 4px solid #dfe6e9;
-            display: flex; flex-direction: column;
+            width: 100%; min-height: 180px; height: auto; flex-shrink: 0; background-color: #ffffff; 
+            border-bottom: 4px solid #dfe6e9; display: flex; flex-direction: column;
             padding: 10px 20px; z-index: 10;
         }
 
         .header-top-bar {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px;
-            font-size: 13px; font-weight: bold;
+            font-size: 12px; font-weight: bold;
         }
         .header-stats span { color: #555; }
-        .header-stats .stat-val { color: var(--primary); font-size: 15px; margin-right: 15px; }
+        .header-stats .stat-val { color: var(--primary); font-size: 15px; margin-right: 12px; }
         .header-stats .stat-val.lives { color: var(--safe); }
+        .header-stats .stat-val.best { color: #e17055; }
         
         #header-controls { display: flex; gap: 8px; }
 
         button.action-btn {
             background: var(--primary); color: white; border: none;
-            padding: 12px 24px; font-size: 16px; cursor: pointer;
-            border-radius: 4px; font-family: 'Roboto Mono', monospace; font-weight: bold;
+            padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 4px; 
+            font-family: 'Roboto Mono', monospace; font-weight: bold;
             text-transform: uppercase; width: 100%; margin-bottom: 10px;
             transition: filter 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
@@ -61,9 +56,9 @@
         
         button.small-btn {
             background: #dfe6e9; color: #2d3436; border: 1px solid #b2bec3;
-            padding: 4px 10px; font-size: 11px; cursor: pointer;
-            border-radius: 4px; font-family: 'Roboto Mono', monospace; font-weight: bold;
-            text-transform: uppercase; margin: 0; transition: all 0.2s;
+            padding: 4px 10px; font-size: 11px; cursor: pointer; border-radius: 4px; 
+            font-family: 'Roboto Mono', monospace; font-weight: bold; text-transform: uppercase; 
+            margin: 0; transition: all 0.2s;
         }
         button.small-btn:hover { background: #b2bec3; }
         button.small-btn.active-toggle { background: var(--safe); color: white; border-color: var(--safe); }
@@ -81,14 +76,13 @@
         .rx-color-swatch { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); }
         
         .rx-filled {
-            background: rgba(0, 184, 148, 0.15); border-color: var(--safe);
-            color: #b2bec3; text-decoration: line-through;
-            animation: pulseFilled 0.5s ease-out forwards;
+            border-color: var(--safe); text-decoration: line-through;
+            animation: stampSlam 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        @keyframes pulseFilled {
-            0% { transform: scale(1); background: rgba(0, 184, 148, 0.4); }
-            50% { transform: scale(1.1); background: rgba(0, 184, 148, 0.7); color: #2d3436; }
-            100% { transform: scale(1); background: rgba(0, 184, 148, 0.15); }
+        @keyframes stampSlam {
+            0% { transform: scale(2); opacity: 0; background: rgba(0, 184, 148, 0.8); color: #000; }
+            70% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); background: rgba(0, 184, 148, 0.15); color: #b2bec3; }
         }
 
         #active-upgrades { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
@@ -122,23 +116,19 @@
             position: absolute; left: 0; top: 0; height: 100%; background: var(--safe);
             transition: width 0.2s ease-out, background 0.2s ease-out; z-index: 1;
         }
-        #tolerance-text {
-            color: #fff; font-size: 11px; font-weight: bold;
-            z-index: 2; text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-        }
+        #tolerance-text { color: #fff; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 0 rgba(0,0,0,0.8); }
 
-        #phaser-container { width: 100%; flex-grow: 1; position: relative; background: #111; }
+        #phaser-container { width: 100%; flex-grow: 1; position: relative; background: #111; min-height: 0; overflow: hidden; }
+        
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 100; color: #2d3436;
-            backdrop-filter: blur(3px);
+            justify-content: center; align-items: center; z-index: 100; color: #2d3436; backdrop-filter: blur(3px);
         }
         .hidden { display: none !important; }
         .panel {
-            background: var(--ui-bg); padding: 30px; border-radius: 8px; 
-            border: 2px solid #dfe6e9; max-width: 450px; text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6); width: 90%;
+            background: var(--ui-bg); padding: 30px; border-radius: 8px; border: 2px solid #dfe6e9; 
+            max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); width: 90%;
         }
         h1 { margin-bottom: 10px; text-transform: uppercase; font-size: 22px; color: #2d3436;}
         p { margin-bottom: 20px; font-weight: bold; color: #636e72; font-size: 14px;}
@@ -165,8 +155,10 @@
     <div id="header-ui">
         <div class="header-top-bar">
             <div class="header-stats">
+                <span>SHIFT:</span> <span id="hud-level" class="stat-val">1</span>
                 <span>SCORE:</span> <span id="hud-score" class="stat-val">00000</span>
                 <span>LIVES:</span> <span id="hud-lives" class="stat-val lives">3</span>
+                <span>BEST:</span> <span id="hud-best" class="stat-val best">0</span>
             </div>
             <div id="header-controls">
                 <button id="btn-mute" class="small-btn">Sound: OFF</button>
@@ -185,20 +177,11 @@
             <div class="header-bottom-row">
                 <div id="tolerance-label">Mis-dispense Protocol</div>
                 <div id="powerup-queue">
-                    <span class="tooltip" style="color:#a29bfe;">
-                        SPL: <span id="active-split">0</span>
-                        <span class="tooltip-text">Split Rounds: Fragments into 3 tablets on launch.</span>
-                    </span>
-                    <span class="tooltip" style="color:#00cec9;">
-                        PRC: <span id="active-pierce">0</span>
-                        <span class="tooltip-text">Pierce Rounds: Punches through targets without bouncing.</span>
-                    </span>
+                    <span class="tooltip" style="color:#a29bfe;">SPL: <span id="active-split">0</span><span class="tooltip-text">Split Rounds: Fragments into 3 tablets.</span></span>
+                    <span class="tooltip" style="color:#00cec9;">PRC: <span id="active-pierce">0</span><span class="tooltip-text">Pierce Rounds: Punches through targets.</span></span>
                 </div>
             </div>
-            <div id="tolerance-bar-bg">
-                <div id="tolerance-bar-fill"></div>
-                <span id="tolerance-text"></span>
-            </div>
+            <div id="tolerance-bar-bg"><div id="tolerance-bar-fill"></div><span id="tolerance-text"></span></div>
         </div>
     </div>
 
@@ -264,7 +247,7 @@
 
 <script>
 /**
- * config.js - Pharmacy Breaker v0.3.4
+ * config.js - Pharmacy Breaker v1.0.1
  */
 
 const CONFIG = {
@@ -272,18 +255,23 @@ const CONFIG = {
     launcher: { minAngleDeg: 15, maxActiveTablets: 1 },
     rules: { baseTolerance: 500, toleranceDecayPerLevel: 50, wrongColorPenalty: 35 },
     modifiers: { strength: { splitCount: 3, pierceLimit: 2 } },
-    hazards: { maxToleranceDrainPct: 0.25 },
-    mechanics: { gracePeriodMs: 1000 },
+    hazards: { maxToleranceDrainPct: 0.25 }, mechanics: { gracePeriodMs: 1000 },
     feedback: { shakeIntensityPx: 5, shakeDurationMs: 100, blastRadiusPx: 120 },
     pool: {
         relics: [
             { id: "prior_auth", name: "Prior Auth", desc: "Start every level with 1 Pierce round active." },
             { id: "high_tolerance", name: "High Tolerance", desc: "Increases max Mis-dispense bar capacity by 25%." },
-            { id: "anti_fatigue_mats", name: "Anti-Fatigue Mats", desc: "First tablet to hit the floor each level bounces back into play." }
+            { id: "anti_fatigue_mats", name: "Anti-Fatigue Mats", desc: "First tablet to hit the floor each level bounces back into play." },
+            { id: "otc_access", name: "Over-the-Counter", desc: "Start every level with 1 Split round active." },
+            { id: "child_proof", name: "Child-Proof Caps", desc: "Explosive red capsules now require two hits to detonate." },
+            { id: "placebo_effect", name: "Placebo Effect", desc: "Hitting white (neutral) capsules restores 5 Tolerance." },
+            { id: "hazard_pay", name: "Hazard Pay", desc: "Red pills grant +500 score on hit, but still drain tolerance." }
         ],
         consumables: [
             { id: "laser_pointer", name: "Laser Pointer", desc: "Dashed trajectory aiming line returns for this level only." },
-            { id: "alchemists_vial", name: "Alchemist's Vial", desc: "First tablet fired acts as a Generic Substitution bomb." }
+            { id: "alchemists_vial", name: "Alchemist's Vial", desc: "First tablet fired acts as a Generic Substitution bomb." },
+            { id: "safety_goggles", name: "Safety Goggles", desc: "Red hazard explosions deal exactly half their normal tolerance damage." },
+            { id: "controlled_demo", name: "Controlled Demolition", desc: "Hitting a red pill safely destroys the entire row it sits on without draining tolerance." }
         ]
     }
 };
@@ -292,19 +280,19 @@ const LORE_DB = {
     patients: [ "John Doe", "Jane Smith", "Alan Turing", "Ada Lovelace", "Grace Hopper", "Richard Roe" ],
     conditions: [ "Acute Pixelitis", "Restless Cursor Syndrome", "Carpal Tunnel Variance", "Chronic Refresh Fatigue", "Elevated Ping Rate", "Tab Hoarding Disorder" ],
     tutorials: {
-        1: "Drag to aim. Fill the script. Avoid off-label colors.",
-        2: "Powerups added to circulation. Cyan grants Pierce. Purple grants Split.",
-        3: "Multi-color prescriptions required. Beware over-dispensing filled quotas.",
-        4: "Red volatile capsules detected. Avoid at all costs.",
-        5: "Break Room access granted. Select your pharmacy powers carefully."
+        1: "Aiming basics. Single script objective. Standard colors only.",
+        2: "Powerups and lives explained. Cyan grants Pierce. Purple grants Split.",
+        3: "Multi-color quotas introduced. The Over-dispense penalty is active.",
+        4: "Red hazards introduced. Rainbow Substitution Capsules introduced.",
+        5: "The Break Room and Pharmacy Powers are introduced.",
+        10: "WARNING: High volume shift detected. Procedural prescription patterns active."
     }
 };
 
 const COLORS = {
-    'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 
-    'Yellow': 0xfdcb6e, 'Pink': 0xfd79a8, 'Red': 0xd63031, 
-    'White': 0xffffff, 'Purple': 0xa29bfe, 'Cyan': 0x00cec9,
-    'Rainbow': 0xffa500, 'BrightGreen': 0x00b894 
+    'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 'Yellow': 0xfdcb6e, 
+    'Pink': 0xfd79a8, 'Red': 0xd63031, 'White': 0xffffff, 'Purple': 0xa29bfe, 
+    'Cyan': 0x00cec9, 'Rainbow': 0xffa500, 'BrightGreen': 0x00b894 
 };
 
 const CAPSULE_SCHEMA = {
@@ -325,14 +313,15 @@ function resetState() {
         level: 1, currentTolerance: 0, maxTolerance: 0, rxQuota: {},
         isAiming: true, activeTablets: 0, powerupQueue: { split: 0, pierce: 0 },
         activeRounds: { split: 0, pierce: 0 }, lives: 3, score: 0, 
-        activeRelics: [], currentConsumable: null, inProgress: false, breakRoomShownThisLevel: false 
+        activeRelics: [], currentConsumable: null, inProgress: false, breakRoomShownThisLevel: false,
+        targetsHitThisLevel: 0, shotsFiredThisLevel: 0
     };
 }
 resetState();
 
 
 /**
- * game.js - Pharmacy Breaker v0.3.4
+ * game.js - Pharmacy Breaker v1.0.1
  */
 
 let savedSettings = { mute: true };
@@ -347,8 +336,7 @@ window.addEventListener('muteToggled', (e) => { globalIsMuted = e.detail; });
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playTone(freq, type, duration, vol = 0.1) {
     if (globalIsMuted) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     gain.gain.setValueAtTime(vol, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
@@ -410,23 +398,23 @@ class MainScene extends Phaser.Scene {
             else if(key === 'Substitution') drawPill(key, COLORS['Rainbow'], schema.visual);
             else drawPill(key, COLORS['White'], schema.visual); 
         });
-
         Object.entries(COLORS).forEach(([cName, cHex]) => drawPill(cName, cHex, 'solid_color'));
     }
 
     create() {
         this.isLevelTransitioning = false;
+        this.victoryEmitters = [];
+        
         this.physics.world.setBounds(0, 0, 600, 750);
         this.physics.world.setBoundsCollision(true, true, true, false);
 
         this.capsules = this.physics.add.staticGroup();
-        this.tablets = this.physics.add.group();
+        this.tablets = this.physics.add.group({ defaultKey: 'tablet_tex', maxSize: 30 });
 
         this.launcherOrigin = new Phaser.Math.Vector2(300, 690);
         this.spatula = this.add.sprite(this.launcherOrigin.x, this.launcherOrigin.y, 'spatula_tex').setOrigin(0.5, 1);
 
-        this.floor = this.add.zone(300, 760, 600, 20);
-        this.physics.add.existing(this.floor, true);
+        this.floor = this.add.zone(300, 760, 600, 20); this.physics.add.existing(this.floor, true);
 
         this.safeDust = this.add.particles(0, 0, 'tablet_tex', { speed: { min: 80, max: 200 }, scale: { start: 0.6, end: 0 }, lifespan: 250, emitting: false, tint: 0x00b894 });
         this.dangerDust = this.add.particles(0, 0, 'tablet_tex', { speed: { min: 150, max: 300 }, scale: { start: 0.8, end: 0 }, lifespan: 400, emitting: false, tint: 0xd63031 });
@@ -439,6 +427,8 @@ class MainScene extends Phaser.Scene {
         this.input.on('pointerup', this.fireTablet, this);
 
         this.hasBouncedThisLevel = false;
+
+        document.getElementById('hud-best').innerText = (parseInt(localStorage.getItem('pharmacy_best_shift')) || 0).toString();
         this.handleSerialization();
     }
 
@@ -448,15 +438,9 @@ class MainScene extends Phaser.Scene {
             try {
                 let data = JSON.parse(saved);
                 if (data.inProgress) {
-                    gameState = data.state;
-                    gameState.lives--;
-                    if (gameState.lives <= 0) {
-                        this.triggerGameOver();
-                        return;
-                    } else {
-                        this.showFloatText(300, 400, "SHIFT ABANDONED\n-1 LIFE", COLORS['Red']);
-                        playTone(150, 'sawtooth', 0.5);
-                    }
+                    gameState = data.state; gameState.lives--;
+                    if (gameState.lives <= 0) { this.triggerGameOver(); return; } 
+                    else { this.showFloatText(300, 400, "SHIFT ABANDONED\n-1 LIFE", COLORS['Red']); playTone(150, 'sawtooth', 0.5); }
                 } else gameState = data.state;
             } catch(e) { resetState(); }
         } else resetState();
@@ -471,6 +455,8 @@ class MainScene extends Phaser.Scene {
 
     prepareLevelData(levelNumber) {
         gameState.level = levelNumber;
+        gameState.targetsHitThisLevel = 0;
+        gameState.shotsFiredThisLevel = 0;
         
         let baseTol = CONFIG.rules.baseTolerance - ((levelNumber - 1) * CONFIG.rules.toleranceDecayPerLevel);
         gameState.maxTolerance = Math.max(100, baseTol);
@@ -479,7 +465,9 @@ class MainScene extends Phaser.Scene {
         
         let pName = Phaser.Math.RND.pick(LORE_DB.patients);
         let condition = Phaser.Math.RND.pick(LORE_DB.conditions);
-        let targetCount = 10 + (levelNumber * 3);
+        
+        // V1.0.1 Critical Fix: Capped target density to prevent infinite loop / array exhaustion on Level 12+
+        let targetCount = Math.min(10 + (levelNumber * 3), 28);
         
         gameState.rxQuota = {};
         let standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
@@ -498,7 +486,7 @@ class MainScene extends Phaser.Scene {
         let days = Math.floor(targetCount / (dosage * freq)) || 1;
         let freqMap = {1: 'once', 2: 'twice', 3: 'three times', 4: 'four times'};
         let titleStr = `Take ${dosage}, ${freqMap[freq] || freq + ' times'} daily for ${days} days.`;
-        let tutText = LORE_DB.tutorials[levelNumber] || "Standard dispensing protocol applies.";
+        let tutText = LORE_DB.tutorials[levelNumber] || (levelNumber >= 10 ? LORE_DB.tutorials[10] : "Standard dispensing protocol applies.");
 
         document.getElementById('rx-patient').innerText = `Pt: ${pName} (${condition})`;
         document.getElementById('rx-title').innerText = `Rx: ${titleStr}`;
@@ -524,51 +512,104 @@ class MainScene extends Phaser.Scene {
     renderLevelBoard() {
         this.isLevelTransitioning = false;
         this.capsules.clear(true, true);
-        this.tablets.clear(true, true);
         
-        gameState.activeTablets = 0; gameState.isAiming = true;
-        this.hasBouncedThisLevel = false;
-
-        // V0.3.4 Fix: Ensure Prior Auth doesn't steal banked Pierce rounds
-        if (gameState.activeRelics.includes("prior_auth")) {
-            gameState.activeRounds.pierce = Math.max(gameState.activeRounds.pierce, 1);
+        this.tablets.getChildren().forEach(t => { 
+            t.setActive(false).setVisible(false); 
+            if (t.body) { t.body.stop(); t.body.enable = false; }
+        });
+        
+        if (this.victoryEmitters && this.victoryEmitters.length > 0) {
+            this.victoryEmitters.forEach(e => e.destroy());
+            this.victoryEmitters = [];
         }
+
+        gameState.activeTablets = 0; gameState.isAiming = true; this.hasBouncedThisLevel = false;
+
+        if (gameState.activeRelics.includes("prior_auth")) gameState.activeRounds.pierce = Math.max(gameState.activeRounds.pierce, 1);
+        if (gameState.activeRelics.includes("otc_access")) gameState.activeRounds.split = Math.max(gameState.activeRounds.split, 1);
 
         this.laserPointerActive = gameState.currentConsumable === "laser_pointer";
         this.alchemistActive = gameState.currentConsumable === "alchemists_vial";
         
-        let positions = [];
-        for (let r = 0; r < 7; r++) { for (let c = 0; c < 9; c++) positions.push({r, c}); }
-        Phaser.Math.RND.shuffle(positions);
+        let slots = Array(7).fill(null).map(() => Array(9).fill(null));
+        let availablePositions = [];
 
-        let placed = {}; Object.keys(gameState.rxQuota).forEach(c => placed[c] = 0);
+        if (gameState.level >= 10) {
+            let patternType = gameState.level % 3;
+            for (let r=0; r<7; r++) {
+                for (let c=0; c<9; c++) {
+                    let isHazard = false;
+                    if (patternType === 0 && r === 5 && c >= 1 && c <= 7) isHazard = true; 
+                    if (patternType === 1 && r >= 3 && (r+c)%2 === 0) isHazard = true; 
+                    if (patternType === 2 && r === 4 && (c === 2 || c === 6)) isHazard = true; 
 
-        positions.forEach(pos => {
-            const x = 60 + pos.c * 60 + (pos.r % 2 === 0 ? 0 : 30);
-            const y = 60 + pos.r * 30;
-            
-            let color = 'Blue', tex = 'Blue', typeKey = 'Standard';
-            let needed = Object.keys(gameState.rxQuota).find(c => placed[c] < gameState.rxQuota[c]);
-            
-            if (needed) { color = needed; tex = color; placed[color]++; }
-            else {
-                let rand = Phaser.Math.RND.frac();
-                if (gameState.level >= 2) {
-                    if (rand < 0.1) { typeKey = 'Pierce'; tex = 'Pierce'; color = 'Cyan'; }
-                    else if (rand < 0.2) { typeKey = 'Splitter'; tex = 'Splitter'; color = 'Purple'; }
-                    else if (rand < 0.25) { typeKey = '1-Up'; tex = '1-Up'; color = 'BrightGreen'; }
-                    else if (rand < 0.3) { typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; }
+                    if (isHazard) {
+                        slots[r][c] = { typeKey: 'Explosive', tex: 'Explosive', color: 'Red' };
+                    } else {
+                        availablePositions.push({r, c});
+                    }
                 }
-                if (gameState.level >= 4 && typeKey === 'Standard' && rand < 0.45) { typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red'; }
-                if (typeKey === 'Standard' && rand > 0.8) { typeKey = 'Placebo'; tex = 'Placebo'; color = 'White'; }
+            }
+        } else {
+            for (let r = 0; r < 7; r++) {
+                for (let c = 0; c < 9; c++) availablePositions.push({r, c});
+            }
+        }
+
+        Phaser.Math.RND.shuffle(availablePositions);
+
+        for (const [quotaColor, amount] of Object.entries(gameState.rxQuota)) {
+            for (let i = 0; i < amount; i++) {
+                if (availablePositions.length > 0) {
+                    let pos = availablePositions.pop();
+                    slots[pos.r][pos.c] = { typeKey: 'Standard', tex: quotaColor, color: quotaColor };
+                }
+            }
+        }
+
+        availablePositions.forEach(pos => {
+            let rand = Phaser.Math.RND.frac();
+            let typeKey = 'Standard', tex = 'Blue', color = 'Blue';
+            
+            if (gameState.level >= 2) {
+                if (rand < 0.1) { typeKey = 'Pierce'; tex = 'Pierce'; color = 'Cyan'; }
+                else if (rand < 0.2) { typeKey = 'Splitter'; tex = 'Splitter'; color = 'Purple'; }
+                else if (rand < 0.25) { typeKey = '1-Up'; tex = '1-Up'; color = 'BrightGreen'; }
             }
 
-            let cap = this.capsules.create(x, y, tex);
-            cap.schema = CAPSULE_SCHEMA[typeKey]; cap.color = color; cap.hp = cap.schema.hp; cap.body.setSize(50, 20);
-            if (typeKey === 'Explosive') {
-                this.tweens.add({ targets: cap, alpha: 0.6, scaleX: 1.05, scaleY: 1.05, yoyo: true, repeat: -1, duration: 600 });
+            if (gameState.level >= 4 && typeKey === 'Standard') {
+                if (rand < 0.40) { typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red'; }
+                else if (rand < 0.50) { typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; }
             }
+
+            if (typeKey === 'Standard' && rand > 0.8) { 
+                typeKey = 'Placebo'; tex = 'Placebo'; color = 'White'; 
+            }
+
+            slots[pos.r][pos.c] = { typeKey, tex, color };
         });
+
+        for (let r = 0; r < 7; r++) {
+            for (let c = 0; c < 9; c++) {
+                let slot = slots[r][c];
+                if (!slot) continue;
+
+                const x = 60 + c * 60 + (r % 2 === 0 ? 0 : 30);
+                const y = 60 + r * 30;
+
+                let cap = this.capsules.create(x, y, slot.tex);
+                cap.schema = CAPSULE_SCHEMA[slot.typeKey]; cap.color = slot.color; cap.hp = cap.schema.hp;
+                
+                if (slot.typeKey === 'Explosive' && gameState.activeRelics.includes('child_proof')) {
+                    cap.hp = 2; cap.setTint(0xffaaaa);
+                }
+
+                cap.body.setSize(50, 20);
+                if (slot.typeKey === 'Explosive') {
+                    this.tweens.add({ targets: cap, alpha: 0.6, scaleX: 1.05, scaleY: 1.05, yoyo: true, repeat: -1, duration: 600 });
+                }
+            }
+        }
 
         this.updateUI();
     }
@@ -576,25 +617,16 @@ class MainScene extends Phaser.Scene {
     updateAim(pointer) {
         let angleRad = Phaser.Math.Angle.Between(this.launcherOrigin.x, this.launcherOrigin.y, pointer.x, pointer.y);
         let angleDeg = Phaser.Math.RadToDeg(angleRad);
-
-        const minD = -180 + CONFIG.launcher.minAngleDeg; 
-        const maxD = -CONFIG.launcher.minAngleDeg;
+        const minD = -180 + CONFIG.launcher.minAngleDeg; const maxD = -CONFIG.launcher.minAngleDeg;
         
-        if (angleDeg >= 0) {
-            if (angleDeg < 90) angleDeg = maxD;
-            else angleDeg = minD;
-        } else {
-            if (angleDeg > maxD) angleDeg = maxD;
-            if (angleDeg < minD) angleDeg = minD;
-        }
+        if (angleDeg >= 0) { if (angleDeg < 90) angleDeg = maxD; else angleDeg = minD; } 
+        else { if (angleDeg > maxD) angleDeg = maxD; if (angleDeg < minD) angleDeg = minD; }
 
-        angleRad = Phaser.Math.DegToRad(angleDeg);
-        this.spatula.setRotation(angleRad + Math.PI/2); 
-
+        angleRad = Phaser.Math.DegToRad(angleDeg); this.spatula.setRotation(angleRad + Math.PI/2); 
         this.trajectoryLine.clear();
+        
         if (gameState.activeTablets < CONFIG.launcher.maxActiveTablets && this.laserPointerActive) {
-            this.trajectoryLine.lineStyle(2, 0xff0000, 0.5);
-            this.trajectoryLine.beginPath();
+            this.trajectoryLine.lineStyle(2, 0xff0000, 0.5); this.trajectoryLine.beginPath();
             this.trajectoryLine.moveTo(this.launcherOrigin.x, this.launcherOrigin.y);
             this.trajectoryLine.lineTo(this.launcherOrigin.x + Math.cos(angleRad) * 800, this.launcherOrigin.y + Math.sin(angleRad) * 800);
             this.trajectoryLine.strokePath();
@@ -604,40 +636,31 @@ class MainScene extends Phaser.Scene {
     fireTablet() {
         if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets || this.isLevelTransitioning) return;
         
-        gameState.isAiming = false;
-        this.trajectoryLine.clear();
-        
+        gameState.isAiming = false; this.trajectoryLine.clear();
+        gameState.shotsFiredThisLevel++;
+
         let angleRad = this.spatula.rotation - Math.PI/2;
-        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90;
-        let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
+        let tipX = this.launcherOrigin.x + Math.cos(angleRad) * 90; let tipY = this.launcherOrigin.y + Math.sin(angleRad) * 90;
 
-        if (gameState.activeRounds.split === 0 && gameState.powerupQueue.split > 0) {
-            gameState.powerupQueue.split--; gameState.activeRounds.split = 1; 
-        }
-        if (gameState.activeRounds.pierce === 0 && gameState.powerupQueue.pierce > 0) {
-            gameState.powerupQueue.pierce--; gameState.activeRounds.pierce = 3; 
-        }
+        if (gameState.activeRounds.split === 0 && gameState.powerupQueue.split > 0) { gameState.powerupQueue.split--; gameState.activeRounds.split = 1; }
+        if (gameState.activeRounds.pierce === 0 && gameState.powerupQueue.pierce > 0) { gameState.powerupQueue.pierce--; gameState.activeRounds.pierce = 3; }
 
-        let isPiercing = gameState.activeRounds.pierce > 0;
-        let isSplitting = gameState.activeRounds.split > 0;
-
+        let isPiercing = gameState.activeRounds.pierce > 0; let isSplitting = gameState.activeRounds.split > 0;
         let t1 = this.spawnTablet(tipX, tipY, angleRad);
-        gameState.activeTablets++;
+        if(t1) gameState.activeTablets++;
         
-        if (this.alchemistActive) {
+        if (this.alchemistActive && t1) {
             t1.setData('isSubstitutionBomb', true); t1.setTint(0xffa500);
             this.alchemistActive = false; gameState.currentConsumable = null;
         }
-
-        if (isPiercing) { t1.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t1.setTint(0x00ffff); }
+        if (isPiercing && t1) { t1.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t1.setTint(0x00ffff); }
 
         if (isSplitting) {
-            let t2 = this.spawnTablet(tipX, tipY, angleRad + 0.15);
-            let t3 = this.spawnTablet(tipX, tipY, angleRad - 0.15);
-            gameState.activeTablets += 2;
+            let t2 = this.spawnTablet(tipX, tipY, angleRad + 0.15); let t3 = this.spawnTablet(tipX, tipY, angleRad - 0.15);
+            if(t2) gameState.activeTablets++; if(t3) gameState.activeTablets++;
             if (isPiercing) {
-                t2.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t2.setTint(0x00ffff);
-                t3.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t3.setTint(0x00ffff);
+                if(t2) { t2.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t2.setTint(0x00ffff); }
+                if(t3) { t3.setData('pierceCount', CONFIG.modifiers.strength.pierceLimit); t3.setTint(0x00ffff); }
             }
             gameState.activeRounds.split--;
         }
@@ -647,27 +670,29 @@ class MainScene extends Phaser.Scene {
     }
 
     spawnTablet(x, y, angleRad) {
-        let t = this.tablets.create(x, y, 'tablet_tex');
+        let t = this.tablets.get(); 
+        if (!t) return null; 
+        
+        t.enableBody(true, x, y, true, true);
+        t.setActive(true).setVisible(true);
         t.setCircle(8); t.setBounce(1); t.setFriction(0); t.setCollideWorldBounds(true);
-        t.setData('pierceCount', 0); t.setData('combo', 0);
+        t.setData('pierceCount', 0); t.setData('combo', 0); t.clearTint();
         this.physics.velocityFromRotation(angleRad, CONFIG.physics.baseVelocity, t.body.velocity);
         return t;
     }
 
     onTabletLost(floor, tablet) {
         if (gameState.activeRelics.includes("anti_fatigue_mats") && !this.hasBouncedThisLevel) {
-            let v = tablet.body.velocity;
-            v.y *= -1.2; // V0.3.4 Fix: Lowered bounce multiplier
-            // V0.3.4 Fix: Strict max velocity clamp to prevent floor tunneling exploit
+            let v = tablet.body.velocity; v.y *= -1.2; 
             if (v.length() > CONFIG.physics.maxVelocity) v.normalize().scale(CONFIG.physics.maxVelocity);
             tablet.setVelocity(v.x, v.y);
-            
-            this.hasBouncedThisLevel = true;
-            this.showFloatText(tablet.x, tablet.y - 20, "MAT BOUNCE", COLORS['Yellow']);
+            this.hasBouncedThisLevel = true; this.showFloatText(tablet.x, tablet.y - 20, "MAT BOUNCE", COLORS['Yellow']);
             playTone(400, 'sine', 0.1); return;
         }
 
-        tablet.destroy(); gameState.activeTablets--;
+        tablet.setActive(false).setVisible(false); tablet.body.stop(); tablet.body.enable = false;
+        
+        gameState.activeTablets--;
         if (gameState.activeTablets <= 0) gameState.isAiming = true;
     }
 
@@ -675,8 +700,7 @@ class MainScene extends Phaser.Scene {
         if (tablet.getData('pierceCount') > 0) {
             tablet.incData('pierceCount', -1);
             if (tablet.getData('pierceCount') <= 0) tablet.clearTint();
-            this.damageCapsule(capsule, tablet);
-            return false; 
+            this.damageCapsule(capsule, tablet); return false; 
         }
         return true; 
     }
@@ -700,21 +724,22 @@ class MainScene extends Phaser.Scene {
 
         capsule.hp--;
         if (capsule.hp > 0) {
-            capsule.setTint(0x7f8c8d);
-            this.tweens.add({ targets: capsule, scaleX: 1.2, scaleY: 0.8, duration: 40, yoyo: true });
-            return;
+            capsule.setTint(0x7f8c8d); this.tweens.add({ targets: capsule, scaleX: 1.2, scaleY: 0.8, duration: 40, yoyo: true }); return;
         }
         
         capsule.isDying = true; capsule.body.enable = false;
+        // V1.0.1 Clean up any attached tweens to avoid conflicts
+        this.tweens.killTweensOf(capsule); 
         this.tweens.add({ targets: capsule, scaleX: 1.5, scaleY: 1.5, alpha: 0, duration: 100, onComplete: () => capsule.destroy() });
 
-        const type = capsule.schema.type;
-        const color = capsule.color;
+        const type = capsule.schema.type; const color = capsule.color;
 
         switch(type) {
             case "script":
                 if (gameState.rxQuota[color] !== undefined && gameState.rxQuota[color] > 0) {
                     gameState.rxQuota[color]--; gameState.score += 100;
+                    gameState.targetsHitThisLevel++; 
+                    
                     this.safeDust.emitParticleAt(capsule.x, capsule.y, 10); playTone(600, 'sine', 0.1);
                     if (gameState.rxQuota[color] === 0) {
                         this.capsules.getChildren().forEach(cap => {
@@ -728,8 +753,19 @@ class MainScene extends Phaser.Scene {
                 }
                 break;
             case "hazard":
-                this.triggerHazardPenalty(capsule.x, capsule.y, "HAZARD");
-                this.destroyAdjacentCapsules(capsule.x, capsule.y, CONFIG.feedback.blastRadiusPx, tablet);
+                if (gameState.currentConsumable === "controlled_demo") {
+                    this.destroyRow(capsule.y, tablet);
+                    this.showFloatText(capsule.x, capsule.y, "DEMOLITION", COLORS['Orange']); playTone(700, 'square', 0.2);
+                } else {
+                    this.triggerHazardPenalty(capsule.x, capsule.y, "HAZARD");
+                    this.destroyAdjacentCapsules(capsule.x, capsule.y, CONFIG.feedback.blastRadiusPx, tablet);
+                }
+                break;
+            case "neutral":
+                if (color === 'White' && gameState.activeRelics.includes('placebo_effect')) {
+                    gameState.currentTolerance = Math.min(gameState.maxTolerance, gameState.currentTolerance + 5);
+                    this.showFloatText(capsule.x, capsule.y, "+5 TOLERANCE", COLORS['White']); playTone(500, 'sine', 0.1);
+                }
                 break;
             case "powerup":
                 if (capsule.schema.buff === 'life') {
@@ -742,15 +778,36 @@ class MainScene extends Phaser.Scene {
                 }
                 break;
         }
-
         this.updateUI(); this.checkWinLossState();
     }
 
     triggerHazardPenalty(x, y, text) {
-        gameState.currentTolerance -= (gameState.maxTolerance * CONFIG.hazards.maxToleranceDrainPct);
+        if (gameState.activeRelics.includes("hazard_pay")) {
+            gameState.score += 500; this.showFloatText(x, y-20, "+500 HAZARD PAY", COLORS['Red']);
+        }
+        
+        let drainPct = CONFIG.hazards.maxToleranceDrainPct;
+        if (gameState.currentConsumable === "safety_goggles") drainPct /= 2;
+
+        gameState.currentTolerance -= (gameState.maxTolerance * drainPct);
         this.cameras.main.shake(CONFIG.feedback.shakeDurationMs, CONFIG.feedback.shakeIntensityPx / 1000);
         this.dangerDust.emitParticleAt(x, y, 20);
         this.showFloatText(x, y, text, COLORS['Red']); playTone(150, 'sawtooth', 0.3);
+    }
+
+    destroyRow(y, tablet) {
+        this.capsules.getChildren().forEach(cap => {
+            if (cap.active && !cap.isDying && Math.abs(cap.y - y) < 10) {
+                this.time.delayedCall(Phaser.Math.Between(0, 150), () => {
+                    if(cap.schema.type === 'hazard') {
+                        cap.hp = 0; cap.isDying = true; cap.body.enable = false;
+                        // V1.0.1 Critical Fix: Avoid asynchronous tween conflicts
+                        this.tweens.killTweensOf(cap); 
+                        cap.destroy(); this.dangerDust.emitParticleAt(cap.x, cap.y, 10);
+                    } else this.damageCapsule(cap, tablet);
+                });
+            }
+        });
     }
 
     triggerSubstitutionBlast(x, y, radius) {
@@ -764,6 +821,10 @@ class MainScene extends Phaser.Scene {
         this.capsules.getChildren().forEach(cap => {
             if (cap.active && !cap.isDying && Phaser.Geom.Intersects.CircleToRectangle(blast, cap.getBounds())) {
                 if (cap.schema.type === 'hazard' || gameState.rxQuota[cap.color] === 0 || gameState.rxQuota[cap.color] === undefined) {
+                    // V1.0.1 Critical Fix: Scrub 'yoyo' tween properties from transmuted hazards so they stop looking like bombs
+                    this.tweens.killTweensOf(cap);
+                    cap.scaleX = 1; cap.scaleY = 1; cap.alpha = 1;
+                    
                     cap.color = targetColor; cap.schema = CAPSULE_SCHEMA['Standard'];
                     cap.setTexture(targetColor); cap.clearTint();
                     this.showFloatText(cap.x, cap.y, "TRANSMUTED", COLORS['Rainbow']);
@@ -789,27 +850,25 @@ class MainScene extends Phaser.Scene {
     }
 
     updateUI() {
+        document.getElementById('hud-level').innerText = gameState.level;
+
         const rxList = document.getElementById('rx-list');
         for (const [color, count] of Object.entries(gameState.rxQuota)) {
-            let elId = 'rx-item-' + color;
-            let div = document.getElementById(elId);
+            let elId = 'rx-item-' + color; let div = document.getElementById(elId);
             
             if (!div) {
-                div = document.createElement('div');
-                div.className = 'rx-item'; div.id = elId;
+                div = document.createElement('div'); div.className = 'rx-item'; div.id = elId;
                 let swatch = document.createElement('div'); swatch.className = 'rx-color-swatch';
                 swatch.style.backgroundColor = '#' + COLORS[color].toString(16).padStart(6, '0');
                 let text = document.createElement('span'); text.id = 'rx-text-' + color;
-                div.appendChild(swatch); div.appendChild(text); 
-                rxList.appendChild(div);
+                div.appendChild(swatch); div.appendChild(text); rxList.appendChild(div);
             }
             
             document.getElementById('rx-text-' + color).innerText = `${color}: ${Math.max(0, count)}`;
             if (count <= 0 && !div.classList.contains('rx-filled')) div.classList.add('rx-filled');
         }
 
-        const upgList = document.getElementById('active-upgrades');
-        upgList.innerHTML = '';
+        const upgList = document.getElementById('active-upgrades'); upgList.innerHTML = '';
         gameState.activeRelics.forEach(relId => {
             let def = CONFIG.pool.relics.find(r => r.id === relId);
             if(def) upgList.innerHTML += `<span class="tooltip small-btn" style="background:var(--primary);color:white;border-color:var(--primary);">${def.name}<span class="tooltip-text">${def.desc}</span></span>`;
@@ -820,8 +879,7 @@ class MainScene extends Phaser.Scene {
         }
 
         let pct = Math.max(0, (gameState.currentTolerance / gameState.maxTolerance) * 100);
-        let tolFill = document.getElementById('tolerance-bar-fill');
-        tolFill.style.width = `${pct}%`;
+        let tolFill = document.getElementById('tolerance-bar-fill'); tolFill.style.width = `${pct}%`;
         tolFill.style.background = pct > 50 ? 'var(--safe)' : (pct > 25 ? 'var(--warning)' : 'var(--danger)');
 
         document.getElementById('tolerance-text').innerText = `${Math.floor(gameState.currentTolerance)} / ${Math.floor(gameState.maxTolerance)}`;
@@ -835,34 +893,47 @@ class MainScene extends Phaser.Scene {
         if (this.isLevelTransitioning) return; 
 
         if (gameState.currentTolerance <= 0) {
-            this.isLevelTransitioning = true;
-            this.scene.pause(); gameState.lives--; 
-            gameState.currentConsumable = null; // V0.3.4 Fix: Clear consumable on death
-            this.saveState(false);
-            
+            this.isLevelTransitioning = true; this.scene.pause(); gameState.lives--; 
+            gameState.currentConsumable = null; this.saveState(false);
             if (gameState.lives <= 0) this.triggerGameOver();
-            else {
-                this.prepareLevelData(gameState.level);
-                document.getElementById('btn-play').click(); 
-            }
+            else { this.prepareLevelData(gameState.level); document.getElementById('btn-play').click(); }
         } else {
             const remainingRx = Object.values(gameState.rxQuota).reduce((a, b) => a + Math.max(0, b), 0);
             if (remainingRx === 0) {
-                this.isLevelTransitioning = true;
-                this.physics.pause(); 
-                this.tablets.clear(true, true); 
+                this.isLevelTransitioning = true; this.physics.pause(); 
                 
-                gameState.isAiming = false; 
-                gameState.currentConsumable = null; // V0.3.4 Fix: Clear consumable on win
-                this.saveState(false);
+                this.tablets.getChildren().forEach(t => { 
+                    t.setActive(false).setVisible(false); 
+                    if (t.body) { t.body.stop(); t.body.enable = false; }
+                }); 
                 
-                gameState.score += Math.floor(gameState.currentTolerance);
-                this.updateUI();
+                gameState.isAiming = false; gameState.currentConsumable = null; 
+                
+                let accuracy = gameState.targetsHitThisLevel / Math.max(gameState.shotsFiredThisLevel, 1);
+                let accuracyBonus = Math.floor(accuracy * 1000);
+                let tolBonus = Math.floor(gameState.currentTolerance);
+                gameState.score += (tolBonus + accuracyBonus);
+                
+                let bestShift = parseInt(localStorage.getItem('pharmacy_best_shift')) || 0;
+                if (gameState.level > bestShift) {
+                    bestShift = gameState.level; localStorage.setItem('pharmacy_best_shift', bestShift);
+                    document.getElementById('hud-best').innerText = bestShift.toString();
+                }
+
+                this.saveState(false); this.updateUI();
                 playTone(400, 'sine', 0.2); setTimeout(() => playTone(600, 'sine', 0.4), 200);
 
-                this.time.delayedCall(1000, () => {
-                    this.scene.pause(); switchOverlay('menu-win');
+                const colors = [0xf1c40f, 0x2ecc71, 0x3498db, 0xe74c3c, 0x9b59b6];
+                colors.forEach((color, index) => {
+                    let emitter = this.add.particles(100 + (index * 100), 750, 'tablet_tex', {
+                        speed: { min: 300, max: 700 }, angle: { min: 240, max: 300 },
+                        scale: { start: 0.6, end: 0 }, gravityY: 1000,
+                        tint: color, lifespan: 2000, frequency: 20, maxParticles: 30
+                    });
+                    this.victoryEmitters.push(emitter);
                 });
+
+                this.time.delayedCall(2000, () => { this.scene.pause(); switchOverlay('menu-win'); });
             }
         }
     }
@@ -875,27 +946,24 @@ class MainScene extends Phaser.Scene {
 
     showBreakRoom() {
         const container = document.getElementById('upgrade-cards'); container.innerHTML = '';
-        
-        // V0.3.4 Fix: Filter out relics the player already owns before drafting
         let availableRelics = CONFIG.pool.relics.filter(r => !gameState.activeRelics.includes(r.id));
         let pool = [...availableRelics, ...CONFIG.pool.consumables];
-        
-        Phaser.Math.RND.shuffle(pool);
-        let options = pool.slice(0, 3);
+        Phaser.Math.RND.shuffle(pool); let options = pool.slice(0, 3);
 
         options.forEach(opt => {
             let card = document.createElement('div'); card.className = 'upgrade-card';
             let isConsumable = CONFIG.pool.consumables.some(c => c.id === opt.id);
-            
-            card.innerHTML = `
-                <div class="card-type ${isConsumable ? 'consumable' : ''}">${isConsumable ? 'Consumable' : 'Relic'}</div>
-                <div class="card-title">${opt.name}</div>
-                <div class="card-desc">${opt.desc}</div>
-            `;
-            
+            card.innerHTML = `<div class="card-type ${isConsumable ? 'consumable' : ''}">${isConsumable ? 'Consumable' : 'Relic'}</div><div class="card-title">${opt.name}</div><div class="card-desc">${opt.desc}</div>`;
             card.onclick = () => {
-                if (isConsumable) gameState.currentConsumable = opt.id;
-                else gameState.activeRelics.push(opt.id);
+                if (isConsumable) {
+                    gameState.currentConsumable = opt.id; 
+                } else {
+                    gameState.activeRelics.push(opt.id);
+                    if (opt.id === 'high_tolerance') {
+                        gameState.maxTolerance *= 1.25;
+                        gameState.currentTolerance *= 1.25;
+                    }
+                }
                 switchOverlay('menu-level-briefing');
             };
             container.appendChild(card);
@@ -912,66 +980,47 @@ const gameConfig = {
 };
 const game = new Phaser.Game(gameConfig);
 
+window.addEventListener('resize', () => { if(game && game.scale) game.scale.refresh(); });
+
 function switchOverlay(id) {
     document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
     if (id) document.getElementById(id).classList.remove('hidden');
 }
 
-// V0.3.4 Fix: Ensure audioCtx.resume() is explicitly called on trusted user gesture
 document.getElementById('btn-play').addEventListener('click', () => { 
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    switchOverlay('menu-level-briefing'); 
+    if (audioCtx.state === 'suspended') audioCtx.resume(); switchOverlay('menu-level-briefing'); 
 });
-
 document.getElementById('btn-start-level').addEventListener('click', () => {
-    switchOverlay(null);
-    let scene = game.scene.getScene('MainScene');
+    switchOverlay(null); let scene = game.scene.getScene('MainScene');
     scene.scene.resume(); scene.physics.resume(); scene.renderLevelBoard();
 });
-
 document.getElementById('btn-skip-break').addEventListener('click', () => { switchOverlay('menu-level-briefing'); });
-
 document.getElementById('btn-retry').addEventListener('click', () => {
-    resetState();
-    let scene = game.scene.getScene('MainScene');
+    resetState(); let scene = game.scene.getScene('MainScene');
     scene.handleSerialization(); document.getElementById('btn-play').click();
 });
-
 document.getElementById('btn-next').addEventListener('click', () => {
     let scene = game.scene.getScene('MainScene');
     scene.scene.resume(); scene.prepareLevelData(gameState.level + 1);
 });
-
-document.getElementById('btn-pause-toggle').addEventListener('click', () => {
-    game.scene.pause('MainScene'); switchOverlay('menu-pause');
-});
-
-document.getElementById('btn-resume').addEventListener('click', () => {
-    switchOverlay(null); game.scene.resume('MainScene');
-});
-
+document.getElementById('btn-pause-toggle').addEventListener('click', () => { game.scene.pause('MainScene'); switchOverlay('menu-pause'); });
+document.getElementById('btn-resume').addEventListener('click', () => { switchOverlay(null); game.scene.resume('MainScene'); });
 document.getElementById('btn-restart-run').addEventListener('click', () => {
     game.scene.resume('MainScene'); resetState();
-    let scene = game.scene.getScene('MainScene');
-    scene.handleSerialization(); switchOverlay('menu-start');
+    let scene = game.scene.getScene('MainScene'); scene.handleSerialization(); switchOverlay('menu-start');
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     const muteBtn = document.getElementById('btn-mute');
     const updateMuteUI = () => {
         muteBtn.innerText = globalIsMuted ? 'Sound: OFF' : 'Sound: ON';
-        if(!globalIsMuted) muteBtn.classList.add('active-toggle');
-        else muteBtn.classList.remove('active-toggle');
+        if(!globalIsMuted) muteBtn.classList.add('active-toggle'); else muteBtn.classList.remove('active-toggle');
     };
-
     muteBtn.addEventListener('click', () => {
         globalIsMuted = !globalIsMuted;
-        let settings = { mute: globalIsMuted };
-        try { localStorage.setItem('pharmacy_settings', JSON.stringify(settings)); } catch(e){}
-        updateMuteUI();
-        window.dispatchEvent(new CustomEvent('muteToggled', { detail: globalIsMuted }));
+        try { localStorage.setItem('pharmacy_settings', JSON.stringify({ mute: globalIsMuted })); } catch(e){}
+        updateMuteUI(); window.dispatchEvent(new CustomEvent('muteToggled', { detail: globalIsMuted }));
     });
-
     updateMuteUI();
 });
 </script>
