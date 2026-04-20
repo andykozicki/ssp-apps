@@ -3,204 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pharmacy Breaker v0.3.1</title>
+    <title>Pharmacy Breaker v0.3.4</title>
     
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg: #1e272e;
+            --bg: #111;
             --text: #2d3436;
-            --ui-bg: rgba(255, 255, 255, 0.95);
+            --ui-bg: rgba(255, 255, 255, 0.98);
             --danger: #d63031;
             --safe: #00b894;
             --warning: #fdcb6e;
+            --primary: #0984e3;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            font-family: 'Courier New', Courier, monospace; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh;
+            background-color: var(--bg); color: var(--text); 
+            font-family: 'Roboto Mono', monospace; 
+            overflow: hidden; display: flex; 
+            justify-content: center; align-items: center; height: 100vh;
         }
         
         #game-wrapper {
             position: relative; width: 100%; max-width: 600px; height: 100dvh;
-            max-height: 900px; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            max-height: 900px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,1);
             background: #222; display: flex; flex-direction: column;
         }
 
-        /* --- Header UI --- */
         #header-ui {
-            width: 100%; height: 150px; flex-shrink: 0;
-            background-color: #fdfae3;
-            background-image: repeating-linear-gradient(transparent, transparent 24px, #add8e6 25px);
-            font-family: 'Caveat', cursive; border-bottom: 4px solid #555;
-            position: relative; display: flex; flex-direction: column;
-            padding: 15px 20px; z-index: 10;
+            width: 100%; height: 180px; flex-shrink: 0;
+            background-color: #ffffff; border-bottom: 4px solid #dfe6e9;
+            display: flex; flex-direction: column;
+            padding: 10px 20px; z-index: 10;
         }
 
-        #header-controls {
-            position: absolute; top: 15px; right: 15px;
-            display: flex; gap: 10px;
+        .header-top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px;
+            font-size: 13px; font-weight: bold;
         }
+        .header-stats span { color: #555; }
+        .header-stats .stat-val { color: var(--primary); font-size: 15px; margin-right: 15px; }
+        .header-stats .stat-val.lives { color: var(--safe); }
+        
+        #header-controls { display: flex; gap: 8px; }
 
-        /* --- Buttons --- */
         button.action-btn {
-            background: #0984e3; color: white; border: none;
+            background: var(--primary); color: white; border: none;
             padding: 12px 24px; font-size: 16px; cursor: pointer;
-            border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold;
+            border-radius: 4px; font-family: 'Roboto Mono', monospace; font-weight: bold;
             text-transform: uppercase; width: 100%; margin-bottom: 10px;
-            transition: filter 0.2s;
+            transition: filter 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        button.action-btn:hover { filter: brightness(1.1); }
+        button.action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         
         button.small-btn {
-            background: #333; color: white; border: none;
-            padding: 5px 10px; font-size: 12px; cursor: pointer;
-            border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold;
-            text-transform: uppercase; width: auto; margin: 0;
+            background: #dfe6e9; color: #2d3436; border: 1px solid #b2bec3;
+            padding: 4px 10px; font-size: 11px; cursor: pointer;
+            border-radius: 4px; font-family: 'Roboto Mono', monospace; font-weight: bold;
+            text-transform: uppercase; margin: 0; transition: all 0.2s;
         }
-        button.small-btn.active-toggle { background: #00b894; }
+        button.small-btn:hover { background: #b2bec3; }
+        button.small-btn.active-toggle { background: var(--safe); color: white; border-color: var(--safe); }
 
-        /* --- Patient & Rx List --- */
-        .header-top {
-            display: flex; flex-direction: column; align-items: flex-start;
-            border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 5px;
-            padding-right: 120px; line-height: 1.1;
-        }
-        #rx-patient { font-size: 16px; color: #555; font-family: 'Courier New', monospace; font-weight: bold; }
-        #rx-title { font-size: 26px; color: #2c3e50; text-shadow: 1px 1px 0 #fff; }
+        .header-main { display: flex; flex-direction: column; flex-grow: 1; }
+        #rx-patient { font-size: 12px; color: #636e72; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+        #rx-title { font-size: 20px; color: var(--primary); font-family: 'Caveat', cursive; line-height: 1; margin-bottom: 6px; font-weight: bold; }
         
-        #rx-list {
-            display: flex; gap: 10px; flex-wrap: wrap; flex-grow: 1;
-            font-family: 'Courier New', monospace; align-content: flex-start;
-        }
+        #rx-list { display: flex; gap: 8px; flex-wrap: wrap; align-content: flex-start; }
         .rx-item {
-            background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 4px;
-            font-weight: bold; display: flex; align-items: center; gap: 8px;
-            border: 1px solid rgba(0,0,0,0.1); font-size: 14px; transition: all 0.3s ease;
+            background: #f1f2f6; padding: 2px 8px; border-radius: 4px;
+            font-weight: bold; display: flex; align-items: center; gap: 6px;
+            border: 1px solid #dfe6e9; font-size: 13px; transition: all 0.3s ease;
         }
-        .rx-color-swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; }
+        .rx-color-swatch { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); }
         
-        /* Over-Dispense "FILLED" UI Animation */
         .rx-filled {
-            background: rgba(0, 184, 148, 0.2); border-color: var(--safe);
-            color: #555; text-decoration: line-through;
+            background: rgba(0, 184, 148, 0.15); border-color: var(--safe);
+            color: #b2bec3; text-decoration: line-through;
             animation: pulseFilled 0.5s ease-out forwards;
         }
         @keyframes pulseFilled {
-            0% { transform: scale(1); background: rgba(0, 184, 148, 0.5); }
-            50% { transform: scale(1.1); background: rgba(0, 184, 148, 0.8); color: #000; }
-            100% { transform: scale(1); background: rgba(0, 184, 148, 0.2); }
+            0% { transform: scale(1); background: rgba(0, 184, 148, 0.4); }
+            50% { transform: scale(1.1); background: rgba(0, 184, 148, 0.7); color: #2d3436; }
+            100% { transform: scale(1); background: rgba(0, 184, 148, 0.15); }
         }
 
-        /* --- Tolerance Bar & Queue --- */
-        #tolerance-container { width: 100%; margin-top: auto; font-family: 'Courier New', monospace; }
-        .header-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
-        #tolerance-label { font-size: 12px; font-weight: bold; text-transform: uppercase; }
-        
-        #powerup-queue { display: flex; gap: 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        #active-upgrades { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 
-        /* Tooltip implementation */
-        .tooltip { position: relative; cursor: help; border-bottom: 1px dotted #666; }
+        #tolerance-container { width: 100%; margin-top: auto; }
+        .header-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
+        #tolerance-label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #636e72; }
+        
+        #powerup-queue { display: flex; gap: 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+
+        .tooltip { position: relative; cursor: help; border-bottom: 1px dotted #b2bec3; }
         .tooltip .tooltip-text {
-            visibility: hidden; width: 140px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 4px; padding: 5px; position: absolute;
-            z-index: 100; bottom: 125%; left: 50%; margin-left: -70px; opacity: 0;
-            transition: opacity 0.3s; font-size: 10px; font-weight: normal; text-transform: none;
-            text-shadow: none; pointer-events: none; line-height: 1.2;
+            visibility: hidden; width: 150px; background-color: #2d3436; color: #fff;
+            text-align: center; border-radius: 4px; padding: 6px; position: absolute;
+            z-index: 100; bottom: 130%; left: 50%; margin-left: -75px; opacity: 0;
+            transition: opacity 0.2s; font-size: 10px; font-weight: normal; text-transform: none;
+            line-height: 1.3; font-family: 'Roboto Mono', monospace; letter-spacing: 0;
         }
         .tooltip .tooltip-text::after {
             content: ""; position: absolute; top: 100%; left: 50%;
-            margin-left: -5px; border-width: 5px; border-style: solid;
-            border-color: #333 transparent transparent transparent;
+            margin-left: -5px; border-width: 5px; border-style: solid; border-color: #2d3436 transparent transparent transparent;
         }
         .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
 
         #tolerance-bar-bg {
-            width: 100%; height: 18px; background: #333; border-radius: 9px; overflow: hidden;
+            width: 100%; height: 16px; background: #dfe6e9; border-radius: 8px; overflow: hidden;
             position: relative; display: flex; justify-content: center; align-items: center;
-            border: 2px solid #222;
+            border: 1px solid #b2bec3; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
         #tolerance-bar-fill {
             position: absolute; left: 0; top: 0; height: 100%; background: var(--safe);
             transition: width 0.2s ease-out, background 0.2s ease-out; z-index: 1;
         }
         #tolerance-text {
-            color: white; font-size: 12px; font-family: monospace; font-weight: bold;
-            z-index: 2; text-shadow: 1px 1px 0 #000;
+            color: #fff; font-size: 11px; font-weight: bold;
+            z-index: 2; text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
         }
 
-        /* --- Engine Container & Overlays --- */
         #phaser-container { width: 100%; flex-grow: 1; position: relative; background: #111; }
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 100; color: white;
-            backdrop-filter: blur(2px);
+            justify-content: center; align-items: center; z-index: 100; color: #2d3436;
+            backdrop-filter: blur(3px);
         }
         .hidden { display: none !important; }
         .panel {
-            background: var(--ui-bg); color: var(--text);
-            padding: 30px; border-radius: 8px; border: 4px solid #333;
-            max-width: 450px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 90%;
+            background: var(--ui-bg); padding: 30px; border-radius: 8px; 
+            border: 2px solid #dfe6e9; max-width: 450px; text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); width: 90%;
         }
-        h1 { margin-bottom: 10px; text-transform: uppercase; font-family: 'Courier New', monospace; font-size: 24px;}
-        p { margin-bottom: 20px; font-weight: bold; }
+        h1 { margin-bottom: 10px; text-transform: uppercase; font-size: 22px; color: #2d3436;}
+        p { margin-bottom: 20px; font-weight: bold; color: #636e72; font-size: 14px;}
         .danger-text { color: var(--danger); }
         .safe-text { color: var(--safe); }
-        .stats-block { text-align: left; background: #eee; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-family: monospace;}
+        .stats-block { text-align: left; background: #f1f2f6; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 14px;}
         
-        /* Break Room UI */
         .upgrade-container { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; }
         .upgrade-card {
-            background: #fff; border: 2px solid #555; border-radius: 8px; padding: 15px 10px;
+            background: #fff; border: 2px solid #dfe6e9; border-radius: 8px; padding: 15px 10px;
             width: 120px; cursor: pointer; transition: transform 0.1s, border-color 0.1s;
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .upgrade-card:hover { transform: translateY(-5px); border-color: var(--safe); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .card-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; width: 100%; }
-        .card-desc { font-size: 11px; font-weight: normal; color: #555; }
-        .card-type { font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: #0984e3; font-weight: bold;}
+        .upgrade-card:hover { transform: translateY(-5px); border-color: var(--safe); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; width: 100%; color: #2d3436;}
+        .card-desc { font-size: 10px; font-weight: normal; color: #636e72; line-height: 1.3;}
+        .card-type { font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: var(--primary); font-weight: bold;}
         .card-type.consumable { color: #e17055; }
-
-        /* Game HUD Elements (Lives/Score) */
-        #hud-top {
-            position: absolute; top: 160px; left: 10px; right: 10px;
-            display: flex; justify-content: space-between; z-index: 5;
-            font-family: monospace; font-weight: bold; color: white; text-shadow: 1px 1px 0 #000;
-            pointer-events: none;
-        }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
     <div id="header-ui">
-        <div id="header-controls">
-            <button id="btn-mute" class="small-btn">Mute: Off</button>
-            <button id="btn-pause-toggle" class="small-btn">Pause</button>
+        <div class="header-top-bar">
+            <div class="header-stats">
+                <span>SCORE:</span> <span id="hud-score" class="stat-val">00000</span>
+                <span>LIVES:</span> <span id="hud-lives" class="stat-val lives">3</span>
+            </div>
+            <div id="header-controls">
+                <button id="btn-mute" class="small-btn">Sound: OFF</button>
+                <button id="btn-pause-toggle" class="small-btn">Pause</button>
+            </div>
         </div>
-        <div class="header-top">
+        
+        <div class="header-main">
             <div id="rx-patient">Pt: Loading...</div>
-            <div id="rx-title">Rx: Loading...</div>
+            <div id="rx-title">Loading Prescription...</div>
+            <div id="rx-list"></div>
+            <div id="active-upgrades"></div>
         </div>
-        <div id="rx-list"></div>
+        
         <div id="tolerance-container">
             <div class="header-bottom-row">
-                <div id="tolerance-label">Mis-dispense</div>
+                <div id="tolerance-label">Mis-dispense Protocol</div>
                 <div id="powerup-queue">
-                    <span class="tooltip" style="color:#a29bfe; text-shadow: 1px 1px 0 #fff;">
+                    <span class="tooltip" style="color:#a29bfe;">
                         SPL: <span id="active-split">0</span>
                         <span class="tooltip-text">Split Rounds: Fragments into 3 tablets on launch.</span>
                     </span>
-                    <span class="tooltip" style="color:#00cec9; text-shadow: 1px 1px 0 #fff;">
+                    <span class="tooltip" style="color:#00cec9;">
                         PRC: <span id="active-pierce">0</span>
                         <span class="tooltip-text">Pierce Rounds: Punches through targets without bouncing.</span>
                     </span>
@@ -213,28 +202,23 @@
         </div>
     </div>
 
-    <div id="phaser-container">
-        <div id="hud-top">
-            <div>Lives: <span id="hud-lives">3</span></div>
-            <div>Score: <span id="hud-score">00000</span></div>
-        </div>
-    </div>
+    <div id="phaser-container"></div>
 
     <div id="menu-start" class="overlay">
         <div class="panel">
-            <h1>Pharmacy Breaker</h1>
-            <p>Fill prescriptions. Avoid off-label colors.</p>
+            <h1 style="color:var(--primary);">Pharmacy Breaker</h1>
+            <p>Fill prescriptions. Maintain high tolerance. Avoid off-label colors.</p>
             <button id="btn-play" class="action-btn">Clock In</button>
         </div>
     </div>
 
     <div id="menu-level-briefing" class="overlay hidden">
         <div class="panel">
-            <h2 id="briefing-color" style="text-transform: uppercase;">Color Pills</h2>
-            <h1 id="briefing-title" style="font-family: 'Caveat', cursive; color: #2c3e50; font-size: 32px; line-height: 1.1; margin: 10px 0;">Take 1, twice daily...</h1>
-            <p id="briefing-condition" style="font-size: 14px; color: #555; text-align: left;">Indication: ...</p>
-            <div style="background: #e8f4f8; padding: 10px; border-left: 4px solid #0984e3; margin-bottom: 20px; text-align: left;">
-                <p id="briefing-tip" style="margin: 0; font-size: 12px; font-family: monospace;">Note: ...</p>
+            <h2 id="briefing-color" style="text-transform: uppercase; font-size: 14px; color:#636e72;">Target Colors</h2>
+            <h1 id="briefing-title" style="font-family: 'Caveat', cursive; color: var(--primary); font-size: 34px; line-height: 1.1; margin: 10px 0;">Take 1, twice daily...</h1>
+            <p id="briefing-condition" style="font-size: 13px; color: #2d3436; text-align: left; margin-bottom: 10px;">Indication: ...</p>
+            <div style="background: #f8f9fa; padding: 12px; border-left: 4px solid var(--primary); margin-bottom: 20px; text-align: left; border-radius: 0 4px 4px 0;">
+                <p id="briefing-tip" style="margin: 0; font-size: 12px; color:#2d3436;">Note: ...</p>
             </div>
             <button id="btn-start-level" class="action-btn">Acknowledge</button>
         </div>
@@ -242,28 +226,28 @@
 
     <div id="menu-breakroom" class="overlay hidden">
         <div class="panel">
-            <h1 style="color: #0984e3;">The Break Room</h1>
-            <p style="font-size: 14px;">Select one upgrade for the remainder of your shift.</p>
+            <h1 style="color: var(--primary);">The Break Room</h1>
+            <p style="font-size: 13px;">Select one upgrade for the remainder of your shift.</p>
             <div id="upgrade-cards" class="upgrade-container"></div>
-            <button id="btn-skip-break" class="action-btn" style="background:#555;">Skip Upgrade</button>
+            <button id="btn-skip-break" class="action-btn" style="background:#b2bec3;">Skip Upgrade</button>
         </div>
     </div>
 
     <div id="menu-pause" class="overlay hidden">
         <div class="panel">
-            <h1>Paused</h1>
-            <button id="btn-resume" class="action-btn">Resume</button>
-            <button id="btn-restart-run" class="action-btn" style="background:#d63031;">End Shift</button>
+            <h1>Shift Paused</h1>
+            <button id="btn-resume" class="action-btn">Resume Shift</button>
+            <button id="btn-restart-run" class="action-btn" style="background:var(--danger);">End Shift Early</button>
         </div>
     </div>
 
     <div id="menu-gameover" class="overlay hidden">
         <div class="panel">
             <h1 class="danger-text">Shift Terminated</h1>
-            <p>You have lost all your lives.</p>
+            <p>You have depleted your lives.</p>
             <div class="stats-block">
-                <p style="margin:0;">Final Score: <span id="stats-score">0</span></p>
-                <p style="margin:0;">Scripts Filled: <span id="stats-filled">0</span></p>
+                <p style="margin-bottom:5px;">Final Score: <span id="stats-score" style="color:var(--primary); font-weight:bold;">0</span></p>
+                <p style="margin:0;">Scripts Filled: <span id="stats-filled" style="font-weight:bold;">0</span></p>
             </div>
             <button id="btn-retry" class="action-btn">Start New Shift</button>
         </div>
@@ -280,46 +264,20 @@
 
 <script>
 /**
- * config.js - Pharmacy Breaker v0.3.1
- * Config, Data, and State Schema
+ * config.js - Pharmacy Breaker v0.3.4
  */
 
 const CONFIG = {
-    physics: {
-        baseVelocity: 550,
-        maxVelocity: 950,
-        velocityMultiplier: 1.03,
-        hitboxRadius: 8
-    },
-    launcher: {
-        minAngleDeg: 15,
-        maxActiveTablets: 1
-    },
-    rules: {
-        baseTolerance: 500,
-        toleranceDecayPerLevel: 50,
-        wrongColorPenalty: 35
-    },
-    modifiers: {
-        strength: {
-            splitCount: 3,
-            pierceLimit: 2
-        }
-    },
-    hazards: {
-        maxToleranceDrainPct: 0.25 
-    },
-    mechanics: {
-        gracePeriodMs: 1000 
-    },
-    feedback: {
-        shakeIntensityPx: 5,
-        shakeDurationMs: 100,
-        blastRadiusPx: 120
-    },
+    physics: { baseVelocity: 550, maxVelocity: 950, velocityMultiplier: 1.03, hitboxRadius: 8 },
+    launcher: { minAngleDeg: 15, maxActiveTablets: 1 },
+    rules: { baseTolerance: 500, toleranceDecayPerLevel: 50, wrongColorPenalty: 35 },
+    modifiers: { strength: { splitCount: 3, pierceLimit: 2 } },
+    hazards: { maxToleranceDrainPct: 0.25 },
+    mechanics: { gracePeriodMs: 1000 },
+    feedback: { shakeIntensityPx: 5, shakeDurationMs: 100, blastRadiusPx: 120 },
     pool: {
         relics: [
-            { id: "prior_auth", name: "Prior Authorization", desc: "Start every level with 1 Pierce round active." },
+            { id: "prior_auth", name: "Prior Auth", desc: "Start every level with 1 Pierce round active." },
             { id: "high_tolerance", name: "High Tolerance", desc: "Increases max Mis-dispense bar capacity by 25%." },
             { id: "anti_fatigue_mats", name: "Anti-Fatigue Mats", desc: "First tablet to hit the floor each level bounces back into play." }
         ],
@@ -331,20 +289,14 @@ const CONFIG = {
 };
 
 const LORE_DB = {
-    patients: [
-        "John Doe", "Jane Smith", "Alan Turing", 
-        "Ada Lovelace", "Grace Hopper", "Richard Roe"
-    ],
-    conditions: [
-        "Acute Pixelitis", "Restless Cursor Syndrome", 
-        "Carpal Tunnel Variance", "Chronic Refresh Fatigue",
-        "Elevated Ping Rate", "Tab Hoarding Disorder"
-    ],
+    patients: [ "John Doe", "Jane Smith", "Alan Turing", "Ada Lovelace", "Grace Hopper", "Richard Roe" ],
+    conditions: [ "Acute Pixelitis", "Restless Cursor Syndrome", "Carpal Tunnel Variance", "Chronic Refresh Fatigue", "Elevated Ping Rate", "Tab Hoarding Disorder" ],
     tutorials: {
         1: "Drag to aim. Fill the script. Avoid off-label colors.",
-        2: "Cyan capsules grant Pierce. Tablets punch through targets.",
-        3: "Purple capsules grant Split. Three for the price of one.",
-        5: "Red means volatile. Keep your distance."
+        2: "Powerups added to circulation. Cyan grants Pierce. Purple grants Split.",
+        3: "Multi-color prescriptions required. Beware over-dispensing filled quotas.",
+        4: "Red volatile capsules detected. Avoid at all costs.",
+        5: "Break Room access granted. Select your pharmacy powers carefully."
     }
 };
 
@@ -352,7 +304,7 @@ const COLORS = {
     'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 
     'Yellow': 0xfdcb6e, 'Pink': 0xfd79a8, 'Red': 0xd63031, 
     'White': 0xffffff, 'Purple': 0xa29bfe, 'Cyan': 0x00cec9,
-    'Rainbow': 0xffa500, 'BrightGreen': 0x00ff00 
+    'Rainbow': 0xffa500, 'BrightGreen': 0x00b894 
 };
 
 const CAPSULE_SCHEMA = {
@@ -373,35 +325,35 @@ function resetState() {
         level: 1, currentTolerance: 0, maxTolerance: 0, rxQuota: {},
         isAiming: true, activeTablets: 0, powerupQueue: { split: 0, pierce: 0 },
         activeRounds: { split: 0, pierce: 0 }, lives: 3, score: 0, 
-        activeRelics: [], currentConsumable: null, inProgress: false 
+        activeRelics: [], currentConsumable: null, inProgress: false, breakRoomShownThisLevel: false 
     };
 }
 resetState();
 
 
 /**
- * game.js - Pharmacy Breaker v0.3.1
- * The Engine
+ * game.js - Pharmacy Breaker v0.3.4
  */
 
-// Optimized Audio System
-let globalIsMuted = JSON.parse(localStorage.getItem('pharmacy_settings'))?.mute || false;
+let savedSettings = { mute: true };
+try { 
+    let stored = localStorage.getItem('pharmacy_settings');
+    if (stored) savedSettings = JSON.parse(stored);
+} catch(e) {}
+
+let globalIsMuted = savedSettings.mute;
 window.addEventListener('muteToggled', (e) => { globalIsMuted = e.detail; });
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playTone(freq, type, duration, vol = 0.1) {
     if (globalIsMuted) return;
-    
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     gain.gain.setValueAtTime(vol, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
 }
 
 class MainScene extends Phaser.Scene {
@@ -411,20 +363,14 @@ class MainScene extends Phaser.Scene {
 
     generateAssets() {
         let g = this.make.graphics({x:0, y:0, add:false});
-        
-        // Tablet
         g.fillStyle(0xf5f6fa, 1); g.fillCircle(8, 8, 8);
-        g.lineStyle(2, 0x2d3436, 0.8);
-        g.beginPath(); g.moveTo(2, 8); g.lineTo(14, 8); g.strokePath();
+        g.lineStyle(2, 0x2d3436, 0.8); g.beginPath(); g.moveTo(2, 8); g.lineTo(14, 8); g.strokePath();
         g.generateTexture('tablet_tex', 16, 16);
 
-        // Spatula
-        g.clear();
-        g.fillStyle(0x8b4513, 1); g.fillRoundedRect(0, 50, 16, 40, 8);
-        g.fillStyle(0xbdc3c7, 1); g.fillRoundedRect(4, 0, 8, 60, 4);
+        g.clear(); g.fillStyle(0x8b4513, 1); g.fillRoundedRect(0, 50, 16, 40, 8);
+        g.fillStyle(0xb2bec3, 1); g.fillRoundedRect(4, 0, 8, 60, 4);
         g.generateTexture('spatula_tex', 16, 90);
 
-        // Pills
         const drawPill = (key, colorHex, visualType) => {
             g.clear();
             if (visualType === 'rainbow_pill') {
@@ -437,25 +383,22 @@ class MainScene extends Phaser.Scene {
                 g.fillStyle(colorHex, 1); g.fillRoundedRect(0, 0, 50, 20, 10);
             }
 
-            g.fillStyle(0xffffff, 0.3); g.fillRoundedRect(4, 2, 42, 5, 2);
+            g.fillStyle(0xffffff, 0.2); g.fillRoundedRect(4, 2, 42, 5, 2);
 
             if (visualType && visualType.startsWith('stamped_')) {
                 let text = visualType.split('_')[1];
                 let tColor = colorHex === COLORS['White'] ? '#333' : '#fff';
-                let t = this.make.text({ x: 25, y: 10, text: text, style: { fontSize: '10px', color: tColor, fontFamily: 'monospace', fontStyle: 'bold' }, add: false });
+                let t = this.make.text({ x: 25, y: 10, text: text, style: { fontSize: '10px', color: tColor, fontFamily: 'Roboto Mono', fontStyle: 'bold' }, add: false });
                 t.setOrigin(0.5); g.fillStyle(0x000000, 0.5);
             }
-            
             if (visualType === 'red_volatile') {
                 g.lineStyle(2, 0xffffff, 1);
                 g.beginPath(); g.arc(25, 8, 4, 0, Math.PI*2); g.strokePath(); 
                 g.beginPath(); g.moveTo(18, 16); g.lineTo(32, 4); g.strokePath(); 
                 g.beginPath(); g.moveTo(18, 4); g.lineTo(32, 16); g.strokePath(); 
             }
-            
             if (visualType === 'green_cross') {
-                g.fillStyle(0xffffff, 1);
-                g.fillRect(22, 4, 6, 12); g.fillRect(19, 7, 12, 6);
+                g.fillStyle(0xffffff, 1); g.fillRect(22, 4, 6, 12); g.fillRect(19, 7, 12, 6);
             }
             g.generateTexture(key, 50, 20);
         };
@@ -472,6 +415,7 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
+        this.isLevelTransitioning = false;
         this.physics.world.setBounds(0, 0, 600, 750);
         this.physics.world.setBoundsCollision(true, true, true, false);
 
@@ -501,20 +445,20 @@ class MainScene extends Phaser.Scene {
     handleSerialization() {
         let saved = localStorage.getItem('pharmacy_save');
         if (saved) {
-            let data = JSON.parse(saved);
-            if (data.inProgress) {
-                gameState = data.state;
-                gameState.lives--;
-                if (gameState.lives <= 0) {
-                    this.triggerGameOver();
-                    return;
-                } else {
-                    this.showFloatText(300, 400, "SHIFT ABANDONED\n-1 LIFE", COLORS['Red']);
-                    playTone(150, 'sawtooth', 0.5);
-                }
-            } else {
-                gameState = data.state;
-            }
+            try {
+                let data = JSON.parse(saved);
+                if (data.inProgress) {
+                    gameState = data.state;
+                    gameState.lives--;
+                    if (gameState.lives <= 0) {
+                        this.triggerGameOver();
+                        return;
+                    } else {
+                        this.showFloatText(300, 400, "SHIFT ABANDONED\n-1 LIFE", COLORS['Red']);
+                        playTone(150, 'sawtooth', 0.5);
+                    }
+                } else gameState = data.state;
+            } catch(e) { resetState(); }
         } else resetState();
         
         if(gameState.lives > 0) this.prepareLevelData(gameState.level);
@@ -547,12 +491,28 @@ class MainScene extends Phaser.Scene {
             gameState.rxQuota[sColor] = Math.floor(targetCount / 2);
         }
 
+        let dosage = 1, freq = 1;
+        if (targetCount % 4 === 0) { dosage = 2; freq = 2; }
+        else if (targetCount % 3 === 0) { dosage = 1; freq = 3; }
+        else if (targetCount % 2 === 0) { dosage = 1; freq = 2; }
+        let days = Math.floor(targetCount / (dosage * freq)) || 1;
+        let freqMap = {1: 'once', 2: 'twice', 3: 'three times', 4: 'four times'};
+        let titleStr = `Take ${dosage}, ${freqMap[freq] || freq + ' times'} daily for ${days} days.`;
+        let tutText = LORE_DB.tutorials[levelNumber] || "Standard dispensing protocol applies.";
+
         document.getElementById('rx-patient').innerText = `Pt: ${pName} (${condition})`;
-        document.getElementById('briefing-title').innerText = `Take daily for ${condition}.`;
+        document.getElementById('rx-title').innerText = `Rx: ${titleStr}`;
+        document.getElementById('rx-list').innerHTML = ''; 
         
+        let colorKeys = Object.keys(gameState.rxQuota).join(' & ');
+        document.getElementById('briefing-color').innerText = `${colorKeys} Capsules Required`;
+        document.getElementById('briefing-title').innerText = titleStr;
+        document.getElementById('briefing-condition').innerText = `Indication: ${condition}`;
+        document.getElementById('briefing-tip').innerText = `Note: ${tutText}`;
+
         this.saveState(true); 
         
-        if (levelNumber > 1 && (levelNumber - 1) % 3 === 0 && !gameState.breakRoomShownThisLevel) {
+        if (levelNumber >= 5 && (levelNumber - 1) % 4 === 0 && !gameState.breakRoomShownThisLevel) {
             gameState.breakRoomShownThisLevel = true;
             this.showBreakRoom();
         } else {
@@ -562,13 +522,18 @@ class MainScene extends Phaser.Scene {
     }
 
     renderLevelBoard() {
+        this.isLevelTransitioning = false;
         this.capsules.clear(true, true);
         this.tablets.clear(true, true);
         
         gameState.activeTablets = 0; gameState.isAiming = true;
         this.hasBouncedThisLevel = false;
 
-        if (gameState.activeRelics.includes("prior_auth")) gameState.activeRounds.pierce = 1;
+        // V0.3.4 Fix: Ensure Prior Auth doesn't steal banked Pierce rounds
+        if (gameState.activeRelics.includes("prior_auth")) {
+            gameState.activeRounds.pierce = Math.max(gameState.activeRounds.pierce, 1);
+        }
+
         this.laserPointerActive = gameState.currentConsumable === "laser_pointer";
         this.alchemistActive = gameState.currentConsumable === "alchemists_vial";
         
@@ -588,12 +553,14 @@ class MainScene extends Phaser.Scene {
             if (needed) { color = needed; tex = color; placed[color]++; }
             else {
                 let rand = Phaser.Math.RND.frac();
-                if (rand < 0.1 && gameState.level >= 2) { typeKey = 'Pierce'; tex = 'Pierce'; color = 'Cyan'; }
-                else if (rand < 0.2 && gameState.level >= 3) { typeKey = 'Splitter'; tex = 'Splitter'; color = 'Purple'; }
-                else if (rand < 0.25) { typeKey = '1-Up'; tex = '1-Up'; color = 'BrightGreen'; }
-                else if (rand < 0.3) { typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; }
-                else if (rand < 0.4 && gameState.level >= 4) { typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red'; }
-                else { typeKey = 'Placebo'; tex = 'Placebo'; color = 'White'; }
+                if (gameState.level >= 2) {
+                    if (rand < 0.1) { typeKey = 'Pierce'; tex = 'Pierce'; color = 'Cyan'; }
+                    else if (rand < 0.2) { typeKey = 'Splitter'; tex = 'Splitter'; color = 'Purple'; }
+                    else if (rand < 0.25) { typeKey = '1-Up'; tex = '1-Up'; color = 'BrightGreen'; }
+                    else if (rand < 0.3) { typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; }
+                }
+                if (gameState.level >= 4 && typeKey === 'Standard' && rand < 0.45) { typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red'; }
+                if (typeKey === 'Standard' && rand > 0.8) { typeKey = 'Placebo'; tex = 'Placebo'; color = 'White'; }
             }
 
             let cap = this.capsules.create(x, y, tex);
@@ -607,23 +574,25 @@ class MainScene extends Phaser.Scene {
     }
 
     updateAim(pointer) {
-        if (!gameState.isAiming || gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) {
-            this.trajectoryLine.clear(); return;
+        let angleRad = Phaser.Math.Angle.Between(this.launcherOrigin.x, this.launcherOrigin.y, pointer.x, pointer.y);
+        let angleDeg = Phaser.Math.RadToDeg(angleRad);
+
+        const minD = -180 + CONFIG.launcher.minAngleDeg; 
+        const maxD = -CONFIG.launcher.minAngleDeg;
+        
+        if (angleDeg >= 0) {
+            if (angleDeg < 90) angleDeg = maxD;
+            else angleDeg = minD;
+        } else {
+            if (angleDeg > maxD) angleDeg = maxD;
+            if (angleDeg < minD) angleDeg = minD;
         }
 
-        let angle = Phaser.Math.Angle.Between(this.launcherOrigin.x, this.launcherOrigin.y, pointer.x, pointer.y);
-        let angleDeg = Phaser.Math.RadToDeg(angle);
-
-        const minD = -180 + CONFIG.launcher.minAngleDeg;
-        const maxD = -CONFIG.launcher.minAngleDeg;
-        if (angleDeg > maxD && angleDeg < 0) angleDeg = maxD;
-        if (angleDeg < minD || angleDeg >= 0) angleDeg = minD;
-
-        let angleRad = Phaser.Math.DegToRad(angleDeg);
+        angleRad = Phaser.Math.DegToRad(angleDeg);
         this.spatula.setRotation(angleRad + Math.PI/2); 
 
         this.trajectoryLine.clear();
-        if (this.laserPointerActive) {
+        if (gameState.activeTablets < CONFIG.launcher.maxActiveTablets && this.laserPointerActive) {
             this.trajectoryLine.lineStyle(2, 0xff0000, 0.5);
             this.trajectoryLine.beginPath();
             this.trajectoryLine.moveTo(this.launcherOrigin.x, this.launcherOrigin.y);
@@ -633,7 +602,7 @@ class MainScene extends Phaser.Scene {
     }
 
     fireTablet() {
-        if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets) return;
+        if (gameState.activeTablets >= CONFIG.launcher.maxActiveTablets || this.isLevelTransitioning) return;
         
         gameState.isAiming = false;
         this.trajectoryLine.clear();
@@ -687,17 +656,19 @@ class MainScene extends Phaser.Scene {
 
     onTabletLost(floor, tablet) {
         if (gameState.activeRelics.includes("anti_fatigue_mats") && !this.hasBouncedThisLevel) {
-            tablet.body.velocity.y *= -1.5; this.hasBouncedThisLevel = true;
+            let v = tablet.body.velocity;
+            v.y *= -1.2; // V0.3.4 Fix: Lowered bounce multiplier
+            // V0.3.4 Fix: Strict max velocity clamp to prevent floor tunneling exploit
+            if (v.length() > CONFIG.physics.maxVelocity) v.normalize().scale(CONFIG.physics.maxVelocity);
+            tablet.setVelocity(v.x, v.y);
+            
+            this.hasBouncedThisLevel = true;
             this.showFloatText(tablet.x, tablet.y - 20, "MAT BOUNCE", COLORS['Yellow']);
             playTone(400, 'sine', 0.1); return;
         }
 
         tablet.destroy(); gameState.activeTablets--;
-        if (gameState.activeTablets <= 0) {
-            gameState.isAiming = true;
-            let pointer = this.input.activePointer;
-            if (pointer.x > 0 && pointer.y > 0) this.updateAim(pointer);
-        }
+        if (gameState.activeTablets <= 0) gameState.isAiming = true;
     }
 
     onCollisionProcess(tablet, capsule) {
@@ -744,11 +715,8 @@ class MainScene extends Phaser.Scene {
             case "script":
                 if (gameState.rxQuota[color] !== undefined && gameState.rxQuota[color] > 0) {
                     gameState.rxQuota[color]--; gameState.score += 100;
-                    this.safeDust.emitParticleAt(capsule.x, capsule.y, 10);
-                    playTone(600, 'sine', 0.1);
-                    
+                    this.safeDust.emitParticleAt(capsule.x, capsule.y, 10); playTone(600, 'sine', 0.1);
                     if (gameState.rxQuota[color] === 0) {
-                        document.getElementById('rx-item-' + color).classList.add('rx-filled');
                         this.capsules.getChildren().forEach(cap => {
                             if (cap.color === color) cap.graceTimestamp = this.time.now + CONFIG.mechanics.gracePeriodMs;
                         });
@@ -765,14 +733,12 @@ class MainScene extends Phaser.Scene {
                 break;
             case "powerup":
                 if (capsule.schema.buff === 'life') {
-                    gameState.lives++; this.showFloatText(capsule.x, capsule.y, "1-UP", COLORS['BrightGreen']);
-                    playTone(800, 'square', 0.2);
+                    gameState.lives++; this.showFloatText(capsule.x, capsule.y, "1-UP", COLORS['BrightGreen']); playTone(800, 'square', 0.2);
                 } else if (capsule.schema.buff === 'transmute') {
                     this.triggerSubstitutionBlast(capsule.x, capsule.y, CONFIG.feedback.blastRadiusPx);
                 } else {
                     gameState.powerupQueue[capsule.schema.buff] += 3;
-                    this.showFloatText(capsule.x, capsule.y, "+3 " + capsule.schema.buff.toUpperCase(), COLORS[color]);
-                    playTone(500, 'triangle', 0.1);
+                    this.showFloatText(capsule.x, capsule.y, "+3 " + capsule.schema.buff.toUpperCase(), COLORS[color]); playTone(500, 'triangle', 0.1);
                 }
                 break;
         }
@@ -797,10 +763,8 @@ class MainScene extends Phaser.Scene {
         let blast = new Phaser.Geom.Circle(x, y, radius);
         this.capsules.getChildren().forEach(cap => {
             if (cap.active && !cap.isDying && Phaser.Geom.Intersects.CircleToRectangle(blast, cap.getBounds())) {
-                // FIXED: Now catches undefined (off-label colors)
                 if (cap.schema.type === 'hazard' || gameState.rxQuota[cap.color] === 0 || gameState.rxQuota[cap.color] === undefined) {
-                    cap.color = targetColor;
-                    cap.schema = CAPSULE_SCHEMA['Standard'];
+                    cap.color = targetColor; cap.schema = CAPSULE_SCHEMA['Standard'];
                     cap.setTexture(targetColor); cap.clearTint();
                     this.showFloatText(cap.x, cap.y, "TRANSMUTED", COLORS['Rainbow']);
                 }
@@ -820,23 +784,39 @@ class MainScene extends Phaser.Scene {
 
     showFloatText(x, y, text, colorHex) {
         let colorStr = '#' + colorHex.toString(16).padStart(6, '0');
-        let ft = this.add.text(x, y, text, { fontSize: '18px', fontFamily: 'monospace', fontStyle: 'bold', color: colorStr, stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
+        let ft = this.add.text(x, y, text, { fontSize: '18px', fontFamily: 'Roboto Mono', fontStyle: 'bold', color: colorStr, stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
         this.tweens.add({ targets: ft, y: y - 40, alpha: 0, duration: 1200, onComplete: () => ft.destroy() });
     }
 
     updateUI() {
-        const rxList = document.getElementById('rx-list'); rxList.innerHTML = '';
-        
+        const rxList = document.getElementById('rx-list');
         for (const [color, count] of Object.entries(gameState.rxQuota)) {
-            let div = document.createElement('div');
-            div.className = 'rx-item'; div.id = 'rx-item-' + color;
-            if (count <= 0) div.classList.add('rx-filled');
+            let elId = 'rx-item-' + color;
+            let div = document.getElementById(elId);
             
-            let swatch = document.createElement('div'); swatch.className = 'rx-color-swatch';
-            swatch.style.backgroundColor = '#' + COLORS[color].toString(16).padStart(6, '0');
+            if (!div) {
+                div = document.createElement('div');
+                div.className = 'rx-item'; div.id = elId;
+                let swatch = document.createElement('div'); swatch.className = 'rx-color-swatch';
+                swatch.style.backgroundColor = '#' + COLORS[color].toString(16).padStart(6, '0');
+                let text = document.createElement('span'); text.id = 'rx-text-' + color;
+                div.appendChild(swatch); div.appendChild(text); 
+                rxList.appendChild(div);
+            }
             
-            let text = document.createElement('span'); text.innerText = `${color}: ${Math.max(0, count)}`;
-            div.appendChild(swatch); div.appendChild(text); rxList.appendChild(div);
+            document.getElementById('rx-text-' + color).innerText = `${color}: ${Math.max(0, count)}`;
+            if (count <= 0 && !div.classList.contains('rx-filled')) div.classList.add('rx-filled');
+        }
+
+        const upgList = document.getElementById('active-upgrades');
+        upgList.innerHTML = '';
+        gameState.activeRelics.forEach(relId => {
+            let def = CONFIG.pool.relics.find(r => r.id === relId);
+            if(def) upgList.innerHTML += `<span class="tooltip small-btn" style="background:var(--primary);color:white;border-color:var(--primary);">${def.name}<span class="tooltip-text">${def.desc}</span></span>`;
+        });
+        if (gameState.currentConsumable) {
+            let def = CONFIG.pool.consumables.find(r => r.id === gameState.currentConsumable);
+            if(def) upgList.innerHTML += `<span class="tooltip small-btn" style="background:#e17055;color:white;border-color:#e17055;">${def.name}<span class="tooltip-text">${def.desc}</span></span>`;
         }
 
         let pct = Math.max(0, (gameState.currentTolerance / gameState.maxTolerance) * 100);
@@ -852,8 +832,14 @@ class MainScene extends Phaser.Scene {
     }
 
     checkWinLossState() {
+        if (this.isLevelTransitioning) return; 
+
         if (gameState.currentTolerance <= 0) {
-            this.scene.pause(); gameState.lives--; this.saveState(false);
+            this.isLevelTransitioning = true;
+            this.scene.pause(); gameState.lives--; 
+            gameState.currentConsumable = null; // V0.3.4 Fix: Clear consumable on death
+            this.saveState(false);
+            
             if (gameState.lives <= 0) this.triggerGameOver();
             else {
                 this.prepareLevelData(gameState.level);
@@ -862,7 +848,14 @@ class MainScene extends Phaser.Scene {
         } else {
             const remainingRx = Object.values(gameState.rxQuota).reduce((a, b) => a + Math.max(0, b), 0);
             if (remainingRx === 0) {
-                this.physics.pause(); gameState.isAiming = false; this.saveState(false);
+                this.isLevelTransitioning = true;
+                this.physics.pause(); 
+                this.tablets.clear(true, true); 
+                
+                gameState.isAiming = false; 
+                gameState.currentConsumable = null; // V0.3.4 Fix: Clear consumable on win
+                this.saveState(false);
+                
                 gameState.score += Math.floor(gameState.currentTolerance);
                 this.updateUI();
                 playTone(400, 'sine', 0.2); setTimeout(() => playTone(600, 'sine', 0.4), 200);
@@ -882,7 +875,11 @@ class MainScene extends Phaser.Scene {
 
     showBreakRoom() {
         const container = document.getElementById('upgrade-cards'); container.innerHTML = '';
-        let pool = [...CONFIG.pool.relics, ...CONFIG.pool.consumables];
+        
+        // V0.3.4 Fix: Filter out relics the player already owns before drafting
+        let availableRelics = CONFIG.pool.relics.filter(r => !gameState.activeRelics.includes(r.id));
+        let pool = [...availableRelics, ...CONFIG.pool.consumables];
+        
         Phaser.Math.RND.shuffle(pool);
         let options = pool.slice(0, 3);
 
@@ -907,13 +904,10 @@ class MainScene extends Phaser.Scene {
     }
 }
 
-// Global UI Hookup
 const gameConfig = {
-    type: Phaser.AUTO,
-    parent: 'phaser-container',
+    type: Phaser.AUTO, parent: 'phaser-container',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 600, height: 750 },
-    transparent: true,
-    physics: { default: 'arcade', arcade: { debug: false } },
+    transparent: true, physics: { default: 'arcade', arcade: { debug: false } },
     scene: MainScene
 };
 const game = new Phaser.Game(gameConfig);
@@ -923,15 +917,16 @@ function switchOverlay(id) {
     if (id) document.getElementById(id).classList.remove('hidden');
 }
 
-// Event Listeners
-document.getElementById('btn-play').addEventListener('click', () => { switchOverlay('menu-level-briefing'); });
+// V0.3.4 Fix: Ensure audioCtx.resume() is explicitly called on trusted user gesture
+document.getElementById('btn-play').addEventListener('click', () => { 
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    switchOverlay('menu-level-briefing'); 
+});
 
 document.getElementById('btn-start-level').addEventListener('click', () => {
     switchOverlay(null);
     let scene = game.scene.getScene('MainScene');
-    scene.scene.resume(); // FIXED: Scene lifecycle resume
-    scene.physics.resume(); 
-    scene.renderLevelBoard();
+    scene.scene.resume(); scene.physics.resume(); scene.renderLevelBoard();
 });
 
 document.getElementById('btn-skip-break').addEventListener('click', () => { switchOverlay('menu-level-briefing'); });
@@ -939,14 +934,12 @@ document.getElementById('btn-skip-break').addEventListener('click', () => { swit
 document.getElementById('btn-retry').addEventListener('click', () => {
     resetState();
     let scene = game.scene.getScene('MainScene');
-    scene.handleSerialization();
-    document.getElementById('btn-play').click();
+    scene.handleSerialization(); document.getElementById('btn-play').click();
 });
 
 document.getElementById('btn-next').addEventListener('click', () => {
     let scene = game.scene.getScene('MainScene');
-    scene.scene.resume();
-    scene.prepareLevelData(gameState.level + 1);
+    scene.scene.resume(); scene.prepareLevelData(gameState.level + 1);
 });
 
 document.getElementById('btn-pause-toggle').addEventListener('click', () => {
@@ -958,29 +951,25 @@ document.getElementById('btn-resume').addEventListener('click', () => {
 });
 
 document.getElementById('btn-restart-run').addEventListener('click', () => {
-    game.scene.resume('MainScene');
-    resetState();
+    game.scene.resume('MainScene'); resetState();
     let scene = game.scene.getScene('MainScene');
-    scene.handleSerialization();
-    switchOverlay('menu-start');
+    scene.handleSerialization(); switchOverlay('menu-start');
 });
 
-// Mute Button LocalStorage Logic
 document.addEventListener('DOMContentLoaded', () => {
     const muteBtn = document.getElementById('btn-mute');
-    let settings = JSON.parse(localStorage.getItem('pharmacy_settings')) || { mute: false };
-    
     const updateMuteUI = () => {
-        muteBtn.innerText = settings.mute ? 'Mute: ON' : 'Mute: OFF';
-        if(settings.mute) muteBtn.classList.add('active-toggle');
+        muteBtn.innerText = globalIsMuted ? 'Sound: OFF' : 'Sound: ON';
+        if(!globalIsMuted) muteBtn.classList.add('active-toggle');
         else muteBtn.classList.remove('active-toggle');
     };
 
     muteBtn.addEventListener('click', () => {
-        settings.mute = !settings.mute;
-        localStorage.setItem('pharmacy_settings', JSON.stringify(settings));
+        globalIsMuted = !globalIsMuted;
+        let settings = { mute: globalIsMuted };
+        try { localStorage.setItem('pharmacy_settings', JSON.stringify(settings)); } catch(e){}
         updateMuteUI();
-        window.dispatchEvent(new CustomEvent('muteToggled', { detail: settings.mute }));
+        window.dispatchEvent(new CustomEvent('muteToggled', { detail: globalIsMuted }));
     });
 
     updateMuteUI();
