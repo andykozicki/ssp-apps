@@ -7,7 +7,8 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M 15 75 A 35 35 0 0 1 85 75%22 fill=%22none%22 stroke=%22%2316a34a%22 stroke-width=%2212%22 stroke-linecap=%22round%22/><circle cx=%2250%22 cy=%2275%22 r=%2210%22 fill=%22%2316a34a%22/><line x1=%2250%22 y1=%2275%22 x2=%2270%22 y2=%2245%22 stroke=%22%2316a34a%22 stroke-width=%228%22 stroke-linecap=%22round%22/></svg>">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="system-links-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { 
             darkMode: 'class',
@@ -521,12 +522,81 @@
             }
         }
 
-        // Initialize Deferred Core Routines
-        document.addEventListener("DOMContentLoaded", () => {
-            attachSmartGlassListeners();
-            setupDragAndDrop();
-            fetchWeather();
-        });
+        // --- 6. DYNAMIC SYSTEM LINKS ENGINE ---
+        function initDynamicSystemLinks() {
+            if (!window.SSPSystemLinksManifest) return;
+            
+            const systemLinksTile = document.querySelector('[data-id="system-links"]');
+            if (!systemLinksTile) return;
+
+            // Hijack existing tile parameters (Kill old modal, fix clipping)
+            systemLinksTile.removeAttribute('onclick');
+            systemLinksTile.classList.remove('overflow-hidden');
+            systemLinksTile.style.overflow = 'visible';
+
+            // Machine the UI Payload (Light/Dark mode compliant)
+            let payload = `
+            <div id="system-links-dropdown" class="absolute top-[105%] left-0 w-64 sm:w-72 z-50 grid transition-all duration-500 origin-top" style="grid-template-rows: 0fr; opacity: 0; pointer-events: none; transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.1);">
+                <div class="overflow-hidden min-h-0 bg-white/95 dark:bg-[#050505]/95 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col text-left">
+                    <div class="p-3">`;
+
+            window.SSPSystemLinksManifest.forEach(group => {
+                payload += `
+                    <div class="mb-3 last:mb-0">
+                        <span class="block px-3 py-1 text-[10px] font-mono text-sterling-green uppercase tracking-widest">${group.category}</span>
+                        <div class="flex flex-col gap-1 mt-1">
+                            ${group.links.map(link => `
+                                <a href="${link.url}" target="_blank" class="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors flex justify-between items-center group/link">
+                                    ${link.text}
+                                    <span class="text-slate-400 group-hover/link:text-sterling-green transition-colors text-xs">↗</span>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            });
+
+            payload += `</div></div></div>`;
+
+            systemLinksTile.insertAdjacentHTML('beforeend', payload);
+
+            const dropdown = document.getElementById('system-links-dropdown');
+            let isOpen = false;
+
+            systemLinksTile.addEventListener('click', (e) => {
+                if (e.target.closest('a')) return;
+
+                isOpen = !isOpen;
+                if (isOpen) {
+                    dropdown.style.gridTemplateRows = '1fr';
+                    dropdown.style.opacity = '1';
+                    dropdown.style.pointerEvents = 'auto';
+                    systemLinksTile.style.borderColor = 'rgba(22, 163, 74, 0.5)';
+                } else {
+                    dropdown.style.gridTemplateRows = '0fr';
+                    dropdown.style.opacity = '0';
+                    dropdown.style.pointerEvents = 'none';
+                    systemLinksTile.style.borderColor = ''; 
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (isOpen && !systemLinksTile.contains(e.target)) {
+                    isOpen = false;
+                    dropdown.style.gridTemplateRows = '0fr';
+                    dropdown.style.opacity = '0';
+                    dropdown.style.pointerEvents = 'none';
+                    systemLinksTile.style.borderColor = '';
+                }
+            });
+        }
+
+        // Initialize Deferred Core Routines
+        document.addEventListener("DOMContentLoaded", () => {
+            attachSmartGlassListeners();
+            setupDragAndDrop();
+            fetchWeather();
+            initDynamicSystemLinks();
+        });
     </script>
 </body>
 </html>
