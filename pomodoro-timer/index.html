@@ -100,13 +100,18 @@
 
         <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow max-w-md w-full p-8 flex flex-col items-center transition-colors duration-500">
             
-            <div class="relative w-64 h-64 flex justify-center items-center mb-8">
+            <div class="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-full mb-8 w-full max-w-xs relative z-10 shadow-inner">
+                <button id="tab-focus" class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300">Focus</button>
+                <button id="tab-short-break" class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300">Short Break</button>
+                <button id="tab-long-break" class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300">Long Break</button>
+            </div>
+
+            <div class="relative w-64 h-64 flex justify-center items-center mb-8 -mt-4">
                 <svg class="absolute inset-0 w-full h-full overflow-visible">
                     <circle cx="128" cy="128" r="116" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-100 dark:text-gray-700 transition-colors duration-500" />
                     <circle id="progress-circle" cx="128" cy="128" r="116" stroke="currentColor" stroke-width="8" fill="transparent" class="progress-ring__circle text-gray-800 dark:text-gray-300" stroke-dasharray="728.85" stroke-dashoffset="0" stroke-linecap="round" />
                 </svg>
                 <div class="absolute flex flex-col items-center z-10">
-                    <span id="phase-label" class="text-sm uppercase tracking-[0.2em] font-bold mb-1 text-gray-500 dark:text-gray-400 transition-colors duration-500">Focus</span>
                     <span id="time-display" class="text-6xl font-mono font-bold tracking-tighter transition-colors duration-500">25:00</span>
                 </div>
             </div>
@@ -172,14 +177,18 @@
                         <h3 class="text-sm font-bold text-gray-700 dark:text-gray-200">Set Intervals</h3>
                         <button id="save-defaults-btn" class="text-xs font-semibold text-sterling-green hover:text-green-700 dark:hover:text-green-400 transition-colors">Save All Defaults</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 mb-2">
+                    <div class="grid grid-cols-3 gap-2 mb-2">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Focus (min)</label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="focus-input" value="25" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center font-mono text-lg">
+                            <label class="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider text-center">Focus</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="focus-input" value="25" class="w-full px-2 py-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center font-mono text-base">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Break (min)</label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="break-input" value="5" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center font-mono text-lg">
+                            <label class="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider text-center">Short Break</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="break-input" value="5" class="w-full px-2 py-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center font-mono text-base">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider text-center">Long Break</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="long-break-input" value="15" class="w-full px-2 py-2 border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow text-center font-mono text-base">
                         </div>
                     </div>
                 </div>
@@ -220,22 +229,29 @@
 
         // --- Pomodoro Logic ---
         let timerInterval;
-        let timeLeft = 25 * 60;
+        let expectedEndTime = null;
         let totalPhaseTime = 25 * 60;
-        let isFocusPhase = true;
+        let timeLeft = totalPhaseTime;
+        let currentPhase = 'focus'; // 'focus', 'shortBreak', 'longBreak'
         let isRunning = false;
+        let pomodorosCompleted = 0;
 
         // DOM Elements
         const timeDisplay = document.getElementById('time-display');
-        const phaseLabel = document.getElementById('phase-label');
         const progressCircle = document.getElementById('progress-circle');
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const resetBtn = document.getElementById('reset-btn');
         const focusInput = document.getElementById('focus-input');
         const breakInput = document.getElementById('break-input');
+        const longBreakInput = document.getElementById('long-break-input');
         const sessionTracker = document.getElementById('session-tracker');
         
+        // Tabs
+        const tabFocus = document.getElementById('tab-focus');
+        const tabShortBreak = document.getElementById('tab-short-break');
+        const tabLongBreak = document.getElementById('tab-long-break');
+
         // Settings Elements
         const toggleCustomBtn = document.getElementById('toggle-custom-btn');
         const customIntervalSection = document.getElementById('custom-interval-section');
@@ -254,18 +270,20 @@
         function loadDefaults() {
             const savedFocus = localStorage.getItem('ssp_pomodoro_focus');
             const savedBreak = localStorage.getItem('ssp_pomodoro_break');
+            const savedLongBreak = localStorage.getItem('ssp_pomodoro_long_break');
             const savedMute = localStorage.getItem('ssp_pomodoro_mute');
             const savedSound = localStorage.getItem('ssp_pomodoro_sound');
             const savedVolume = localStorage.getItem('ssp_pomodoro_volume');
 
             if (savedFocus) focusInput.value = savedFocus;
             if (savedBreak) breakInput.value = savedBreak;
+            if (savedLongBreak) longBreakInput.value = savedLongBreak;
             if (savedSound) soundSelect.value = savedSound;
             if (savedVolume) volumeSlider.value = savedVolume;
             if (savedMute !== null) {
                 muteToggle.checked = savedMute === 'true';
             }
-            resetTimer();
+            setPhase('focus', true);
         }
 
         // --- Web Audio API Implementation ---
@@ -292,9 +310,13 @@
             osc.stop(start + duration);
         }
 
-        function triggerNotificationSound() {
+        async function triggerNotificationSound() {
             if (muteToggle.checked) return;
             initAudio();
+            
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
             
             const now = audioCtx.currentTime;
             const type = soundSelect.value;
@@ -334,23 +356,24 @@
             return `${m}:${s}`;
         }
 
-        // Update UI
+        // Update Text and Ring
         function updateDisplay() {
             const formattedTime = formatTime(timeLeft);
             timeDisplay.textContent = formattedTime;
             
-            // Dynamic Title
-            const phaseText = isFocusPhase ? 'Focus' : 'Break';
+            let phaseText = 'Focus';
+            if (currentPhase === 'shortBreak') phaseText = 'Short Break';
+            if (currentPhase === 'longBreak') phaseText = 'Long Break';
+
             document.title = `(${formattedTime}) ${phaseText} - SSP`;
 
-            // SVG Ring Math
             const offset = CIRCUMFERENCE - (timeLeft / totalPhaseTime) * CIRCUMFERENCE;
             progressCircle.style.strokeDashoffset = offset;
 
-            // Final 60 Seconds Juice
+            // Urgent 60s
             if (timeLeft <= 60 && timeLeft > 0 && isRunning) {
                 timeDisplay.classList.add('animate-pulse');
-                if (isFocusPhase) {
+                if (currentPhase === 'focus') {
                     progressCircle.classList.add('ring-urgent');
                 }
             } else {
@@ -359,69 +382,108 @@
             }
         }
 
-        // State Styling Shifts
-        function applyPhaseStyles() {
-            if (isFocusPhase) {
-                phaseLabel.textContent = "Focus";
+        // UI State Machine (Tabs & Colors)
+        function updatePhaseUI() {
+            // Reset all tabs to inactive styles
+            const baseInactive = 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-600/50';
+            [tabFocus, tabShortBreak, tabLongBreak].forEach(tab => {
+                tab.className = `flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300 ${baseInactive}`;
+            });
+
+            // Apply Active Styles
+            if (currentPhase === 'focus') {
+                tabFocus.className = 'flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300 bg-white dark:bg-gray-800 shadow text-gray-900 dark:text-gray-100';
                 progressCircle.classList.remove('text-sterling-green');
                 progressCircle.classList.add('text-gray-800', 'dark:text-gray-300');
-                phaseLabel.classList.remove('text-sterling-green', 'dark:text-sterling-green');
-                phaseLabel.classList.add('text-gray-500', 'dark:text-gray-400');
-            } else {
-                phaseLabel.textContent = "Break";
+            } else if (currentPhase === 'shortBreak') {
+                tabShortBreak.className = 'flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300 bg-sterling-green text-white shadow';
                 progressCircle.classList.remove('text-gray-800', 'dark:text-gray-300', 'ring-urgent');
-                progressCircle.classList.add('text-sterling-green'); // Reward Color
-                phaseLabel.classList.remove('text-gray-500', 'dark:text-gray-400');
-                phaseLabel.classList.add('text-sterling-green', 'dark:text-sterling-green');
+                progressCircle.classList.add('text-sterling-green');
+            } else if (currentPhase === 'longBreak') {
+                tabLongBreak.className = 'flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-300 bg-sterling-green text-white shadow';
+                progressCircle.classList.remove('text-gray-800', 'dark:text-gray-300', 'ring-urgent');
+                progressCircle.classList.add('text-sterling-green');
             }
         }
 
-        // Phase Transition
-        function switchPhase() {
+        // Phase Master Controller
+        function setPhase(targetPhase, isManual = false) {
+            currentPhase = targetPhase;
+            clearInterval(timerInterval);
+            isRunning = false;
+
+            let mins = 25;
+            // Clamp values to prevent NaN or negative math errors
+            if (currentPhase === 'focus') mins = Math.max(1, Math.min(120, parseInt(focusInput.value) || 25));
+            if (currentPhase === 'shortBreak') mins = Math.max(1, Math.min(60, parseInt(breakInput.value) || 5));
+            if (currentPhase === 'longBreak') mins = Math.max(1, Math.min(60, parseInt(longBreakInput.value) || 15));
+
+            totalPhaseTime = mins * 60;
+            timeLeft = totalPhaseTime;
+
+            updatePhaseUI();
+            updateDisplay();
+
+            // Reset Buttons
+            startBtn.textContent = "Start";
+            startBtn.classList.remove('hidden', 'animate-breathe');
+            pauseBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+        }
+
+        // Automatic Progression Logic
+        function autoAdvancePhase() {
             triggerNotificationSound();
             
-            // Add Gold Star if finishing a Focus Phase
-            if (isFocusPhase) {
+            if (currentPhase === 'focus') {
+                pomodorosCompleted++;
+                
+                // Award Star
                 const star = document.createElement('span');
                 star.textContent = '⭐';
                 star.className = 'text-2xl animate-star mx-0.5';
                 sessionTracker.appendChild(star);
+
+                // Check for Long Break
+                if (pomodorosCompleted % 4 === 0) {
+                    setPhase('longBreak', false);
+                } else {
+                    setPhase('shortBreak', false);
+                }
+            } else {
+                // Coming from any break, return to focus
+                setPhase('focus', false);
             }
-            
-            isFocusPhase = !isFocusPhase;
-            const newMinutes = parseInt(isFocusPhase ? focusInput.value : breakInput.value) || 0;
-            totalPhaseTime = newMinutes * 60;
-            timeLeft = totalPhaseTime;
-            
-            applyPhaseStyles();
-            updateDisplay();
+            // Awaiting manual start for the next phase
         }
 
-        // Controls
+        // Timer Controls
         function startTimer() {
             if (isRunning) return;
-            if (timeLeft <= 0) resetTimer();
+            if (timeLeft <= 0) setPhase(currentPhase, true);
             
             initAudio(); // Required to bypass browser autoplay policies upon user gesture
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
             isRunning = true;
+            expectedEndTime = Date.now() + (timeLeft * 1000);
+            
             startBtn.classList.add('hidden');
             startBtn.classList.remove('animate-breathe');
             pauseBtn.classList.remove('hidden');
             resetBtn.classList.remove('hidden');
 
             timerInterval = setInterval(() => {
-                timeLeft--;
+                // Calculate real delta to prevent background throttling drift
+                timeLeft = Math.max(0, Math.round((expectedEndTime - Date.now()) / 1000));
                 updateDisplay();
                 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     isRunning = false;
-                    switchPhase();
-                    // Auto-start next phase
-                    setTimeout(startTimer, 1000); 
+                    autoAdvancePhase();
                 }
-            }, 1000);
+            }, 500); // 500ms check ensures the UI snaps perfectly to the second
         }
 
         function pauseTimer() {
@@ -438,21 +500,7 @@
         }
 
         function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            isFocusPhase = true;
-            
-            const mins = parseInt(focusInput.value) || 25;
-            totalPhaseTime = mins * 60;
-            timeLeft = totalPhaseTime;
-            
-            applyPhaseStyles();
-            updateDisplay();
-            
-            startBtn.textContent = "Start";
-            startBtn.classList.remove('hidden', 'animate-breathe');
-            pauseBtn.classList.add('hidden');
-            resetBtn.classList.add('hidden');
+            setPhase(currentPhase, true);
             document.title = "Pomodoro Timer - SSP";
         }
 
@@ -461,13 +509,32 @@
         pauseBtn.addEventListener('click', pauseTimer);
         resetBtn.addEventListener('click', resetTimer);
         
-        focusInput.addEventListener('change', () => { if(!isRunning && isFocusPhase) resetTimer(); });
-        breakInput.addEventListener('change', () => { if(!isRunning && !isFocusPhase) resetTimer(); });
+        // Tab Listeners
+        tabFocus.addEventListener('click', () => setPhase('focus', true));
+        tabShortBreak.addEventListener('click', () => setPhase('shortBreak', true));
+        tabLongBreak.addEventListener('click', () => setPhase('longBreak', true));
+
+        // Settings Sync & Bounds Clamping
+        function handleIntervalChange(input, maxVal, associatedPhase) {
+            let val = parseInt(input.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > maxVal) val = maxVal;
+            input.value = val;
+            
+            // Only force a reset if the timer hasn't been started yet (full time remaining)
+            if (!isRunning && currentPhase === associatedPhase && timeLeft === totalPhaseTime) {
+                resetTimer();
+            }
+        }
+
+        focusInput.addEventListener('change', () => handleIntervalChange(focusInput, 120, 'focus'));
+        breakInput.addEventListener('change', () => handleIntervalChange(breakInput, 60, 'shortBreak'));
+        longBreakInput.addEventListener('change', () => handleIntervalChange(longBreakInput, 60, 'longBreak'));
         
-        testSoundBtn.addEventListener('click', () => {
+        testSoundBtn.addEventListener('click', async () => {
             const originalMuteState = muteToggle.checked;
             muteToggle.checked = false; // Temporarily force unmute to test
-            triggerNotificationSound();
+            await triggerNotificationSound();
             muteToggle.checked = originalMuteState; // Restore state
         });
 
@@ -488,6 +555,7 @@
         saveDefaultsBtn.addEventListener('click', () => {
             localStorage.setItem('ssp_pomodoro_focus', focusInput.value);
             localStorage.setItem('ssp_pomodoro_break', breakInput.value);
+            localStorage.setItem('ssp_pomodoro_long_break', longBreakInput.value);
             localStorage.setItem('ssp_pomodoro_mute', muteToggle.checked);
             localStorage.setItem('ssp_pomodoro_sound', soundSelect.value);
             localStorage.setItem('ssp_pomodoro_volume', volumeSlider.value);
