@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator Dashboard | SSP</title>
+    <title>Workspace | SSP OS</title>
     
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='2' width='16' height='20' rx='2' ry='2'/%3E%3Cline x1='8' y1='6' x2='16' y2='6'/%3E%3Cline x1='16' y1='14' x2='16' y2='18'/%3E%3Cpath d='M16 10h.01'/%3E%3Cpath d='M12 10h.01'/%3E%3Cpath d='M8 10h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3C/svg%3E">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
     
     <script>
@@ -26,75 +24,36 @@
     <style>
         /* SSP Cupertino 2050 Design Tolerances */
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(0, 0, 0, 0.05);
-            --glass-shine: rgba(22, 163, 74, 0.05); /* Sterling Green subtle shine */
-            --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
             --spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
         }
-        
         html.dark {
-            --glass-bg: rgba(20, 20, 20, 0.5);
+            --glass-bg: rgba(20, 20, 20, 0.6);
             --glass-border: rgba(255, 255, 255, 0.05);
-            --glass-shine: rgba(22, 163, 74, 0.15); /* Sterling Green bold shine */
-            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
         }
 
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        
-        /* Preload mitigation to kill layout flashes */
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; overflow: hidden; }
         .preload * { transition: none !important; }
         
         .sterling-green { color: #16a34a; }
         .bg-sterling-green { background-color: #16a34a; }
         .sterling-blue { color: #005eb8; }
         
-        /* Smart Glass Tile Physics Engine */
-        .app-tile {
-            position: relative;
+        /* Accordion Physics */
+        .accordion-content {
+            max-height: 0;
             overflow: hidden;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            border-radius: 2rem;
-            backdrop-filter: blur(24px); /* backdrop-blur-3xl equiv */
-            -webkit-backdrop-filter: blur(24px);
-            transition: transform 0.5s var(--spring), box-shadow 0.5s var(--spring), border-color 0.3s ease;
-            cursor: pointer;
-        }
-
-        /* The localized dynamic radial-gradient shine */
-        .app-tile::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), var(--glass-shine), transparent 40%);
+            transition: max-height 0.4s var(--spring), opacity 0.3s ease;
             opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-            z-index: 0;
         }
-
-        .app-tile:hover::before {
+        .accordion-content.expanded {
+            max-height: 400px; /* Generous threshold for expansion */
             opacity: 1;
         }
+        .accordion-icon { transition: transform 0.3s var(--spring); }
+        .accordion-btn[aria-expanded="true"] .accordion-icon { transform: rotate(180deg); }
 
-        .app-tile:hover {
-            transform: translateY(-6px) scale(1.02);
-            border-color: rgba(22, 163, 74, 0.3); /* Subtle green border pop on hover */
-        }
-        
-        .app-tile:active {
-            transform: translateY(2px) scale(0.98);
-            transition: transform 0.1s ease;
-        }
-
-        /* Protect inner content from gradient overlay */
-        .app-tile > * {
-            position: relative;
-            z-index: 1;
-        }
-        
         /* Dynamic ambient background */
         .ambient-bg {
             position: fixed;
@@ -107,150 +66,320 @@
             background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.08), transparent 25%),
                         radial-gradient(circle at 85% 30%, rgba(0, 94, 184, 0.08), transparent 25%);
         }
+
+        /* Seamless Iframe Setup */
+        iframe { border: none; width: 100%; height: 100%; display: block; background: transparent; }
     </style>
 </head>
-<body class="preload bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+<body class="preload bg-gray-50 dark:bg-gray-900 h-screen w-screen flex text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
     <div class="ambient-bg transition-colors duration-500"></div>
 
-    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0 transition-colors duration-300">
-        <div class="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sterling-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
-            <span class="font-bold text-sm tracking-widest uppercase opacity-80">SSP Calc</span>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="themeToggle" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
-            </label>
-        </div>
-    </div>
-
-    <main class="flex-1 flex flex-col items-center w-full px-6 py-12 lg:py-20 z-10">
+    <aside class="w-72 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white/40 dark:bg-black/20 backdrop-blur-3xl z-20 transition-colors duration-300 relative shadow-[10px_0_30px_-10px_rgba(0,0,0,0.05)] dark:shadow-[10px_0_30px_-10px_rgba(0,0,0,0.5)]">
         
-        <header class="mb-16 text-center">
-            <h1 class="text-5xl font-light text-gray-900 dark:text-white tracking-tight mb-4">Calculator Dashboard</h1>
-            <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-sterling-green font-semibold">Sterling Specialty Pharmacy</p>
+        <div class="h-16 w-full px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sterling-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+            <div class="flex flex-col">
+                <span class="font-bold text-sm tracking-widest uppercase leading-none">SSP OS</span>
+                <span class="text-[9px] font-mono text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">Workspace</span>
+            </div>
+        </div>
+
+        <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+            <div class="animate-pulse space-y-3">
+                <div class="h-8 bg-gray-200 dark:bg-gray-800 rounded mx-2"></div>
+                <div class="h-10 bg-gray-200 dark:bg-gray-800 rounded mx-4"></div>
+                <div class="h-10 bg-gray-200 dark:bg-gray-800 rounded mx-4"></div>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 text-[9px] font-mono text-gray-400 text-center uppercase tracking-widest">
+            V3.2.0 &copy; <span id="year"></span>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen relative z-10 min-w-0">
+        
+        <header class="h-16 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex justify-between items-center px-6 transition-colors duration-300">
+            
+            <div class="flex items-center gap-4">
+                <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                    <button id="btn-prev" class="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm opacity-50 cursor-not-allowed transition-all focus:outline-none disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button id="btn-next" class="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm transition-all focus:outline-none ml-1 disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <div class="h-6 border-l border-gray-300 dark:border-gray-700 mx-2"></div>
+                <h1 id="header-title" class="text-sm font-bold text-gray-800 dark:text-gray-100 tracking-wide">Initializing Hub...</h1>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="themeToggle" class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
+                </label>
+            </div>
         </header>
 
-        <div id="os-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-            <div class="animate-pulse app-tile p-8 h-48 flex flex-col justify-center">
-                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+        <div class="flex-1 w-full relative bg-transparent overflow-hidden">
+            <div id="loader" class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 pointer-events-none z-10">
+                <div class="w-8 h-8 border-4 border-gray-200 border-t-sterling-green rounded-full animate-spin"></div>
             </div>
-            <div class="animate-pulse app-tile p-8 h-48 flex flex-col justify-center hidden sm:flex">
-                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
-            <div class="animate-pulse app-tile p-8 h-48 flex flex-col justify-center hidden lg:flex">
-                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
+            
+            <iframe id="app-frame" class="w-full h-full absolute inset-0 transition-opacity duration-300"></iframe>
         </div>
 
     </main>
 
-    <footer class="py-6 text-gray-400 dark:text-gray-500 font-mono text-[10px] tracking-widest text-center w-full z-10 border-t border-gray-200 dark:border-gray-800">
-        <p>BUILD V3.1.0 &copy; <span id="year"></span> SSP INTERNAL USE ONLY</p>
-    </footer>
-
     <script>
-        // Phase 5 Anti-FOUC execution
         window.addEventListener('load', () => document.body.classList.remove('preload'));
+        document.getElementById('year').textContent = new Date().getFullYear();
 
         // ==========================================
-        // UI & THEME SYNCHRONIZATION
+        // OS ROUTING & STATE MANAGEMENT
         // ==========================================
+        const sidebarNav = document.getElementById('sidebar-nav');
+        const headerTitle = document.getElementById('header-title');
+        const appFrame = document.getElementById('app-frame');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
         const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        
-        if (htmlElement.classList.contains('dark')) {
-            themeToggle.checked = true;
+        const loader = document.getElementById('loader');
+
+        let masterAppList = [];
+        let currentIndex = -1;
+
+        // Taxonomy Fallback (if manifest lacks "category" fields)
+        const taxonomyMap = {
+            'app-rts': 'Safety & Compliance',
+            'app-shipping': 'Safety & Compliance',
+            'app-afrezza': 'Dosing & Tapers',
+            'app-tirosint': 'Dosing & Tapers',
+            'app-eysuvis': 'Dosing & Tapers',
+            'app-mdd': 'Dosing & Tapers'
+        };
+
+        async function bootOS() {
+            try {
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`ssp-manifest.json?v=${cacheBuster}`);
+                if (!response.ok) throw new Error('Manifest sequence failed');
+                
+                masterAppList = await response.json();
+                renderSidebar();
+                
+                // Boot into first app
+                if (masterAppList.length > 0) {
+                    loadApp(0);
+                }
+            } catch (error) {
+                console.error("OS Boot Failure:", error);
+                headerTitle.textContent = "System Error: Missing Manifest";
+            }
         }
 
+        function renderSidebar() {
+            sidebarNav.innerHTML = '';
+            
+            // Grouping logic
+            const groups = {};
+            masterAppList.forEach((app, index) => {
+                app.flatIndex = index; // Store flattened index for arrow mapping
+                const cat = app.category || taxonomyMap[app.id] || 'General Tools';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(app);
+            });
+
+            // DOM Construction
+            Object.entries(groups).forEach(([category, apps], groupIndex) => {
+                const isFirstGroup = groupIndex === 0;
+                
+                // Accordion Container
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'mb-1';
+                
+                // Accordion Header Button
+                const btn = document.createElement('button');
+                btn.className = 'accordion-btn w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest hover:text-gray-700 dark:hover:text-gray-300 transition-colors focus:outline-none';
+                btn.setAttribute('aria-expanded', isFirstGroup ? 'true' : 'false');
+                btn.innerHTML = `
+                    <span>${category}</span>
+                    <svg class="w-3 h-3 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                `;
+
+                // Accordion Body
+                const content = document.createElement('div');
+                content.className = `accordion-content mt-1 space-y-1 ${isFirstGroup ? 'expanded' : ''}`;
+                
+                // Tabs
+                apps.forEach(app => {
+                    const tab = document.createElement('button');
+                    tab.id = `tab-${app.flatIndex}`;
+                    tab.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-left focus:outline-none group ' + 
+                                  'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white';
+                    
+                    tab.innerHTML = `
+                        <div class="text-gray-400 group-hover:text-sterling-green transition-colors scale-75 transform origin-left">${app.icon}</div>
+                        <span class="truncate">${app.name}</span>
+                    `;
+                    
+                    tab.onclick = () => loadApp(app.flatIndex);
+                    content.appendChild(tab);
+                });
+
+                // Accordion Click Logic
+                btn.onclick = () => {
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', !isExpanded);
+                    if (isExpanded) {
+                        content.classList.remove('expanded');
+                    } else {
+                        content.classList.add('expanded');
+                    }
+                };
+
+                groupDiv.appendChild(btn);
+                groupDiv.appendChild(content);
+                sidebarNav.appendChild(groupDiv);
+            });
+        }
+
+        function loadApp(index) {
+            if (index < 0 || index >= masterAppList.length) return;
+            
+            currentIndex = index;
+            const app = masterAppList[currentIndex];
+            
+            // Visual Updates
+            headerTitle.textContent = app.name;
+            updateTabStates();
+            updateArrowStates();
+
+            // Expand parent accordion if it's currently closed
+            const activeTab = document.getElementById(`tab-${currentIndex}`);
+            if (activeTab) {
+                const parentContent = activeTab.closest('.accordion-content');
+                const parentBtn = parentContent.previousElementSibling;
+                if (!parentContent.classList.contains('expanded')) {
+                    parentBtn.setAttribute('aria-expanded', 'true');
+                    parentContent.classList.add('expanded');
+                }
+            }
+
+            // Load iframe with loader
+            loader.style.opacity = '1';
+            appFrame.style.opacity = '0.5';
+            
+            // Prevent cache lock
+            const v = new Date().getTime();
+            appFrame.src = `${app.file}?shell=true&v=${v}`;
+        }
+
+        // Arrow Navigation Listeners
+        btnPrev.onclick = () => loadApp(currentIndex - 1);
+        btnNext.onclick = () => loadApp(currentIndex + 1);
+
+        function updateTabStates() {
+            document.querySelectorAll('[id^="tab-"]').forEach(t => {
+                t.classList.remove('bg-white', 'dark:bg-gray-800', 'shadow-sm', 'text-gray-900', 'dark:text-white', 'border', 'border-gray-200', 'dark:border-gray-700');
+                t.classList.add('text-gray-600', 'dark:text-gray-300', 'border-transparent');
+                
+                const iconContainer = t.querySelector('div');
+                iconContainer.classList.remove('text-sterling-green');
+                iconContainer.classList.add('text-gray-400');
+            });
+
+            const activeTab = document.getElementById(`tab-${currentIndex}`);
+            if (activeTab) {
+                activeTab.classList.remove('text-gray-600', 'dark:text-gray-300', 'border-transparent');
+                activeTab.classList.add('bg-white', 'dark:bg-gray-800', 'shadow-sm', 'text-gray-900', 'dark:text-white', 'border', 'border-gray-200', 'dark:border-gray-700');
+                
+                const iconContainer = activeTab.querySelector('div');
+                iconContainer.classList.remove('text-gray-400');
+                iconContainer.classList.add('text-sterling-green');
+            }
+        }
+
+        function updateArrowStates() {
+            btnPrev.disabled = currentIndex <= 0;
+            btnNext.disabled = currentIndex >= masterAppList.length - 1;
+            
+            if(btnPrev.disabled) {
+                btnPrev.classList.add('opacity-30', 'cursor-not-allowed');
+                btnPrev.classList.remove('hover:bg-white', 'dark:hover:bg-gray-700');
+            } else {
+                btnPrev.classList.remove('opacity-30', 'cursor-not-allowed');
+                btnPrev.classList.add('hover:bg-white', 'dark:hover:bg-gray-700');
+            }
+
+            if(btnNext.disabled) {
+                btnNext.classList.add('opacity-30', 'cursor-not-allowed');
+                btnNext.classList.remove('hover:bg-white', 'dark:hover:bg-gray-700');
+            } else {
+                btnNext.classList.remove('opacity-30', 'cursor-not-allowed');
+                btnNext.classList.add('hover:bg-white', 'dark:hover:bg-gray-700');
+            }
+        }
+
+        // ==========================================
+        // CROSS-DOCUMENT MUTATION (THE MAD SCIENTIST HACK)
+        // ==========================================
+        appFrame.addEventListener('load', () => {
+            loader.style.opacity = '0';
+            appFrame.style.opacity = '1';
+
+            try {
+                const doc = appFrame.contentDocument;
+                if (doc) {
+                    // Hide the redundant internal navigation ribbons from Phases 3-8
+                    const internalRibbon = doc.querySelector('.sticky.top-0');
+                    if (internalRibbon) {
+                        internalRibbon.style.display = 'none';
+                    }
+                    
+                    // Sync initial theme into iframe
+                    syncThemeToIframe(document.documentElement.classList.contains('dark'));
+                }
+            } catch (e) {
+                console.warn("Iframe cross-origin domain block active during local file testing.");
+            }
+        });
+
+        // ==========================================
+        // THEME SYNCHRONIZATION
+        // ==========================================
+        if (htmlElement.classList.contains('dark')) themeToggle.checked = true;
+
         themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
+            const isDark = e.target.checked;
+            if (isDark) {
                 htmlElement.classList.add('dark');
                 localStorage.setItem('ssp-theme', 'dark');
             } else {
                 htmlElement.classList.remove('dark');
                 localStorage.setItem('ssp-theme', 'light');
             }
+            syncThemeToIframe(isDark);
         });
 
-        document.getElementById('year').textContent = new Date().getFullYear();
-
-        // ==========================================
-        // OS ROUTER & GRID RENDERER
-        // ==========================================
-        const gridContainer = document.getElementById('os-grid');
-
-        // Fetch the DNA manifest
-        async function bootOS() {
+        function syncThemeToIframe(isDark) {
             try {
-                // To prevent cache locking during laboratory testing
-                const cacheBuster = new Date().getTime();
-                const response = await fetch(`ssp-manifest.json?v=${cacheBuster}`);
-                
-                if (!response.ok) throw new Error('Manifest sequence failed');
-                
-                const apps = await response.json();
-                renderGrid(apps);
-            } catch (error) {
-                console.error("OS Boot Failure:", error);
-                gridContainer.innerHTML = `
-                    <div class="col-span-full p-8 text-center border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 rounded-2xl">
-                        <span class="text-red-600 dark:text-red-400 font-mono text-xs font-bold uppercase tracking-widest">System Error: Missing Manifest</span>
-                        <p class="text-sm text-red-500 dark:text-red-300 mt-2">The ssp-manifest.json file could not be located in the root directory.</p>
-                    </div>
-                `;
-            }
+                const doc = appFrame.contentDocument;
+                if (doc) {
+                    if (isDark) {
+                        doc.documentElement.classList.add('dark');
+                    } else {
+                        doc.documentElement.classList.remove('dark');
+                    }
+                }
+            } catch (e) {}
         }
 
-        function renderGrid(apps) {
-            gridContainer.innerHTML = ''; // Purge skeletons
-
-            apps.forEach(app => {
-                const tile = document.createElement('a');
-                tile.href = app.file;
-                tile.className = 'app-tile flex flex-col justify-between p-8 min-h-[220px] group text-decoration-none';
-                
-                tile.innerHTML = `
-                    <div>
-                        <div class="bg-blue-50 dark:bg-blue-900/30 text-sterling-blue dark:text-blue-400 w-14 h-14 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-sterling-green group-hover:text-white transition-all duration-300 ease-out">
-                            ${app.icon}
-                        </div>
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">${app.name}</h2>
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mt-4 line-clamp-2">${app.desc}</p>
-                `;
-
-                gridContainer.appendChild(tile);
-            });
-
-            bindTilePhysics();
-        }
-
-        // ==========================================
-        // SMART GLASS PHYSICS ENGINE
-        // ==========================================
-        function bindTilePhysics() {
-            document.querySelectorAll('.app-tile').forEach(tile => {
-                tile.addEventListener('mousemove', e => {
-                    const rect = tile.getBoundingClientRect();
-                    // Calculate exact Cartesian coordinates within the tile boundary
-                    tile.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    tile.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
-        }
-
-        // Ignite OS
+        // Ignite the OS Router
         bootOS();
 
     </script>
