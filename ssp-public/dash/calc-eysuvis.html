@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eysuvis Calculator | SSP OS</title>
+    
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='2' width='16' height='20' rx='2' ry='2'/%3E%3Cline x1='8' y1='6' x2='16' y2='6'/%3E%3Cline x1='16' y1='14' x2='16' y2='18'/%3E%3Cpath d='M16 10h.01'/%3E%3Cpath d='M12 10h.01'/%3E%3Cpath d='M8 10h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3C/svg%3E">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    
+    <script>
+        if (localStorage.getItem('ssp-theme') === 'dark' || (!localStorage.getItem('ssp-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
+            document.documentElement.classList.add('dark'); 
+            localStorage.setItem('ssp-theme', 'dark');
+        } else {
+            localStorage.setItem('ssp-theme', 'light');
+        }
+    </script>
+
+    <style>
+        /* SSP Cupertino 2050 Design Tolerances */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+        html.dark {
+            --glass-bg: rgba(20, 20, 20, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .preload * { transition: none !important; }
+        
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        
+        /* Spring Physics */
+        .spring-transition { transition: all 0.5s var(--spring); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Dynamic ambient background */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.03), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 94, 184, 0.03), transparent 25%);
+        }
+        .dark .ambient-bg {
+            background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.08), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 94, 184, 0.08), transparent 25%);
+        }
+    </style>
+</head>
+<body class="preload bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="ambient-bg transition-colors duration-500"></div>
+
+    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0 transition-colors duration-300">
+        <a href="index.html" class="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-sterling-green dark:hover:text-green-400 transition-colors group cursor-pointer text-decoration-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="font-bold text-sm tracking-widest uppercase opacity-90 mt-0.5">Dashboard</span>
+        </a>
+
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="themeToggle" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 pt-10 pb-12 w-full z-10">
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-50 tracking-tight spring-transition">Eysuvis Calculator</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Sterling Specialty Pharmacy Internal Tool</p>
+        </header>
+
+        <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg max-w-md w-full overflow-hidden relative">
+            <div class="p-6 flex flex-col h-full">
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Bottles Dispensed</label>
+                    <div class="relative w-full h-[42px]">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="eyBottles" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                        <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                            <button type="button" onclick="updateEyBottles(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr-lg focus:outline-none transition-colors active:bg-gray-300 dark:active:bg-gray-500">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            </button>
+                            <button type="button" onclick="updateEyBottles(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br-lg border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors active:bg-gray-300 dark:active:bg-gray-500">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <div id="eyTaperHeaders" class="hidden grid grid-cols-4 gap-2 mb-1 text-[9px] font-semibold text-gray-500 uppercase text-center">
+                        <div>Drops</div><div>Eyes</div><div>Frequency</div><div>Days</div>
+                    </div>
+                    
+                    <div id="eyPhase1" class="hidden grid grid-cols-4 gap-2 mb-2">
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP1Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP1Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <select id="eyP1Ey" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <option value="1">One</option>
+                            <option value="2" selected>Both</option>
+                        </select>
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP1Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP1Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dy" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
+                    </div>
+
+                    <div id="eyPhase2" class="hidden grid grid-cols-4 gap-2 mb-2">
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP2Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP2Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <select id="eyP2Ey" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <option value="1">One</option>
+                            <option value="2" selected>Both</option>
+                        </select>
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP2Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP2Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dy" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
+                    </div>
+
+                    <div id="eyPhase3" class="hidden grid grid-cols-4 gap-2 mb-2">
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP3Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP3Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <select id="eyP3Ey" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <option value="1">One</option>
+                            <option value="2" selected>Both</option>
+                        </select>
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP3Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP3Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dy" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
+                    </div>
+
+                    <div class="flex justify-between items-center mb-3 mt-1">
+                        <button id="addTaperBtn" type="button" onclick="addEyPhase()" class="text-[10px] text-sterling-green font-semibold uppercase tracking-wider hover:text-green-700 transition-colors focus:outline-none">+ Add Taper Step</button>
+                        <button id="remTaperBtn" type="button" onclick="remEyPhase()" class="hidden text-[10px] text-red-500 font-semibold uppercase tracking-wider hover:text-red-700 transition-colors focus:outline-none">- Remove Step</button>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 mb-1 text-[9px] font-semibold text-gray-500 uppercase text-center mt-3 border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
+                        <div>Drops</div><div>Eyes</div><div>Frequency</div><div></div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP4Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP4Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <select id="eyP4Ey" class="w-full h-[34px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <option value="1">One</option>
+                            <option value="2" selected>Both</option>
+                        </select>
+                        <div class="relative w-full h-[34px]">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                <button type="button" onclick="updateEyInput('eyP4Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button" onclick="updateEyInput('eyP4Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-transparent dark:border-gray-600 rounded h-[34px] text-xs font-semibold text-gray-500 dark:text-gray-400">FINAL</div>
+                    </div>
+
+                    <div id="eyWarning" class="h-6 text-[10px] text-red-600 dark:text-red-400 font-semibold mb-2 text-center opacity-0 transition-opacity duration-300 flex items-center justify-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Warning: Bottle depleted before taper completion.
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center transition-colors shadow-sm">
+                        <span class="text-[10px] text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">Calculated Day Supply</span>
+                        <div id="eyDaySupply" class="text-4xl font-bold sterling-green mt-2 spring-transition">--</div>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-6">
+                    <div id="eyLogicBar" class="text-[10px] text-center text-gray-400 dark:text-gray-500 mb-4 font-mono opacity-0 transition-opacity duration-300 tracking-tight leading-relaxed"></div>
+                    <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-5 transition-colors">
+                        <button onclick="resetEysuvis()" class="text-xs font-bold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-widest focus:outline-none">Reset Data</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => document.body.classList.remove('preload'));
+
+        // Theme Sync
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        if (htmlElement.classList.contains('dark')) themeToggle.checked = true;
+
+        themeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('ssp-theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('ssp-theme', 'light');
+            }
+        });
+
+        // ==========================================
+        // EYSUVIS CALCULATOR LOGIC
+        // ==========================================
+        const eyInputs = document.querySelectorAll('[id^="ey"]');
+        const eyBottlesInput = document.getElementById('eyBottles');
+        
+        let visibleEyPhases = 0;
+
+        function updateEyInput(inputId, delta) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value);
+            if (isNaN(val)) val = 0;
+            val = Math.max(0, Math.min(99, val + delta));
+            
+            inputEl.value = val;
+            calcEysuvis();
+        }
+
+        function setupEyKeydown(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') { e.preventDefault(); updateEyInput(inputId, 1); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); updateEyInput(inputId, -1); }
+            });
+            el.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 2) val = val.slice(0, 2);
+                e.target.value = val;
+                calcEysuvis();
+            });
+        }
+
+        // Bind dynamically accessible inputs
+        [1, 2, 3, 4].forEach(num => {
+            setupEyKeydown(`eyP${num}Dr`);
+            setupEyKeydown(`eyP${num}Fq`);
+        });
+
+        function addEyPhase() {
+            if (visibleEyPhases < 3) {
+                visibleEyPhases++;
+                document.getElementById('eyPhase' + visibleEyPhases).classList.remove('hidden');
+                document.getElementById('eyTaperHeaders').classList.remove('hidden');
+                document.getElementById('remTaperBtn').classList.remove('hidden');
+            }
+            if (visibleEyPhases === 3) {
+                document.getElementById('addTaperBtn').classList.add('hidden');
+            }
+            calcEysuvis();
+        }
+
+        function remEyPhase() {
+            if (visibleEyPhases > 0) {
+                // Eradicate ghost data to prevent memory leaks
+                document.getElementById(`eyP${visibleEyPhases}Dr`).value = '1';
+                document.getElementById(`eyP${visibleEyPhases}Fq`).value = '';
+                document.getElementById(`eyP${visibleEyPhases}Dy`).value = '';
+                document.getElementById(`eyP${visibleEyPhases}Ey`).value = '2';
+                
+                document.getElementById('eyPhase' + visibleEyPhases).classList.add('hidden');
+                visibleEyPhases--;
+            }
+            if (visibleEyPhases === 0) {
+                document.getElementById('eyTaperHeaders').classList.add('hidden');
+                document.getElementById('remTaperBtn').classList.add('hidden');
+            }
+            if (visibleEyPhases < 3) {
+                document.getElementById('addTaperBtn').classList.remove('hidden');
+            }
+            calcEysuvis();
+        }
+
+        function updateEyBottles(delta) {
+            let val = parseInt(eyBottlesInput.value) || 0;
+            val = Math.max(0, Math.min(9, val + delta));
+            eyBottlesInput.value = val;
+            calcEysuvis();
+        }
+
+        eyBottlesInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') { e.preventDefault(); updateEyBottles(1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); updateEyBottles(-1); }
+        });
+
+        eyBottlesInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 1) val = val.slice(0, 1);
+            e.target.value = val;
+            calcEysuvis();
+        });
+        
+        function calcEysuvis() {
+            const bottles = parseInt(eyBottlesInput.value) || 0;
+            let totalDrops = bottles * 230;
+            let remainingDrops = totalDrops;
+            let totalDays = 0;
+            let logicText = [];
+            let ranOutEarly = false;
+
+            const phases = [
+                { dr: 'eyP1Dr', ey: 'eyP1Ey', fq: 'eyP1Fq', dy: 'eyP1Dy', name: 'P1' },
+                { dr: 'eyP2Dr', ey: 'eyP2Ey', fq: 'eyP2Fq', dy: 'eyP2Dy', name: 'P2' },
+                { dr: 'eyP3Dr', ey: 'eyP3Ey', fq: 'eyP3Fq', dy: 'eyP3Dy', name: 'P3' }
+            ];
+
+            if (bottles === 0) {
+                document.getElementById('eyDaySupply').textContent = '--';
+                document.getElementById('eyLogicBar').style.opacity = '0';
+                document.getElementById('eyWarning').style.opacity = '0';
+                return;
+            }
+
+            for (let i = 0; i < visibleEyPhases; i++) {
+                let p = phases[i];
+                let dr = parseFloat(document.getElementById(p.dr).value) || 0;
+                let ey = parseInt(document.getElementById(p.ey).value) || 0;
+                let fq = parseFloat(document.getElementById(p.fq).value) || 0;
+                let dy = parseFloat(document.getElementById(p.dy).value) || 0;
+
+                if (dr > 0 && ey > 0 && fq > 0 && dy > 0 && remainingDrops > 0 && !ranOutEarly) {
+                    let dropsNeeded = dr * ey * fq * dy;
+                    if (remainingDrops >= dropsNeeded) {
+                        remainingDrops -= dropsNeeded;
+                        totalDays += dy;
+                        logicText.push(`${p.name}:${dropsNeeded}drp`);
+                    } else {
+                        let achievableDays = remainingDrops / (dr * ey * fq);
+                        totalDays += achievableDays;
+                        logicText.push(`${p.name}:${remainingDrops}drp(cap)`);
+                        remainingDrops = 0;
+                        ranOutEarly = true;
+                    }
+                }
+            }
+
+            let fDr = parseFloat(document.getElementById('eyP4Dr').value) || 0;
+            let fEy = parseInt(document.getElementById('eyP4Ey').value) || 0;
+            let fFq = parseFloat(document.getElementById('eyP4Fq').value) || 0;
+
+            let finalPopulated = (fDr > 0 && fEy > 0 && fFq > 0);
+
+            if (finalPopulated && remainingDrops > 0 && !ranOutEarly) {
+                let dropsPerDay = fDr * fEy * fFq;
+                let finalDays = remainingDrops / dropsPerDay;
+                totalDays += finalDays;
+                logicText.push(`Fin:${remainingDrops}drp@${dropsPerDay}/day`);
+                remainingDrops = 0;
+            } else if (remainingDrops > 0 && !ranOutEarly && logicText.length > 0) {
+                logicText.push(`Rem:${remainingDrops}drp(unused)`);
+            }
+
+            let canShowResult = false;
+            if (totalDays > 0) {
+                if (ranOutEarly || finalPopulated) {
+                    canShowResult = true;
+                }
+            }
+
+            const daySupplyEl = document.getElementById('eyDaySupply');
+            if (canShowResult) {
+                daySupplyEl.textContent = Math.ceil(totalDays);
+                document.getElementById('eyLogicBar').textContent = `Audit: [${totalDrops} Total] - ` + logicText.join(' - ');
+                document.getElementById('eyLogicBar').style.opacity = '1';
+                
+                daySupplyEl.classList.add('scale-105');
+                setTimeout(() => daySupplyEl.classList.remove('scale-105'), 150);
+            } else {
+                daySupplyEl.textContent = '--';
+                document.getElementById('eyLogicBar').style.opacity = '0';
+            }
+
+            const warningEl = document.getElementById('eyWarning');
+            if (ranOutEarly) {
+                warningEl.style.opacity = '1';
+                warningEl.style.transform = 'scale(1.02)';
+            } else {
+                warningEl.style.opacity = '0';
+                warningEl.style.transform = 'scale(1)';
+            }
+        }
+
+        function resetEysuvis() {
+            eyBottlesInput.value = "1";
+            
+            while (visibleEyPhases > 0) {
+                remEyPhase();
+            }
+
+            // Restore Phase 4 defaults
+            document.getElementById('eyP4Dr').value = "1";
+            document.getElementById('eyP4Fq').value = "";
+            document.getElementById('eyP4Ey').value = "2";
+            calcEysuvis();
+        }
+
+        // Bind standard change events
+        eyInputs.forEach(input => {
+            if (!input.id.includes('Dr') && !input.id.includes('Fq')) {
+                input.addEventListener('input', calcEysuvis);
+                input.addEventListener('change', calcEysuvis);
+            }
+        });
+
+        // Initial Calculation Call
+        calcEysuvis();
+    </script>
+</body>
+</html>
