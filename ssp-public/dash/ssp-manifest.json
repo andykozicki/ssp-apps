@@ -1,13 +1,23 @@
 [
   {
     "id": "app-rts",
+    "category": "Safety & Compliance",
     "name": "Refill Too Soon",
     "desc": "Generate allowable previous fill dates based on current day supply protocols.",
     "file": "calc-rts.html",
     "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\" /></svg>"
   },
   {
+    "id": "app-shipping",
+    "category": "Safety & Compliance",
+    "name": "Shipping Calculator",
+    "desc": "Check dispense dates against the 7-day rebill limit threshold.",
+    "file": "calc-shipping.html",
+    "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path d=\"M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0\" /></svg>"
+  },
+  {
     "id": "app-afrezza",
+    "category": "Dosing & Tapers",
     "name": "Afrezza Calculator",
     "desc": "Calculate correction dose buffers and safely map scheduled vs. PRN max daily limits.",
     "file": "calc-afrezza.html",
@@ -15,6 +25,7 @@
   },
   {
     "id": "app-tirosint",
+    "category": "Dosing & Tapers",
     "name": "Tirosint Calculator",
     "desc": "Generate day supply for complex, alternating-day thyroid regimens.",
     "file": "calc-tirosint.html",
@@ -22,20 +33,15 @@
   },
   {
     "id": "app-eysuvis",
+    "category": "Dosing & Tapers",
     "name": "Eysuvis Calculator",
     "desc": "Determine precise drop counts and days supply for multi-phase ocular tapers.",
     "file": "calc-eysuvis.html",
     "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\" /></svg>"
   },
   {
-    "id": "app-shipping",
-    "name": "Shipping Calculator",
-    "desc": "Check dispense dates against the 7-day rebill limit threshold.",
-    "file": "calc-shipping.html",
-    "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path d=\"M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0\" /></svg>"
-  },
-  {
     "id": "app-mdd",
+    "category": "Dosing & Tapers",
     "name": "MDD Calculator",
     "desc": "Instant max daily dose derivation via unit and frequency mapping.",
     "file": "calc-mdd.html",
