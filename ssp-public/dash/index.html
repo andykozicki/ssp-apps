@@ -48,7 +48,7 @@
             opacity: 0;
         }
         .accordion-content.expanded {
-            max-height: 400px; /* Generous threshold for expansion */
+            max-height: 400px;
             opacity: 1;
         }
         .accordion-icon { transition: transform 0.3s var(--spring); }
@@ -69,23 +69,18 @@
 
         /* Seamless Iframe Setup */
         iframe { border: none; width: 100%; height: 100%; display: block; background: transparent; }
+        
+        /* Sidebar Collapse Physics */
+        #sidebar { transition: width 0.4s var(--spring); }
     </style>
 </head>
 <body class="preload bg-gray-50 dark:bg-gray-900 h-screen w-screen flex text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
     <div class="ambient-bg transition-colors duration-500"></div>
 
-    <aside class="w-72 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white/40 dark:bg-black/20 backdrop-blur-3xl z-20 transition-colors duration-300 relative shadow-[10px_0_30px_-10px_rgba(0,0,0,0.05)] dark:shadow-[10px_0_30px_-10px_rgba(0,0,0,0.5)]">
+    <aside id="sidebar" class="w-72 overflow-hidden flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white/40 dark:bg-black/20 backdrop-blur-3xl z-20 transition-colors relative shadow-[10px_0_30px_-10px_rgba(0,0,0,0.05)] dark:shadow-[10px_0_30px_-10px_rgba(0,0,0,0.5)]">
         
-        <div class="h-16 w-full px-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sterling-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
-            <div class="flex flex-col">
-                <span class="font-bold text-sm tracking-widest uppercase leading-none">SSP OS</span>
-                <span class="text-[9px] font-mono text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">Workspace</span>
-            </div>
-        </div>
-
-        <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+        <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-2 mt-4 w-72">
             <div class="animate-pulse space-y-3">
                 <div class="h-8 bg-gray-200 dark:bg-gray-800 rounded mx-2"></div>
                 <div class="h-10 bg-gray-200 dark:bg-gray-800 rounded mx-4"></div>
@@ -93,8 +88,8 @@
             </div>
         </nav>
 
-        <div class="p-4 border-t border-gray-200 dark:border-gray-800 text-[9px] font-mono text-gray-400 text-center uppercase tracking-widest">
-            V3.2.0 &copy; <span id="year"></span>
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 text-[9px] font-mono text-gray-400 text-center uppercase tracking-widest w-72">
+            V3.2.1 &copy; <span id="year"></span>
         </div>
     </aside>
 
@@ -103,6 +98,11 @@
         <header class="h-16 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex justify-between items-center px-6 transition-colors duration-300">
             
             <div class="flex items-center gap-4">
+                
+                <button id="sidebarToggle" class="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors focus:outline-none active:scale-95">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+
                 <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button id="btn-prev" class="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm opacity-50 cursor-not-allowed transition-all focus:outline-none disabled:opacity-30">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -117,7 +117,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:block">Light / Dark</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="themeToggle" class="sr-only peer">
                     <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
@@ -140,6 +140,22 @@
         document.getElementById('year').textContent = new Date().getFullYear();
 
         // ==========================================
+        // UI & LAYOUT CONTROLS
+        // ==========================================
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        sidebarToggle.addEventListener('click', () => {
+            if (sidebar.classList.contains('w-72')) {
+                sidebar.classList.remove('w-72');
+                sidebar.classList.add('w-0');
+            } else {
+                sidebar.classList.remove('w-0');
+                sidebar.classList.add('w-72');
+            }
+        });
+
+        // ==========================================
         // OS ROUTING & STATE MANAGEMENT
         // ==========================================
         const sidebarNav = document.getElementById('sidebar-nav');
@@ -153,7 +169,7 @@
         let masterAppList = [];
         let currentIndex = -1;
 
-        // Taxonomy Fallback (if manifest lacks "category" fields)
+        // Taxonomy Fallback
         const taxonomyMap = {
             'app-rts': 'Safety & Compliance',
             'app-shipping': 'Safety & Compliance',
@@ -167,42 +183,38 @@
             try {
                 const cacheBuster = new Date().getTime();
                 const response = await fetch(`ssp-manifest.json?v=${cacheBuster}`);
-                if (!response.ok) throw new Error('Manifest sequence failed');
+                if (!response.ok) throw new Error('Manifest fetch returned non-200 status');
                 
                 masterAppList = await response.json();
                 renderSidebar();
                 
-                // Boot into first app
                 if (masterAppList.length > 0) {
                     loadApp(0);
                 }
             } catch (error) {
                 console.error("OS Boot Failure:", error);
-                headerTitle.textContent = "System Error: Missing Manifest";
+                headerTitle.textContent = "System Error: Missing Manifest (CORS or Path Issue)";
+                loader.style.opacity = '0';
             }
         }
 
         function renderSidebar() {
             sidebarNav.innerHTML = '';
             
-            // Grouping logic
             const groups = {};
             masterAppList.forEach((app, index) => {
-                app.flatIndex = index; // Store flattened index for arrow mapping
+                app.flatIndex = index;
                 const cat = app.category || taxonomyMap[app.id] || 'General Tools';
                 if (!groups[cat]) groups[cat] = [];
                 groups[cat].push(app);
             });
 
-            // DOM Construction
             Object.entries(groups).forEach(([category, apps], groupIndex) => {
                 const isFirstGroup = groupIndex === 0;
                 
-                // Accordion Container
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'mb-1';
                 
-                // Accordion Header Button
                 const btn = document.createElement('button');
                 btn.className = 'accordion-btn w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest hover:text-gray-700 dark:hover:text-gray-300 transition-colors focus:outline-none';
                 btn.setAttribute('aria-expanded', isFirstGroup ? 'true' : 'false');
@@ -211,11 +223,9 @@
                     <svg class="w-3 h-3 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
                 `;
 
-                // Accordion Body
                 const content = document.createElement('div');
                 content.className = `accordion-content mt-1 space-y-1 ${isFirstGroup ? 'expanded' : ''}`;
                 
-                // Tabs
                 apps.forEach(app => {
                     const tab = document.createElement('button');
                     tab.id = `tab-${app.flatIndex}`;
@@ -223,7 +233,7 @@
                                   'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white';
                     
                     tab.innerHTML = `
-                        <div class="text-gray-400 group-hover:text-sterling-green transition-colors scale-75 transform origin-left">${app.icon}</div>
+                        <div class="text-gray-400 group-hover:text-sterling-green transition-colors scale-75 transform origin-left flex-shrink-0">${app.icon}</div>
                         <span class="truncate">${app.name}</span>
                     `;
                     
@@ -231,7 +241,6 @@
                     content.appendChild(tab);
                 });
 
-                // Accordion Click Logic
                 btn.onclick = () => {
                     const isExpanded = btn.getAttribute('aria-expanded') === 'true';
                     btn.setAttribute('aria-expanded', !isExpanded);
@@ -254,12 +263,11 @@
             currentIndex = index;
             const app = masterAppList[currentIndex];
             
-            // Visual Updates
             headerTitle.textContent = app.name;
             updateTabStates();
             updateArrowStates();
 
-            // Expand parent accordion if it's currently closed
+            // Expand parent accordion naturally
             const activeTab = document.getElementById(`tab-${currentIndex}`);
             if (activeTab) {
                 const parentContent = activeTab.closest('.accordion-content');
@@ -270,16 +278,13 @@
                 }
             }
 
-            // Load iframe with loader
             loader.style.opacity = '1';
             appFrame.style.opacity = '0.5';
             
-            // Prevent cache lock
             const v = new Date().getTime();
-            appFrame.src = `${app.file}?shell=true&v=${v}`;
+            appFrame.src = `${app.file}?v=${v}`;
         }
 
-        // Arrow Navigation Listeners
         btnPrev.onclick = () => loadApp(currentIndex - 1);
         btnNext.onclick = () => loadApp(currentIndex + 1);
 
@@ -325,33 +330,14 @@
             }
         }
 
-        // ==========================================
-        // CROSS-DOCUMENT MUTATION (THE MAD SCIENTIST HACK)
-        // ==========================================
+        // Iframe load listener (Sanitized: NO DOM HACKING to prevent CORS crash)
         appFrame.addEventListener('load', () => {
             loader.style.opacity = '0';
             appFrame.style.opacity = '1';
-
-            try {
-                const doc = appFrame.contentDocument;
-                if (doc) {
-                    // Hide the redundant internal navigation ribbons from Phases 3-8
-                    const internalRibbon = doc.querySelector('.sticky.top-0');
-                    if (internalRibbon) {
-                        internalRibbon.style.display = 'none';
-                    }
-                    
-                    // Sync initial theme into iframe
-                    syncThemeToIframe(document.documentElement.classList.contains('dark'));
-                }
-            } catch (e) {
-                console.warn("Iframe cross-origin domain block active during local file testing.");
-            }
         });
 
-        // ==========================================
-        // THEME SYNCHRONIZATION
-        // ==========================================
+        // Theme Listener (Local storage sync only)
+        const htmlElement = document.documentElement;
         if (htmlElement.classList.contains('dark')) themeToggle.checked = true;
 
         themeToggle.addEventListener('change', (e) => {
@@ -363,21 +349,14 @@
                 htmlElement.classList.remove('dark');
                 localStorage.setItem('ssp-theme', 'light');
             }
-            syncThemeToIframe(isDark);
+            // Child apps will read localStorage on load, or we refresh the iframe.
+            // For now, reloading the iframe guarantees the child app catches the theme toggle.
+            if(currentIndex >= 0) {
+                const app = masterAppList[currentIndex];
+                const v = new Date().getTime();
+                appFrame.src = `${app.file}?v=${v}`;
+            }
         });
-
-        function syncThemeToIframe(isDark) {
-            try {
-                const doc = appFrame.contentDocument;
-                if (doc) {
-                    if (isDark) {
-                        doc.documentElement.classList.add('dark');
-                    } else {
-                        doc.documentElement.classList.remove('dark');
-                    }
-                }
-            } catch (e) {}
-        }
 
         // Ignite the OS Router
         bootOS();
