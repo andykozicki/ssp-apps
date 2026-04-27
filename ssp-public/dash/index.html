@@ -89,34 +89,32 @@
         </nav>
 
         <div class="p-4 border-t border-gray-200 dark:border-gray-800 text-[9px] font-mono text-gray-400 text-center uppercase tracking-widest w-72">
-            V3.2.1 &copy; <span id="year"></span>
+            V3.2.2 &copy; <span id="year"></span>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen relative z-10 min-w-0">
         
-        <header class="h-16 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex justify-between items-center px-6 transition-colors duration-300">
+        <header class="h-20 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex justify-between items-center px-6 transition-colors duration-300 relative">
             
-            <div class="flex items-center gap-4">
-                
-                <button id="sidebarToggle" class="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors focus:outline-none active:scale-95">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
+            <button id="sidebarToggle" class="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors focus:outline-none active:scale-95 z-10 relative">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
 
-                <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                    <button id="btn-prev" class="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm opacity-50 cursor-not-allowed transition-all focus:outline-none disabled:opacity-30">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center">
+                <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 mb-1.5 shadow-sm border border-black/5 dark:border-white/5">
+                    <button id="btn-prev" class="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm opacity-50 cursor-not-allowed transition-all focus:outline-none disabled:opacity-30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
-                    <button id="btn-next" class="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm transition-all focus:outline-none ml-1 disabled:opacity-30">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <button id="btn-next" class="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm transition-all focus:outline-none ml-1 disabled:opacity-30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
                 </div>
 
-                <div class="h-6 border-l border-gray-300 dark:border-gray-700 mx-2"></div>
-                <h1 id="header-title" class="text-sm font-bold text-gray-800 dark:text-gray-100 tracking-wide">Initializing Hub...</h1>
+                <h1 id="header-title" class="text-[11px] font-bold text-gray-800 dark:text-gray-200 tracking-widest uppercase font-mono">Initializing Hub...</h1>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 z-10 relative">
                 <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:block">Light / Dark</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="themeToggle" class="sr-only peer">
@@ -169,16 +167,6 @@
         let masterAppList = [];
         let currentIndex = -1;
 
-        // Taxonomy Fallback
-        const taxonomyMap = {
-            'app-rts': 'Safety & Compliance',
-            'app-shipping': 'Safety & Compliance',
-            'app-afrezza': 'Dosing & Tapers',
-            'app-tirosint': 'Dosing & Tapers',
-            'app-eysuvis': 'Dosing & Tapers',
-            'app-mdd': 'Dosing & Tapers'
-        };
-
         async function bootOS() {
             try {
                 const cacheBuster = new Date().getTime();
@@ -193,7 +181,7 @@
                 }
             } catch (error) {
                 console.error("OS Boot Failure:", error);
-                headerTitle.textContent = "System Error: Missing Manifest (CORS or Path Issue)";
+                headerTitle.textContent = "System Error: Missing Manifest";
                 loader.style.opacity = '0';
             }
         }
@@ -204,7 +192,8 @@
             const groups = {};
             masterAppList.forEach((app, index) => {
                 app.flatIndex = index;
-                const cat = app.category || taxonomyMap[app.id] || 'General Tools';
+                // Category is now dynamically extracted from the JSON file
+                const cat = app.category || 'General Tools';
                 if (!groups[cat]) groups[cat] = [];
                 groups[cat].push(app);
             });
@@ -267,7 +256,7 @@
             updateTabStates();
             updateArrowStates();
 
-            // Expand parent accordion naturally
+            // Expand parent accordion naturally if it is collapsed
             const activeTab = document.getElementById(`tab-${currentIndex}`);
             if (activeTab) {
                 const parentContent = activeTab.closest('.accordion-content');
@@ -349,8 +338,7 @@
                 htmlElement.classList.remove('dark');
                 localStorage.setItem('ssp-theme', 'light');
             }
-            // Child apps will read localStorage on load, or we refresh the iframe.
-            // For now, reloading the iframe guarantees the child app catches the theme toggle.
+            // Child apps will read localStorage on load. Refresh iframe to catch theme change.
             if(currentIndex >= 0) {
                 const app = masterAppList[currentIndex];
                 const v = new Date().getTime();
