@@ -11,26 +11,14 @@
     "name": "Afrezza Calculator",
     "desc": "Calculate correction dose buffers and safely map scheduled vs. PRN max daily limits.",
     "file": "calc-afrezza.html",
-    "icon": "<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 21v-6"></path>
-                        <path d="M12 15l-4-4 M12 15l4-4"></path>
-                        <circle cx="8" cy="7" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="16" cy="7" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="10" cy="9" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"></circle>
-                    </svg>
+    "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 21v-6\"></path><path d=\"M12 15l-4-4 M12 15l4-4\"></path><circle cx=\"8\" cy=\"7\" r=\"1\" fill=\"currentColor\" stroke=\"none\"></circle><circle cx=\"12\" cy=\"5\" r=\"1\" fill=\"currentColor\" stroke=\"none\"></circle><circle cx=\"16\" cy=\"7\" r=\"1\" fill=\"currentColor\" stroke=\"none\"></circle><circle cx=\"10\" cy=\"9\" r=\"1\" fill=\"currentColor\" stroke=\"none\"></circle><circle cx=\"14\" cy=\"9\" r=\"1\" fill=\"currentColor\" stroke=\"none\"></circle></svg>"
   },
   {
     "id": "app-tirosint",
     "name": "Tirosint Calculator",
     "desc": "Generate day supply for complex, alternating-day thyroid regimens.",
     "file": "calc-tirosint.html",
-    "icon": "<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 7v8a2 2 0 002 2"></path>
-                        <path d="M10 10h4"></path>
-                    </svg>
+    "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-8 w-8\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 7v8a2 2 0 002 2\"></path><path d=\"M10 10h4\"></path></svg>"
   },
   {
     "id": "app-eysuvis",
