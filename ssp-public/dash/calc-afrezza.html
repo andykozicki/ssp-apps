@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afrezza Calculator | SSP OS</title>
+    
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='2' width='16' height='20' rx='2' ry='2'/%3E%3Cline x1='8' y1='6' x2='16' y2='6'/%3E%3Cline x1='16' y1='14' x2='16' y2='18'/%3E%3Cpath d='M16 10h.01'/%3E%3Cpath d='M12 10h.01'/%3E%3Cpath d='M8 10h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3C/svg%3E">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    
+    <script>
+        if (localStorage.getItem('ssp-theme') === 'dark' || (!localStorage.getItem('ssp-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
+            document.documentElement.classList.add('dark'); 
+            localStorage.setItem('ssp-theme', 'dark');
+        } else {
+            localStorage.setItem('ssp-theme', 'light');
+        }
+    </script>
+
+    <style>
+        /* SSP Cupertino 2050 Design Tolerances */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+        html.dark {
+            --glass-bg: rgba(20, 20, 20, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .preload * { transition: none !important; }
+        
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        .sterling-blue { color: #005eb8; }
+        .bg-sterling-blue { background-color: #005eb8; }
+        .btn-hover:hover { background-color: #004a91; }
+        
+        /* Spring Physics */
+        .spring-transition { transition: all 0.5s var(--spring); }
+        
+        /* Gauge Base & States */
+        .gauge-base { padding: 1.25rem; border-radius: 0.75rem; font-weight: 600; text-align: center; transition: all 0.4s var(--spring); line-height: 1.5; font-size: 0.875rem; }
+        .gray { background-color: #f3f4f6; color: #6b7280; border: 1px dashed #d1d5db; }
+        .dark .gray { background-color: rgba(31, 41, 55, 0.5); color: #9ca3af; border-color: #4b5563; }
+        .green { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .dark .green { background-color: rgba(22, 101, 52, 0.2); color: #86efac; border-color: rgba(22, 101, 52, 0.5); }
+        .yellow { background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+        .dark .yellow { background-color: rgba(133, 77, 14, 0.2); color: #fde047; border-color: rgba(133, 77, 14, 0.5); }
+        .orange { background-color: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+        .dark .orange { background-color: rgba(154, 52, 18, 0.2); color: #fdba74; border-color: rgba(154, 52, 18, 0.5); }
+        .red { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .dark .red { background-color: rgba(153, 27, 27, 0.2); color: #fca5a5; border-color: rgba(153, 27, 27, 0.5); }
+        .dark-red { background-color: #7f1d1d; color: #ffffff; border: 1px solid #450a0a; }
+        .dark .dark-red { background-color: rgba(69, 10, 10, 0.5); color: #ffffff; border-color: #7f1d1d; }
+        .blue-gauge { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+        .dark .blue-gauge { background-color: rgba(30, 58, 138, 0.2); color: #93c5fd; border-color: rgba(30, 58, 138, 0.5); }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Dynamic ambient background */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.03), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 94, 184, 0.03), transparent 25%);
+        }
+        .dark .ambient-bg {
+            background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.08), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 94, 184, 0.08), transparent 25%);
+        }
+    </style>
+</head>
+<body class="preload bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="ambient-bg transition-colors duration-500"></div>
+
+    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0 transition-colors duration-300">
+        <a href="index.html" class="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-sterling-green dark:hover:text-green-400 transition-colors group cursor-pointer text-decoration-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="font-bold text-sm tracking-widest uppercase opacity-90 mt-0.5">Dashboard</span>
+        </a>
+
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="themeToggle" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 pt-10 pb-12 w-full z-10">
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-50 tracking-tight spring-transition">Afrezza Calculator</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Sterling Specialty Pharmacy Internal Tool</p>
+        </header>
+
+        <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg max-w-md w-full overflow-hidden relative">
+            <div class="p-6 flex flex-col h-full">
+                
+                <div class="mb-2">
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Selection</label>
+                        <select id="afrProduct" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500 transition-colors cursor-pointer">
+                            <option value="0">Select dispensed product...</option>
+                            <option value="360">4 unit box (90ct / 360 U total)</option>
+                            <option value="720">8 unit box (90ct / 720 U total)</option>
+                            <option value="1080">12 unit box (90ct / 1080 U total)</option>
+                            <option value="1080_combo">4, 8 unit box (180ct / 1080 U total)</option>
+                            <option value="1800">8, 12 unit box (180ct / 1800 U total)</option>
+                            <option value="1440">4, 8, 12 unit box (180ct / 1440 U total)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Packages Dispensed</label>
+                            <div class="relative w-full h-[42px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="afrQty" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                    <button type="button" onclick="updateAfrInput('afrQty', 1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr-lg focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateAfrInput('afrQty', -1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br-lg border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max Daily Dose <span class="text-[9px] opacity-70">(Optional)</span></label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMaxDose" placeholder="e.g., 84" class="w-full h-[42px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center mb-4 transition-colors">
+                        <span class="text-[10px] text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">Calculated Day Supply</span>
+                        <div id="afrDaySupply" class="text-3xl font-bold sterling-green mt-1 spring-transition">--</div>
+                    </div>
+                </div>
+
+                <div class="mt-2 flex-grow">
+                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2 transition-colors uppercase tracking-wider">Scheduled & PRN Dosing</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Scheduled Units / Meal</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMealUnits" placeholder="e.g., 12" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Meals per Day</label>
+                            <div class="relative w-full h-[42px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="afrMealFreq" value="3" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                    <button type="button" onclick="updateAfrInput('afrMealFreq', 1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr-lg focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateAfrInput('afrMealFreq', -1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br-lg border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">PRN Units / Dose</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrPrnUnits" placeholder="e.g., 4" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max PRN Freq / Day</label>
+                            <div class="relative w-full h-[42px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="afrPrnFreq" value="0" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                    <button type="button" onclick="updateAfrInput('afrPrnFreq', 1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr-lg focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateAfrInput('afrPrnFreq', -1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br-lg border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="afrGauge" class="gauge-base gray mb-6 shadow-sm">
+                        Enter scheduled & PRN parameters to calculate dose viability.
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-2">
+                    <div id="afrLogicBar" class="text-[10px] text-center text-gray-400 dark:text-gray-500 mb-4 font-mono opacity-0 transition-opacity duration-300 tracking-tight"></div>
+                    <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-5 transition-colors">
+                        <button onclick="resetAfrezza()" class="text-xs font-bold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-widest focus:outline-none">Reset Data</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        window.addEventListener('load', () => document.body.classList.remove('preload'));
+
+        // Theme Sync
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        if (htmlElement.classList.contains('dark')) themeToggle.checked = true;
+
+        themeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('ssp-theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('ssp-theme', 'light');
+            }
+        });
+
+        // ==========================================
+        // AFREZZA CALCULATOR LOGIC
+        // ==========================================
+        const afrInputs = document.querySelectorAll('#afrProduct, #afrMaxDose, #afrMealUnits, #afrMealFreq, #afrPrnUnits, #afrPrnFreq, #afrQty');
+        const afrDaySupply = document.getElementById('afrDaySupply');
+        const afrGauge = document.getElementById('afrGauge');
+        const afrLogicBar = document.getElementById('afrLogicBar');
+
+        function updateAfrInput(inputId, delta, min, max) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value) || 0;
+            val = Math.max(min, Math.min(max, val + delta));
+            inputEl.value = val;
+            calcAfrezza();
+        }
+
+        function setupAfrKeydown(inputId, delta, min, max) {
+            const el = document.getElementById(inputId);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrInput(inputId, delta, min, max); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrInput(inputId, -delta, min, max); }
+            });
+            el.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (max > 9 && val.length > 2) val = val.slice(0, 2);
+                if (max <= 9 && val.length > 1) val = val.slice(0, 1);
+                e.target.value = val;
+                calcAfrezza();
+            });
+        }
+
+        setupAfrKeydown('afrQty', 1, 0, 99);
+        setupAfrKeydown('afrMealFreq', 1, 0, 9);
+        setupAfrKeydown('afrPrnFreq', 1, 0, 9);
+
+        function calcAfrezza() {
+            let prodValue = document.getElementById('afrProduct').value;
+            let totalUnitsPerBox = prodValue === '1080_combo' ? 1080 : parseInt(prodValue) || 0;
+            
+            const qty = parseInt(document.getElementById('afrQty').value) || 0;
+            const explicitMaxDose = parseInt(document.getElementById('afrMaxDose').value) || 0;
+            
+            const mealUnits = parseInt(document.getElementById('afrMealUnits').value) || 0;
+            const mealFreq = parseInt(document.getElementById('afrMealFreq').value) || 0;
+            const prnUnits = parseInt(document.getElementById('afrPrnUnits').value) || 0;
+            const prnFreq = parseInt(document.getElementById('afrPrnFreq').value) || 0;
+
+            const baseDose = mealUnits * mealFreq;
+            const prnDose = prnUnits * prnFreq;
+            const totalScheduledAndPrn = baseDose + prnDose;
+
+            const effectiveMaxDose = explicitMaxDose > 0 ? explicitMaxDose : totalScheduledAndPrn;
+
+            if (totalUnitsPerBox > 0 && effectiveMaxDose > 0 && qty > 0) {
+                const totalDispensed = totalUnitsPerBox * qty;
+                const days = Math.ceil(totalDispensed / effectiveMaxDose);
+                afrDaySupply.textContent = days;
+                afrLogicBar.textContent = `DS Logic: ${totalDispensed} Units ÷ ${effectiveMaxDose} U/day = ${days} Days`;
+                afrLogicBar.style.opacity = '1';
+                
+                afrDaySupply.classList.add('scale-105');
+                setTimeout(() => afrDaySupply.classList.remove('scale-105'), 150);
+            } else {
+                afrDaySupply.textContent = '--';
+                afrLogicBar.style.opacity = '0';
+            }
+
+            if (totalUnitsPerBox === 0 || effectiveMaxDose === 0 || totalScheduledAndPrn === 0) {
+                afrGauge.className = 'gauge-base gray';
+                afrGauge.textContent = 'Enter scheduled & PRN parameters to calculate dose viability.';
+                return;
+            }
+
+            if (explicitMaxDose > 0) {
+                const correctionUnits = explicitMaxDose - totalScheduledAndPrn;
+                const logicTrace = `<div class="mt-2 text-[10px] font-mono opacity-80 font-normal tracking-tight uppercase">Audit: ${explicitMaxDose}U (Max) - ${totalScheduledAndPrn}U (Sched+PRN) = ${correctionUnits}U (Buffer)</div>`;
+                
+                if (correctionUnits < 0) {
+                    afrGauge.className = 'gauge-base red';
+                    afrGauge.innerHTML = `<strong>ERROR:</strong> Sched+PRN (${totalScheduledAndPrn} U) exceeds Max Daily Dose (${explicitMaxDose} U).${logicTrace}`;
+                    return;
+                }
+
+                const correctionPct = (correctionUnits / explicitMaxDose) * 100;
+
+                if (correctionPct <= 30) {
+                    afrGauge.className = 'gauge-base green';
+                    afrGauge.innerHTML = `<strong>GOOD!</strong> Safe correction buffer at ${correctionPct.toFixed(0)}% (${correctionUnits} U).${logicTrace}`;
+                } else if (correctionPct <= 55) {
+                    afrGauge.className = 'gauge-base yellow';
+                    afrGauge.innerHTML = `<strong>BORDERLINE:</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Proceed with caution.${logicTrace}`;
+                } else if (correctionPct <= 80) {
+                    afrGauge.className = 'gauge-base red';
+                    afrGauge.innerHTML = `<strong>WARNING: NEEDS CLARIFICATION</strong><br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Send to RPh to verify.${logicTrace}`;
+                } else {
+                    afrGauge.className = 'gauge-base dark-red';
+                    afrGauge.innerHTML = `<strong>INCONCEIVABLE!</strong><br>I do not think 'Max Dose' means what you think it means.<br>${correctionPct.toFixed(0)}% buffer (${correctionUnits} U). Clarification REQUIRED.${logicTrace}`;
+                }
+            } else {
+                afrGauge.className = 'gauge-base blue-gauge';
+                afrGauge.innerHTML = `<strong>AUTO-INFERRED:</strong> Effective Max Dose calculated as ${totalScheduledAndPrn} U based purely on Schedule + PRN limits.`;
+            }
+        }
+
+        function resetAfrezza() {
+            document.getElementById('afrProduct').value = "0";
+            document.getElementById('afrQty').value = "1";
+            document.getElementById('afrMaxDose').value = "";
+            document.getElementById('afrMealUnits').value = "";
+            document.getElementById('afrMealFreq').value = "3";
+            document.getElementById('afrPrnUnits').value = "";
+            document.getElementById('afrPrnFreq').value = "0";
+            calcAfrezza();
+        }
+
+        afrInputs.forEach(input => input.addEventListener('input', calcAfrezza));
+        
+        // Initial Calculation Call
+        calcAfrezza();
+
+    </script>
+</body>
+</html>
