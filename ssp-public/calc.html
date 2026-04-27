@@ -13,10 +13,31 @@
             darkMode: 'class',
         }
     </script>
-    <script>if (localStorage.getItem('ssp-theme') === 'dark') { document.documentElement.classList.add('dark'); }</script>
+    
+    <script>
+        if (localStorage.getItem('ssp-theme') === 'dark') { document.documentElement.classList.add('dark'); }
+    </script>
 
     <style>
+        /* SSP Cupertino 2050 Design Tolerances */
+        :root {
+            --glass-bg: rgba(0, 0, 0, 0.02);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-shine: rgba(0, 0, 0, 0.03);
+            --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+        html.dark {
+            --glass-bg: rgba(255, 255, 255, 0.015);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shine: rgba(22, 163, 74, 0.12);
+            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        
+        /* Preload mitigation to kill flashes */
+        .preload * { transition: none !important; }
         
         .sterling-green { color: #16a34a; }
         .bg-sterling-green { background-color: #16a34a; }
@@ -25,8 +46,13 @@
         .btn-hover:hover { background-color: #004a91; }
         .calendar-day { min-height: 40px; }
         
+        /* Spring Physics Override for main components */
+        .spring-transition {
+            transition: all 0.5s var(--spring);
+        }
+
         /* Gauge Styles */
-        .gauge-base { padding: 1rem; border-radius: 0.375rem; font-weight: 600; text-align: center; transition: all 0.3s ease; line-height: 1.4; font-size: 0.875rem; }
+        .gauge-base { padding: 1rem; border-radius: 0.375rem; font-weight: 600; text-align: center; transition: all 0.4s var(--spring); line-height: 1.4; font-size: 0.875rem; }
         .gray { background-color: #f3f4f6; color: #6b7280; border: 1px dashed #d1d5db; }
         .dark .gray { background-color: rgba(31, 41, 55, 0.5); color: #9ca3af; border-color: #4b5563; }
         .green { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
@@ -39,20 +65,20 @@
         .dark .red { background-color: rgba(153, 27, 27, 0.2); color: #fca5a5; border-color: rgba(153, 27, 27, 0.5); }
         .dark-red { background-color: #7f1d1d; color: #ffffff; border: 1px solid #450a0a; }
         .dark .dark-red { background-color: rgba(69, 10, 10, 0.5); color: #ffffff; border-color: #7f1d1d; }
+        
+        /* Auto-calc Blue Gauge */
+        .blue-gauge { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+        .dark .blue-gauge { background-color: rgba(30, 58, 138, 0.2); color: #93c5fd; border-color: rgba(30, 58, 138, 0.5); }
 
         /* Dark mode date picker icon fix */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-        }
-        .dark input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-        }
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+        .dark input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+<body class="preload bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
     <div class="w-full p-4 flex justify-between items-center">
         <div></div>
@@ -69,7 +95,7 @@
     <div class="flex-1 flex flex-col items-center px-4 pt-6 pb-12 w-full">
 
         <header class="mb-6 text-center">
-            <h1 id="appTitle" class="text-3xl font-bold text-gray-800 dark:text-gray-50 tracking-tight transition-all">Refill Too Soon</h1>
+            <h1 id="appTitle" class="text-3xl font-bold text-gray-800 dark:text-gray-50 tracking-tight spring-transition">Refill Too Soon</h1>
             <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Sterling Specialty Pharmacy Internal Tool</p>
         </header>
 
@@ -78,23 +104,23 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </button>
             <div class="flex gap-2" id="dots">
-                <div class="w-2 h-2 rounded-full bg-sterling-blue"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <div class="w-2 h-2 rounded-full bg-sterling-blue transition-colors duration-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300"></div>
             </div>
             <button id="nextBtn" class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
         </div>
 
-        <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-w-md w-full overflow-hidden relative" style="height: 620px;">
+        <main class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-w-md w-full overflow-hidden relative" style="height: 650px;">
             
-            <div id="sliderTrack" class="flex w-[500%] h-full transition-transform duration-500 ease-in-out transform translate-x-0">
+            <div id="sliderTrack" class="flex w-[600%] h-full spring-transition transform translate-x-0">
                 
-                <!-- RTS Calculator (Slide 0) -->
-                <div class="w-1/5 p-6 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                <div class="w-1/6 p-6 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
                     <div id="initial-view" class="flex flex-col items-center text-center mt-12">
                         <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full mb-6 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sterling-blue dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,9 +220,8 @@
                     </div>
                 </div>
 
-                <!-- Afrezza Calculator (Slide 1) -->
-                <div class="w-1/5 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
-                    <div class="mb-6 mt-2">
+                <div class="w-1/6 p-6 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div class="mb-4 mt-2">
                         <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Selection</label>
                             <select id="afrProduct" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
@@ -216,17 +241,17 @@
                                 <div class="relative w-full h-[38px]">
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" id="afrQty" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
                                     <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
-                                        <button type="button" onclick="updateAfrQty(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <button type="button" onclick="updateAfrInput('afrQty', 1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                                         </button>
-                                        <button type="button" onclick="updateAfrQty(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <button type="button" onclick="updateAfrInput('afrQty', -1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max Daily Dose (Units)</label>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max Daily Dose <span class="text-[9px] opacity-70">(Optional)</span></label>
                                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMaxDose" placeholder="e.g., 84" class="w-full h-[38px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
                             </div>
                         </div>
@@ -237,10 +262,10 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 flex-grow">
-                        <h3 class="text-md font-bold text-gray-800 dark:text-gray-100 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2 transition-colors">Correction Dose Check</h3>
+                    <div class="mt-2 flex-grow">
+                        <h3 class="text-md font-bold text-gray-800 dark:text-gray-100 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2 transition-colors">Scheduled & PRN Dosing</h3>
                         
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="grid grid-cols-2 gap-4 mb-3">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Scheduled Units / Meal</label>
                                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrMealUnits" placeholder="e.g., 12" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
@@ -250,10 +275,10 @@
                                 <div class="relative w-full h-[38px]">
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="afrMealFreq" value="3" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
                                     <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
-                                        <button type="button" onclick="updateAfrMealFreq(1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <button type="button" onclick="updateAfrInput('afrMealFreq', 1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                                         </button>
-                                        <button type="button" onclick="updateAfrMealFreq(-1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <button type="button" onclick="updateAfrInput('afrMealFreq', -1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                         </button>
                                     </div>
@@ -261,12 +286,33 @@
                             </div>
                         </div>
 
-                        <div id="afrGauge" class="gauge-base gray mb-6">
-                            Enter meal data to calculate the correction buffer.
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">PRN Units / Dose</label>
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="afrPrnUnits" placeholder="e.g., 4" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Max PRN Freq / Day</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="afrPrnFreq" value="0" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateAfrInput('afrPrnFreq', 1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateAfrInput('afrPrnFreq', -1, 0, 9)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="afrGauge" class="gauge-base gray mb-4">
+                            Enter scheduled & PRN parameters to calculate dose viability.
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-4">
+                    <div class="mt-auto pt-2">
                         <div id="afrLogicBar" class="text-xs text-center text-gray-400 dark:text-gray-500 mb-3 font-mono opacity-0 transition-opacity duration-300"></div>
                         <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
                             <button onclick="resetAfrezza()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
@@ -274,8 +320,7 @@
                     </div>
                 </div>
 
-                <!-- Tirosint Calculator (Slide 2) -->
-                <div class="w-1/5 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                <div class="w-1/6 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
                     <div class="mb-6 mt-2">
                         <div class="mb-6">
                             <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Total Quantity Dispensed</label>
@@ -373,8 +418,7 @@
                     </div>
                 </div>
 
-                <!-- Eysuvis Calculator (Slide 3) -->
-                <div class="w-1/5 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                <div class="w-1/6 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
                     <div class="mb-2 mt-2">
                         <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Bottles Dispensed</label>
@@ -396,33 +440,93 @@
                         </div>
                         
                         <div id="eyPhase1" class="hidden grid grid-cols-4 gap-2 mb-2">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <select id="eyP1Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP1Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP1Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <select id="eyP1Ey" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
                                 <option value="1">One</option>
                                 <option value="2" selected>Both</option>
                             </select>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP1Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP1Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP1Dy" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
                         </div>
 
                         <div id="eyPhase2" class="hidden grid grid-cols-4 gap-2 mb-2">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <select id="eyP2Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP2Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP2Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <select id="eyP2Ey" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
                                 <option value="1">One</option>
                                 <option value="2" selected>Both</option>
                             </select>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP2Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP2Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP2Dy" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
                         </div>
 
                         <div id="eyPhase3" class="hidden grid grid-cols-4 gap-2 mb-2">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <select id="eyP3Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP3Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP3Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <select id="eyP3Ey" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
                                 <option value="1">One</option>
                                 <option value="2" selected>Both</option>
                             </select>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dy" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP3Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP3Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP3Dy" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 text-sm focus:outline-none focus:border-green-500 text-center">
                         </div>
 
                         <div class="flex justify-between items-center mb-3 mt-1">
@@ -435,13 +539,33 @@
                         </div>
 
                         <div class="grid grid-cols-4 gap-2 mb-2">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Dr" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <select id="eyP4Ey" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 py-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Dr" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP4Dr', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP4Dr', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <select id="eyP4Ey" class="w-full h-[30px] bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-800 rounded px-1 text-xs focus:outline-none focus:border-green-500 text-center appearance-none">
                                 <option value="1">One</option>
                                 <option value="2" selected>Both</option>
                             </select>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Fq" class="w-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-2 py-1 text-sm focus:outline-none focus:border-green-500 text-center">
-                            <div class="flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-transparent dark:border-gray-600 rounded text-xs font-semibold text-gray-500 dark:text-gray-400">FINAL</div>
+                            <div class="relative w-full h-[30px]">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" id="eyP4Fq" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded pl-1 pr-5 text-sm focus:outline-none focus:border-green-500 text-center">
+                                <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-4">
+                                    <button type="button" onclick="updateEyInput('eyP4Fq', 1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" onclick="updateEyInput('eyP4Fq', -1)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-transparent dark:border-gray-600 rounded h-[30px] text-xs font-semibold text-gray-500 dark:text-gray-400">FINAL</div>
                         </div>
 
                         <div id="eyWarning" class="h-4 text-[10px] text-red-600 dark:text-red-400 font-semibold mt-1 text-center opacity-0 transition-opacity duration-300">
@@ -462,8 +586,7 @@
                     </div>
                 </div>
 
-                <!-- Shipping Calculator (Slide 4) -->
-                <div class="w-1/5 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                <div class="w-1/6 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
                     <div class="mb-6 mt-2">
                         <div class="mb-6">
                             <label for="ship-dispenseDate" class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
@@ -481,7 +604,6 @@
                             </p>
                         </div>
 
-                        <!-- Dynamic Results Container -->
                         <div id="ship-resultBox" class="hidden mt-6 rounded-lg p-4 border transition-all duration-300">
                         </div>
                     </div>
@@ -489,6 +611,54 @@
                     <div class="mt-auto pt-4">
                         <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
                             <button onclick="resetShipping()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-1/6 p-8 shrink-0 flex flex-col h-full overflow-y-auto no-scrollbar">
+                    <div class="mb-6 mt-2">
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Units / Dose</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="mddUnits" placeholder="e.g., 2" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateMddInput('mddUnits', 1, 0, 999)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateMddInput('mddUnits', -1, 0, 999)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Doses / Day</label>
+                                <div class="relative w-full h-[38px]">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="mddFreq" value="1" class="w-full h-full bg-transparent border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 transition-colors pr-8">
+                                    <div class="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600 w-8">
+                                        <button type="button" onclick="updateMddInput('mddFreq', 1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-tr focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </button>
+                                        <button type="button" onclick="updateMddInput('mddFreq', -1, 0, 99)" class="flex-1 flex justify-center items-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-br border-t border-gray-300 dark:border-gray-600 focus:outline-none transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded p-4 text-center transition-colors mt-8 shadow-sm">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">Calculated Max Daily Dose</span>
+                            <div id="mddResult" class="text-5xl font-bold sterling-green mt-3 mb-2 spring-transition">--</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4">
+                        <div id="mddLogicBar" class="text-[10px] text-center text-gray-400 dark:text-gray-500 mb-3 font-mono opacity-0 transition-opacity duration-300 leading-tight"></div>
+                        <div class="flex justify-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors">
+                            <button onclick="resetMdd()" class="text-sm font-semibold text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors uppercase tracking-wider focus:outline-none">Reset</button>
                         </div>
                     </div>
                 </div>
@@ -503,6 +673,9 @@
     </div>
 
     <script>
+        // Disable .preload class on load for anti-FOUC
+        window.addEventListener('load', () => document.body.classList.remove('preload'));
+
         // ==========================================
         // UI & THEME LOGIC
         // ==========================================
@@ -534,12 +707,12 @@
         const dots = document.getElementById('dots').children;
         const appTitle = document.getElementById('appTitle');
 
-        let currentSlide = 0; // 0 = RTS, 1 = Afrezza, 2 = Tirosint, 3 = Eysuvis, 4 = Shipping
+        let currentSlide = 0; // 0=RTS, 1=Afrezza, 2=Tirosint, 3=Eysuvis, 4=Shipping, 5=MDD
 
         function updateSlider() {
-            const transforms = ['0', '-20%', '-40%', '-60%', '-80%'];
-            const titles = ["Refill Too Soon", "Afrezza Calculator", "Tirosint Calculator", "Eysuvis Calculator", "To Rebill or Not Rebill?"];
-            const colors = ['bg-sterling-blue', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-green'];
+            const transforms = ['0', '-16.666%', '-33.333%', '-50%', '-66.666%', '-83.333%'];
+            const titles = ["Refill Too Soon", "Afrezza Calculator", "Tirosint Calculator", "Eysuvis Calculator", "To Rebill or Not Rebill?", "MDD Calculator"];
+            const colors = ['bg-sterling-blue', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-green', 'bg-sterling-blue'];
 
             sliderTrack.style.transform = `translateX(${transforms[currentSlide]})`;
             appTitle.textContent = titles[currentSlide];
@@ -549,22 +722,22 @@
             if(currentSlide > 0) prevBtn.classList.add('hover:text-green-600', 'dark:hover:text-green-400');
             else prevBtn.classList.remove('hover:text-green-600', 'dark:hover:text-green-400');
             
-            nextBtn.classList.toggle('opacity-50', currentSlide === 4);
-            nextBtn.classList.toggle('cursor-default', currentSlide === 4);
-            if(currentSlide < 4) nextBtn.classList.add('hover:text-green-600', 'dark:hover:text-green-400');
+            nextBtn.classList.toggle('opacity-50', currentSlide === 5);
+            nextBtn.classList.toggle('cursor-default', currentSlide === 5);
+            if(currentSlide < 5) nextBtn.classList.add('hover:text-green-600', 'dark:hover:text-green-400');
             else nextBtn.classList.remove('hover:text-green-600', 'dark:hover:text-green-400');
 
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 6; i++) {
                 if (i === currentSlide) {
-                    dots[i].className = `w-2 h-2 rounded-full ${colors[i]} transition-colors`;
+                    dots[i].className = `w-2 h-2 rounded-full ${colors[i]} transition-colors duration-300`;
                 } else {
-                    dots[i].className = 'w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors';
+                    dots[i].className = 'w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300';
                 }
             }
         }
 
         prevBtn.addEventListener('click', () => { if (currentSlide > 0) { currentSlide--; updateSlider(); } });
-        nextBtn.addEventListener('click', () => { if (currentSlide < 4) { currentSlide++; updateSlider(); } });
+        nextBtn.addEventListener('click', () => { if (currentSlide < 5) { currentSlide++; updateSlider(); } });
 
         // ==========================================
         // RTS CALCULATOR LOGIC
@@ -728,109 +901,112 @@
         // ==========================================
         // AFREZZA CALCULATOR LOGIC
         // ==========================================
-        const afrInputs = document.querySelectorAll('#afrProduct, #afrMaxDose, #afrMealUnits');
+        const afrInputs = document.querySelectorAll('#afrProduct, #afrMaxDose, #afrMealUnits, #afrMealFreq, #afrPrnUnits, #afrPrnFreq, #afrQty');
         const afrDaySupply = document.getElementById('afrDaySupply');
         const afrGauge = document.getElementById('afrGauge');
-        const afrQtyInput = document.getElementById('afrQty');
-        const afrMealFreqInput = document.getElementById('afrMealFreq');
         const afrLogicBar = document.getElementById('afrLogicBar');
 
-        function updateAfrQty(delta) {
-            let val = parseInt(afrQtyInput.value) || 0;
-            val = Math.max(0, Math.min(99, val + delta));
-            afrQtyInput.value = val;
+        function updateAfrInput(inputId, delta, min, max) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value) || 0;
+            val = Math.max(min, Math.min(max, val + delta));
+            inputEl.value = val;
             calcAfrezza();
         }
 
-        afrQtyInput.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrQty(1); }
-            if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrQty(-1); }
-        });
-        
-        afrQtyInput.addEventListener('input', (e) => {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.length > 2) val = val.slice(0, 2);
-            e.target.value = val;
-            calcAfrezza();
-        });
-
-        function updateAfrMealFreq(delta) {
-            let val = parseInt(afrMealFreqInput.value) || 0;
-            val = Math.max(0, Math.min(9, val + delta));
-            afrMealFreqInput.value = val;
-            calcAfrezza();
+        function setupAfrKeydown(inputId, delta, min, max) {
+            const el = document.getElementById(inputId);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrInput(inputId, delta, min, max); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrInput(inputId, -delta, min, max); }
+            });
+            el.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (max > 9 && val.length > 2) val = val.slice(0, 2);
+                if (max <= 9 && val.length > 1) val = val.slice(0, 1);
+                e.target.value = val;
+                calcAfrezza();
+            });
         }
 
-        afrMealFreqInput.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') { e.preventDefault(); updateAfrMealFreq(1); }
-            if (e.key === 'ArrowDown') { e.preventDefault(); updateAfrMealFreq(-1); }
-        });
-        
-        afrMealFreqInput.addEventListener('input', (e) => {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.length > 1) val = val.slice(0, 1);
-            e.target.value = val;
-            calcAfrezza();
-        });
+        setupAfrKeydown('afrQty', 1, 0, 99);
+        setupAfrKeydown('afrMealFreq', 1, 0, 9);
+        setupAfrKeydown('afrPrnFreq', 1, 0, 9);
 
         function calcAfrezza() {
             let prodValue = document.getElementById('afrProduct').value;
             let totalUnitsPerBox = prodValue === '1080_combo' ? 1080 : parseInt(prodValue) || 0;
             
-            const qty = parseInt(afrQtyInput.value) || 0;
-            const maxDose = parseInt(document.getElementById('afrMaxDose').value) || 0;
+            const qty = parseInt(document.getElementById('afrQty').value) || 0;
+            const explicitMaxDose = parseInt(document.getElementById('afrMaxDose').value) || 0;
+            
             const mealUnits = parseInt(document.getElementById('afrMealUnits').value) || 0;
             const mealFreq = parseInt(document.getElementById('afrMealFreq').value) || 0;
+            const prnUnits = parseInt(document.getElementById('afrPrnUnits').value) || 0;
+            const prnFreq = parseInt(document.getElementById('afrPrnFreq').value) || 0;
 
-            if (totalUnitsPerBox > 0 && maxDose > 0 && qty > 0) {
+            const baseDose = mealUnits * mealFreq;
+            const prnDose = prnUnits * prnFreq;
+            const totalScheduledAndPrn = baseDose + prnDose;
+
+            const effectiveMaxDose = explicitMaxDose > 0 ? explicitMaxDose : totalScheduledAndPrn;
+
+            if (totalUnitsPerBox > 0 && effectiveMaxDose > 0 && qty > 0) {
                 const totalDispensed = totalUnitsPerBox * qty;
-                const days = Math.ceil(totalDispensed / maxDose);
+                const days = Math.ceil(totalDispensed / effectiveMaxDose);
                 afrDaySupply.textContent = days;
-                afrLogicBar.textContent = `Calculation: ${totalDispensed} Units ÷ ${maxDose} U/day = ${days} Days`;
+                afrLogicBar.textContent = `Calculation: ${totalDispensed} Units ÷ ${effectiveMaxDose} U/day = ${days} Days`;
                 afrLogicBar.style.opacity = '1';
             } else {
                 afrDaySupply.textContent = '--';
                 afrLogicBar.style.opacity = '0';
             }
 
-            if (totalUnitsPerBox === 0 || maxDose === 0 || mealUnits === 0 || mealFreq === 0) {
+          if (totalUnitsPerBox === 0 || effectiveMaxDose === 0 || totalScheduledAndPrn === 0) {
                 afrGauge.className = 'gauge-base gray';
-                afrGauge.textContent = 'Enter meal data to calculate the correction buffer.';
+                afrGauge.textContent = 'Enter scheduled & PRN parameters to calculate dose viability.';
                 return;
             }
 
-            const baseDose = mealUnits * mealFreq;
-            const correctionUnits = maxDose - baseDose;
-            
-            if (correctionUnits < 0) {
-                afrGauge.className = 'gauge-base red';
-                afrGauge.innerHTML = `<strong>ERROR:</strong> Scheduled meals (${baseDose} U) exceed Max Daily Dose (${maxDose} U).`;
-                return;
-            }
+if (explicitMaxDose > 0) {
+                const correctionUnits = explicitMaxDose - totalScheduledAndPrn;
+                const logicTrace = `<div class="mt-1.5 text-[10px] font-mono opacity-80 font-normal tracking-tight">Audit: ${explicitMaxDose}U (Max) - ${totalScheduledAndPrn}U (Sched+PRN) = ${correctionUnits}U (Buffer)</div>`;
+                
+                if (correctionUnits < 0) {
+                    afrGauge.className = 'gauge-base red';
+                    afrGauge.innerHTML = `<strong>ERROR:</strong> Sched+PRN (${totalScheduledAndPrn} U) exceeds Max Daily Dose (${explicitMaxDose} U).${logicTrace}`;
+                    return;
+                }
 
-            const correctionPct = (correctionUnits / maxDose) * 100;
+                const correctionPct = (correctionUnits / explicitMaxDose) * 100;
 
-            if (correctionPct <= 30) {
-                afrGauge.className = 'gauge-base green';
-                afrGauge.innerHTML = `<strong>GOOD!</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U).`;
-            } else if (correctionPct <= 55) {
-                afrGauge.className = 'gauge-base yellow';
-                afrGauge.innerHTML = `<strong>BORDERLINE:</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Proceed with caution.`;
-            } else if (correctionPct <= 80) {
-                afrGauge.className = 'gauge-base orange';
-                afrGauge.innerHTML = `<strong>WARNING: NEEDS CLARIFICATION</strong><br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Send to Rph to verify.`;
+                if (correctionPct <= 30) {
+                    afrGauge.className = 'gauge-base green';
+                    afrGauge.innerHTML = `<strong>GOOD!</strong> Safe correction buffer at ${correctionPct.toFixed(0)}% (${correctionUnits} U).${logicTrace}`;
+                } else if (correctionPct <= 55) {
+                    afrGauge.className = 'gauge-base yellow';
+                    afrGauge.innerHTML = `<strong>BORDERLINE:</strong> ${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Proceed with caution.${logicTrace}`;
+                } else if (correctionPct <= 80) {
+                    afrGauge.className = 'gauge-base red';
+                    afrGauge.innerHTML = `<strong>WARNING: NEEDS CLARIFICATION</strong><br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Send to RPh to verify.${logicTrace}`;
+                } else {
+                    afrGauge.className = 'gauge-base dark-red';
+                    afrGauge.innerHTML = `<strong>INCONCEIVABLE!</strong><br>I do not think 'Max Dose' means what you think it means.<br>${correctionPct.toFixed(0)}% buffer (${correctionUnits} U). Clarification REQUIRED.${logicTrace}`;
+                }
             } else {
-                afrGauge.className = 'gauge-base dark-red';
-                afrGauge.innerHTML = `<strong>INCONCEIVABLE!</strong><br>I do not think 'Max Dose' means what you think it means.<br>${correctionPct.toFixed(0)}% correction buffer (${correctionUnits} U). Clarification REQUIRED.`;
+                afrGauge.className = 'gauge-base blue-gauge';
+                afrGauge.innerHTML = `<strong>AUTO-INFERRED:</strong> Effective Max Dose calculated as ${totalScheduledAndPrn} U based purely on Schedule + PRN limits.`;
             }
-        }
+        } // <-- THIS WAS THE MISSING BRACE
 
         function resetAfrezza() {
             document.getElementById('afrProduct').value = "0";
-            afrQtyInput.value = "1";
+            document.getElementById('afrQty').value = "1";
             document.getElementById('afrMaxDose').value = "";
             document.getElementById('afrMealUnits').value = "";
             document.getElementById('afrMealFreq').value = "3";
+            document.getElementById('afrPrnUnits').value = "";
+            document.getElementById('afrPrnFreq').value = "0";
             calcAfrezza();
         }
 
@@ -892,12 +1068,45 @@
         tirQtySelect.addEventListener('change', calcTirosint);
 
         // ==========================================
-        // EYSUVIS CALCULATOR LOGIC
+        // EYSUVIS CALCULATOR LOGIC (WITH STEPPERS)
         // ==========================================
         const eyInputs = document.querySelectorAll('[id^="ey"]');
         const eyBottlesInput = document.getElementById('eyBottles');
         
         let visibleEyPhases = 0;
+
+        function updateEyInput(inputId, delta) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value);
+            if (isNaN(val)) val = 0;
+            val = Math.max(0, Math.min(99, val + delta));
+            
+            // Allow frequency to naturally hit 0 but function perfectly in calculations.
+            // (If user empties it manually, it evaluates to 0 in calcEysuvis)
+            inputEl.value = val;
+            calcEysuvis();
+        }
+
+        function setupEyKeydown(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') { e.preventDefault(); updateEyInput(inputId, 1); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); updateEyInput(inputId, -1); }
+            });
+            el.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 2) val = val.slice(0, 2);
+                e.target.value = val;
+                calcEysuvis();
+            });
+        }
+
+        // Bind all dynamically accessible inputs to arrow key / input sanitization
+        [1, 2, 3, 4].forEach(num => {
+            setupEyKeydown(`eyP${num}Dr`);
+            setupEyKeydown(`eyP${num}Fq`);
+        });
 
         function addEyPhase() {
             if (visibleEyPhases < 3) {
@@ -914,7 +1123,8 @@
 
         function remEyPhase() {
             if (visibleEyPhases > 0) {
-                document.getElementById(`eyP${visibleEyPhases}Dr`).value = '';
+                // Restore defaults on phase removal to prevent state pollution
+                document.getElementById(`eyP${visibleEyPhases}Dr`).value = '1';
                 document.getElementById(`eyP${visibleEyPhases}Fq`).value = '';
                 document.getElementById(`eyP${visibleEyPhases}Dy`).value = '';
                 document.getElementById(`eyP${visibleEyPhases}Ey`).value = '2';
@@ -1041,14 +1251,20 @@
                 remEyPhase();
             }
 
-            document.getElementById('eyP4Dr').value = "";
+            // Restore new Phase 4 defaults
+            document.getElementById('eyP4Dr').value = "1";
             document.getElementById('eyP4Fq').value = "";
             document.getElementById('eyP4Ey').value = "2";
             calcEysuvis();
         }
 
-        eyInputs.forEach(input => input.addEventListener('input', calcEysuvis));
-        eyInputs.forEach(input => input.addEventListener('change', calcEysuvis));
+        // We bind change events natively, avoiding duplications for keydown fields
+        eyInputs.forEach(input => {
+            if (!input.id.includes('Dr') && !input.id.includes('Fq')) {
+                input.addEventListener('input', calcEysuvis);
+                input.addEventListener('change', calcEysuvis);
+            }
+        });
 
         // ==========================================
         // SHIPPING CALCULATOR LOGIC
@@ -1130,10 +1346,69 @@
             calculateShipping();
         }
 
+        // ==========================================
+        // MDD CALCULATOR LOGIC
+        // ==========================================
+        const mddInputs = document.querySelectorAll('#mddUnits, #mddFreq');
+        const mddResult = document.getElementById('mddResult');
+        const mddLogicBar = document.getElementById('mddLogicBar');
+
+        function updateMddInput(inputId, delta, min, max) {
+            const inputEl = document.getElementById(inputId);
+            let val = parseInt(inputEl.value) || 0;
+            val = Math.max(min, Math.min(max, val + delta));
+            inputEl.value = val;
+            calcMdd();
+        }
+
+        // Stepper Keydown & Validation
+        function setupMddKeydown(inputId, delta, min, max) {
+            const el = document.getElementById(inputId);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') { e.preventDefault(); updateMddInput(inputId, delta, min, max); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); updateMddInput(inputId, -delta, min, max); }
+            });
+            el.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                e.target.value = val;
+                calcMdd();
+            });
+        }
+
+        setupMddKeydown('mddUnits', 1, 0, 999);
+        setupMddKeydown('mddFreq', 1, 0, 99);
+
+        function calcMdd() {
+            const units = parseInt(document.getElementById('mddUnits').value) || 0;
+            const freq = parseInt(document.getElementById('mddFreq').value) || 0;
+            
+            if (units > 0 && freq > 0) {
+                const mdd = units * freq;
+                mddResult.textContent = mdd;
+                mddLogicBar.textContent = `Calculation: ${units} U × ${freq} doses/day = ${mdd} MDD`;
+                mddLogicBar.style.opacity = '1';
+                mddResult.classList.add('scale-105');
+                setTimeout(() => mddResult.classList.remove('scale-105'), 150);
+            } else {
+                mddResult.textContent = '--';
+                mddLogicBar.style.opacity = '0';
+            }
+        }
+
+        function resetMdd() {
+            document.getElementById('mddUnits').value = "";
+            document.getElementById('mddFreq').value = "1";
+            calcMdd();
+        }
+
+        // Bind standard input listeners
+        mddInputs.forEach(input => input.addEventListener('input', calcMdd));
+
         // Initial Calculation calls
         calcAfrezza();
         calcTirosint();
         calcEysuvis();
+        calcMdd();
 
     </script>
 </body>
