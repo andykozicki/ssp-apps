@@ -15,9 +15,6 @@
     <script>
         if (localStorage.getItem('ssp-theme') === 'dark' || (!localStorage.getItem('ssp-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
             document.documentElement.classList.add('dark'); 
-            localStorage.setItem('ssp-theme', 'dark');
-        } else {
-            localStorage.setItem('ssp-theme', 'light');
         }
     </script>
 
