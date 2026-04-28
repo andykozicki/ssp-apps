@@ -15,9 +15,6 @@
     <script>
         if (localStorage.getItem('ssp-theme') === 'dark' || (!localStorage.getItem('ssp-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
             document.documentElement.classList.add('dark'); 
-            localStorage.setItem('ssp-theme', 'dark');
-        } else {
-            localStorage.setItem('ssp-theme', 'light');
         }
     </script>
 
@@ -123,16 +120,19 @@
         const ship_warningIcon = `<svg class="w-8 h-8 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
         const ship_amberAlertIcon = `<svg class="w-8 h-8 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
 
+        // Bind both input and change for cross-browser calendar reliability
         shipDateInput.addEventListener('input', calculateShipping);
+        shipDateInput.addEventListener('change', calculateShipping);
 
         function calculateShipping() {
-            // Reset state
-            shipResultBox.className = 'hidden mt-8 rounded-xl p-5 border transition-all duration-300 shadow-sm';
-            
             if (!shipDateInput.value) {
+                shipResultBox.className = 'hidden mt-8 rounded-xl p-5 border transition-all duration-300 shadow-sm';
                 shipResultBox.innerHTML = '';
                 return;
             }
+
+            // Establish base visible classes (removing 'hidden')
+            shipResultBox.className = 'mt-8 rounded-xl p-5 border transition-all duration-300 shadow-sm block';
 
             // Timezone safe extraction
             const [year, month, day] = shipDateInput.value.split('-');
@@ -144,13 +144,13 @@
 
             // Boundary Definitions
             const futureLimit = new Date(today);
-            futureLimit.setDate(today.getDate() + 1); // Allows typing today without snapping error if timezone gets weird
+            futureLimit.setDate(today.getDate() + 1); 
 
             const pastLimit = new Date(today);
-            pastLimit.setDate(today.getDate() - 180); // Reject impossibly old fills
+            pastLimit.setDate(today.getDate() - 180); 
 
             if (dispenseDate > futureLimit || dispenseDate < pastLimit) {
-                shipResultBox.classList.add('block', 'bg-amber-50', 'dark:bg-amber-900/30', 'border-amber-200', 'dark:border-amber-800', 'text-amber-800', 'dark:text-amber-300');
+                shipResultBox.classList.add('bg-amber-50', 'dark:bg-amber-900/30', 'border-amber-200', 'dark:border-amber-800', 'text-amber-800', 'dark:text-amber-300');
                 shipResultBox.innerHTML = `
                     <div class="flex items-start">
                         ${ship_amberAlertIcon}
@@ -168,7 +168,7 @@
             shipDate.setDate(shipDate.getDate() + 7);
 
             if (shipDate >= today) {
-                shipResultBox.classList.add('block', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300');
+                shipResultBox.classList.add('bg-green-50', 'dark:bg-green-900/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-300');
                 shipResultBox.innerHTML = `
                     <div class="flex items-center mb-3">
                         ${ship_successIcon}
@@ -177,7 +177,7 @@
                     <p class="text-sm opacity-90 pl-11">Meets Shipping Timeline. No rebill needed.<br>Go forth and schedule.</p>
                 `;
             } else {
-                shipResultBox.classList.add('block', 'bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
+                shipResultBox.classList.add('bg-red-50', 'dark:bg-red-900/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-300');
                 shipResultBox.innerHTML = `
                     <div class="flex items-center mb-3">
                         ${ship_warningIcon}
