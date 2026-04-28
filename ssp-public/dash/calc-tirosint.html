@@ -68,23 +68,6 @@
 
     <div class="ambient-bg transition-colors duration-500"></div>
 
-    <div class="w-full px-6 py-4 flex justify-between items-center z-50 bg-white/40 dark:bg-black/40 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 sticky top-0 transition-colors duration-300">
-        <a href="index.html" class="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-sterling-green dark:hover:text-green-400 transition-colors group cursor-pointer text-decoration-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span class="font-bold text-sm tracking-widest uppercase opacity-90 mt-0.5">Dashboard</span>
-        </a>
-
-        <div class="flex items-center gap-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Light / Dark</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="themeToggle" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-sterling-green"></div>
-            </label>
-        </div>
-    </div>
-
     <div class="flex-1 flex flex-col items-center px-4 pt-10 pb-12 w-full z-10">
 
         <header class="mb-8 text-center">
@@ -200,21 +183,6 @@
 
     <script>
         window.addEventListener('load', () => document.body.classList.remove('preload'));
-
-        // Theme Sync
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        if (htmlElement.classList.contains('dark')) themeToggle.checked = true;
-
-        themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                htmlElement.classList.add('dark');
-                localStorage.setItem('ssp-theme', 'dark');
-            } else {
-                htmlElement.classList.remove('dark');
-                localStorage.setItem('ssp-theme', 'light');
-            }
-        });
 
         // ==========================================
         // TIROSINT CALCULATOR LOGIC
