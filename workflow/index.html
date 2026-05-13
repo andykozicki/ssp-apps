@@ -130,7 +130,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
                 <div onclick="toggleParser()" class="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 dark:text-blue-400">
@@ -455,15 +455,17 @@ MADI</textarea>
                 let timeColorClasses = 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'; 
 
                 if (shift.time && currentLoc !== 'Off') {
-                    const t = shift.time.toLowerCase().replace(/\s+/g, '');
-                    
-                    // Specific shifts get hardcoded colors; all other times (9am, 8:30am, 10am) retain default gray styling
-                    if (t.includes('6:00') || t.startsWith('6a')) {
-                        timeColorClasses = 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300';
-                    } else if (t.includes('7:00') || t.startsWith('7a')) {
-                        timeColorClasses = 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300';
-                    } else if (t.includes('12:30') || t.startsWith('12:30')) {
-                        timeColorClasses = 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300';
+                    // Robust regex to extract hours and minutes from varied Excel paste formats
+                    const timeMatch = shift.time.match(/(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?/i);
+                    if (timeMatch) {
+                        let hour = parseInt(timeMatch[1], 10);
+                        let minute = parseInt(timeMatch[2] || 0, 10);
+                        const modifier = timeMatch[3] ? timeMatch[3].toLowerCase() : '';
+                        if (modifier.includes('p') && hour < 12) hour += 12;
+
+                        if (hour === 6) timeColorClasses = 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300';
+                        else if (hour === 7) timeColorClasses = 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300';
+                        else if (hour === 12 && minute === 30) timeColorClasses = 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300';
                     }
                 }
 
@@ -611,14 +613,14 @@ MADI</textarea>
 
                     if (isOff || upperTask === '' || shiftColumns.length === 0) {
                         initialLoc = 'Off';
+                    } else if (upperTask.includes('AM FLOAT') || upperTask.includes('FLOAT AM')) {
+                        initialLoc = 'CC'; // AM Floats start in Call Center
                     } else if (upperTask.includes('AM LTC') || upperTask.includes('LTC AM')) {
-                        initialLoc = 'LTC';
+                        initialLoc = 'LTC'; // AM LTC or AM LTC - PM Float
                     } else if (upperTask.includes('AM')) {
-                        initialLoc = 'Rx';
-                    } else if (upperTask.includes('PM LTC') || upperTask.includes('LTC PM')) {
-                        initialLoc = 'LTC';
+                        initialLoc = 'Rx'; // AM Pharm or AM Pharm - PM Float
                     } else if (upperTask.includes('PM')) {
-                        initialLoc = 'Rx';
+                        initialLoc = 'CC'; // All remaining PM assignments default to Call Center
                     }
                     
                     locationState[rphName] = initialLoc;
