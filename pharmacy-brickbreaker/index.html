@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pharmacy Breaker v1.0.1</title>
+    <title>Pharmacy Breaker v1.0.2</title>
     
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="progression.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -28,9 +29,9 @@
         }
 
         #header-ui {
-            width: 100%; min-height: 180px; height: auto; flex-shrink: 0; background-color: #ffffff; 
+            width: 100%; min-height: 140px; height: auto; flex-shrink: 0; background-color: #ffffff; 
             border-bottom: 4px solid #dfe6e9; display: flex; flex-direction: column;
-            padding: 10px 20px; z-index: 10;
+            padding: 12px 20px; z-index: 10;
         }
 
         .header-top-bar {
@@ -43,22 +44,25 @@
         .header-stats .stat-val.lives { color: var(--safe); }
         .header-stats .stat-val.best { color: #e17055; }
         
-        #header-controls { display: flex; gap: 8px; }
+        #header-controls { display: flex; gap: 8px; align-items: center; }
 
         button.action-btn {
             background: var(--primary); color: white; border: none;
-            padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 4px; 
+            padding: 14px 24px; font-size: 16px; cursor: pointer; border-radius: 4px; 
             font-family: 'Roboto Mono', monospace; font-weight: bold;
             text-transform: uppercase; width: 100%; margin-bottom: 10px;
             transition: filter 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 44px;
         }
         button.action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         
         button.small-btn {
             background: #dfe6e9; color: #2d3436; border: 1px solid #b2bec3;
-            padding: 4px 10px; font-size: 11px; cursor: pointer; border-radius: 4px; 
+            padding: 8px 12px; font-size: 11px; cursor: pointer; border-radius: 4px; 
             font-family: 'Roboto Mono', monospace; font-weight: bold; text-transform: uppercase; 
             margin: 0; transition: all 0.2s;
+            min-height: 44px; min-width: 90px;
+            display: inline-flex; align-items: center; justify-content: center;
         }
         button.small-btn:hover { background: #b2bec3; }
         button.small-btn.active-toggle { background: var(--safe); color: white; border-color: var(--safe); }
@@ -279,15 +283,7 @@ const CONFIG = {
 const LORE_DB = {
     patients: [ "John Doe", "Jane Smith", "Alan Turing", "Ada Lovelace", "Grace Hopper", "Richard Roe" ],
     conditions: [ "Acute Pixelitis", "Restless Cursor Syndrome", "Carpal Tunnel Variance", "Chronic Refresh Fatigue", "Elevated Ping Rate", "Tab Hoarding Disorder" ],
-    tutorials: {
-        1: "Aiming basics. Single script objective. Standard colors only.",
-        2: "Powerups and lives explained. Cyan grants Pierce. Purple grants Split.",
-        3: "Multi-color quotas introduced. The Over-dispense penalty is active.",
-        4: "Red hazards introduced. Rainbow Substitution Capsules introduced.",
-        5: "The Break Room and Pharmacy Powers are introduced.",
-        10: "WARNING: High volume shift detected. Procedural prescription patterns active."
-    }
-};
+}; // Tutorials removed. Handled externally by progression.js.
 
 const COLORS = {
     'Blue': 0x0984e3, 'Green': 0x00b894, 'Orange': 0xe17055, 'Yellow': 0xfdcb6e, 
@@ -306,10 +302,12 @@ const CAPSULE_SCHEMA = {
     "Substitution": { hp: 1, type: "powerup", buff: "transmute", visual: "rainbow_pill" } 
 };
 
+const CURRENT_SCHEMA_VERSION = 1;
 let gameState = {};
 
 function resetState() {
     gameState = {
+        schema_version: CURRENT_SCHEMA_VERSION,
         level: 1, currentTolerance: 0, maxTolerance: 0, rxQuota: {},
         isAiming: true, activeTablets: 0, powerupQueue: { split: 0, pierce: 0 },
         activeRounds: { split: 0, pierce: 0 }, lives: 3, score: 0, 
@@ -319,16 +317,16 @@ function resetState() {
 }
 resetState();
 
-
 /**
- * game.js - Pharmacy Breaker v1.0.1
+ * game.js - Pharmacy Breaker v1.0.2
  */
-
 let savedSettings = { mute: true };
 try { 
     let stored = localStorage.getItem('pharmacy_settings');
     if (stored) savedSettings = JSON.parse(stored);
-} catch(e) {}
+} catch(e) {
+    console.warn("Storage unreachable; dropping back to baseline software profile configurations.");
+}
 
 let globalIsMuted = savedSettings.mute;
 window.addEventListener('muteToggled', (e) => { globalIsMuted = e.detail; });
@@ -433,24 +431,44 @@ class MainScene extends Phaser.Scene {
     }
 
     handleSerialization() {
-        let saved = localStorage.getItem('pharmacy_save');
+        let saved = null;
+        try {
+            saved = localStorage.getItem('pharmacy_save');
+        } catch(e) {
+            console.warn("Unable to access store layers for state identification.");
+        }
+
         if (saved) {
             try {
                 let data = JSON.parse(saved);
+                if (!data.state || data.state.schema_version !== CURRENT_SCHEMA_VERSION) {
+                    throw new Error("Outdated storage architecture configuration detected. Clearing state.");
+                }
                 if (data.inProgress) {
-                    gameState = data.state; gameState.lives--;
+                    gameState = structuredClone(data.state); gameState.lives--;
                     if (gameState.lives <= 0) { this.triggerGameOver(); return; } 
                     else { this.showFloatText(300, 400, "SHIFT ABANDONED\n-1 LIFE", COLORS['Red']); playTone(150, 'sawtooth', 0.5); }
-                } else gameState = data.state;
-            } catch(e) { resetState(); }
-        } else resetState();
+                } else {
+                    gameState = structuredClone(data.state);
+                }
+            } catch(e) { 
+                resetState(); 
+            }
+        } else {
+            resetState();
+        }
         
         if(gameState.lives > 0) this.prepareLevelData(gameState.level);
     }
 
     saveState(inProgressFlag) {
-        gameState.inProgress = inProgressFlag;
-        localStorage.setItem('pharmacy_save', JSON.stringify({ state: gameState }));
+        try {
+            gameState.inProgress = inProgressFlag;
+            const payload = structuredClone(gameState);
+            localStorage.setItem('pharmacy_save', JSON.stringify({ state: payload }));
+        } catch(e) {
+            console.error("Failed to commit application state variables downstream:", e);
+        }
     }
 
     prepareLevelData(levelNumber) {
@@ -458,35 +476,48 @@ class MainScene extends Phaser.Scene {
         gameState.targetsHitThisLevel = 0;
         gameState.shotsFiredThisLevel = 0;
         
-        let baseTol = CONFIG.rules.baseTolerance - ((levelNumber - 1) * CONFIG.rules.toleranceDecayPerLevel);
-        gameState.maxTolerance = Math.max(100, baseTol);
+        // Ingest data from external config or fallback to procedural scaling
+        let cfg = typeof SHIFT_CONFIG !== 'undefined' && SHIFT_CONFIG[levelNumber] 
+            ? SHIFT_CONFIG[levelNumber] 
+            : { 
+                tolerance: Math.max(100, 275 - ((levelNumber - 20) * 10)), 
+                primary: Math.min(30, 23 + Math.floor((levelNumber - 20) / 2)), 
+                secondary: Math.min(15, 11 + Math.floor((levelNumber - 20) / 3)), 
+                hazards: 3, 
+                text: "Procedural generation engaged. Survival unlikely." 
+            };
+
+        gameState.maxTolerance = cfg.tolerance;
         if (gameState.activeRelics.includes("high_tolerance")) gameState.maxTolerance *= 1.25;
         gameState.currentTolerance = gameState.maxTolerance;
+        gameState.maxHazards = cfg.hazards || 0;
         
         let pName = Phaser.Math.RND.pick(LORE_DB.patients);
         let condition = Phaser.Math.RND.pick(LORE_DB.conditions);
         
-        // V1.0.1 Critical Fix: Capped target density to prevent infinite loop / array exhaustion on Level 12+
-        let targetCount = Math.min(10 + (levelNumber * 3), 28);
-        
         gameState.rxQuota = {};
         let standardColors = ['Blue', 'Green', 'Orange', 'Yellow'];
         let pColor = Phaser.Math.RND.pick(standardColors);
-        gameState.rxQuota[pColor] = targetCount;
+        gameState.rxQuota[pColor] = cfg.primary;
         
-        if (levelNumber >= 3) {
+        if (cfg.secondary > 0) {
             let sColor = Phaser.Math.RND.pick(standardColors.filter(c => c !== pColor));
-            gameState.rxQuota[sColor] = Math.floor(targetCount / 2);
+            gameState.rxQuota[sColor] = cfg.secondary;
+        }
+        
+        if (levelNumber >= 25) {
+            let tColor = Phaser.Math.RND.pick(standardColors.filter(c => c !== pColor && !gameState.rxQuota[c]));
+            if (tColor) gameState.rxQuota[tColor] = Math.floor(cfg.primary / 3);
         }
 
         let dosage = 1, freq = 1;
-        if (targetCount % 4 === 0) { dosage = 2; freq = 2; }
-        else if (targetCount % 3 === 0) { dosage = 1; freq = 3; }
-        else if (targetCount % 2 === 0) { dosage = 1; freq = 2; }
-        let days = Math.floor(targetCount / (dosage * freq)) || 1;
+        if (cfg.primary % 4 === 0) { dosage = 2; freq = 2; }
+        else if (cfg.primary % 3 === 0) { dosage = 1; freq = 3; }
+        else if (cfg.primary % 2 === 0) { dosage = 1; freq = 2; }
+        let days = Math.floor(cfg.primary / (dosage * freq)) || 1;
         let freqMap = {1: 'once', 2: 'twice', 3: 'three times', 4: 'four times'};
         let titleStr = `Take ${dosage}, ${freqMap[freq] || freq + ' times'} daily for ${days} days.`;
-        let tutText = LORE_DB.tutorials[levelNumber] || (levelNumber >= 10 ? LORE_DB.tutorials[10] : "Standard dispensing protocol applies.");
+        let tutText = cfg.text;
 
         document.getElementById('rx-patient').innerText = `Pt: ${pName} (${condition})`;
         document.getElementById('rx-title').innerText = `Rx: ${titleStr}`;
@@ -567,6 +598,7 @@ class MainScene extends Phaser.Scene {
             }
         }
 
+        let redCount = 0;
         availablePositions.forEach(pos => {
             let rand = Phaser.Math.RND.frac();
             let typeKey = 'Standard', tex = 'Blue', color = 'Blue';
@@ -577,9 +609,14 @@ class MainScene extends Phaser.Scene {
                 else if (rand < 0.25) { typeKey = '1-Up'; tex = '1-Up'; color = 'BrightGreen'; }
             }
 
-            if (gameState.level >= 4 && typeKey === 'Standard') {
-                if (rand < 0.40) { typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red'; }
-                else if (rand < 0.50) { typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; }
+            if (typeKey === 'Standard') {
+                let spawnChance = gameState.maxHazards > 0 ? 0.12 + (gameState.level * 0.01) : 0;
+                if (redCount < gameState.maxHazards && pos.r < 6 && Phaser.Math.RND.frac() < spawnChance) {
+                    typeKey = 'Explosive'; tex = 'Explosive'; color = 'Red';
+                    redCount++;
+                } else if (gameState.level >= 4 && rand < 0.10) { 
+                    typeKey = 'Substitution'; tex = 'Substitution'; color = 'Rainbow'; 
+                }
             }
 
             if (typeKey === 'Standard' && rand > 0.8) { 
