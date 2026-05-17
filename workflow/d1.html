@@ -465,6 +465,7 @@
                         const safePass = this.loginPass.trim();
                         
                         const hash = await this.hashStr(safePass);
+                        console.warn(`[AUTH SETUP] The real SHA-256 hash for your password is: ${hash}`);
                         const token = `${safeUser}:${hash}`;
                         
                         const res = await fetch(this.WORKER_URL, {
