@@ -35,6 +35,9 @@
             50% { opacity: 0.5; }
         }
         .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* Hide elements before Alpine initializes */
+        [x-cloak] { display: none !important; }
     </style>
 
     <!-- Alpine.js Core for Reactive State Management -->
@@ -50,7 +53,18 @@
             Back to Dashboard
         </a>
         
-        <div class="flex items-center">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 border-r border-gray-300 dark:border-gray-700 pr-4">
+                <template x-if="!currentUser || currentUser.role === 'read'">
+                    <button @click="loginModalOpen = true" class="text-sm font-bold text-sterling-green hover:text-green-700 transition-colors">Admin Login</button>
+                </template>
+                <template x-if="currentUser && currentUser.role !== 'read'">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase tracking-wider" x-text="currentUser.role"></span>
+                        <button @click="logout()" class="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors">Logout</button>
+                    </div>
+                </template>
+            </div>
             <span class="mr-2 text-sm text-gray-500 dark:text-gray-400">Dark Mode</span>
             <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="toggle" id="darkModeToggle" @change="toggleDarkMode" :checked="darkMode" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 z-10 top-0 bottom-0 m-auto right-4"/>
@@ -93,7 +107,7 @@
                         <button @click="copyForTeams" class="text-sm font-medium text-gray-500 hover:text-sterling-green transition-colors flex items-center gap-1 bg-gray-50 hover:bg-green-50 dark:bg-gray-700 dark:hover:bg-green-900/30 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-600 dark:hover:border-green-800" title="Copy format for MS Teams">
                             <span x-html="copyBtnText"></span>
                         </button>
-                        <button @click="resetLunchStatus" class="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1 bg-gray-50 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/30 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-600 dark:hover:border-red-800" title="Clear all Lunch/Gone statuses">
+                        <button x-show="currentUser.role !== 'read'" @click="resetLunchStatus" class="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1 bg-gray-50 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/30 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-600 dark:hover:border-red-800" title="Clear all Lunch/Gone statuses">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             Reset
                         </button>
@@ -159,7 +173,7 @@
             </div>
 
             <!-- Import Parser Panel -->
-            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
+            <div x-cloak x-show="currentUser.role !== 'read'" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
                 <div @click="parserOpen = !parserOpen" class="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 dark:text-blue-400">
@@ -238,7 +252,80 @@
                 </div>
             </div>
 
+            <!-- Admin Settings Ledger -->
+            <div x-cloak x-show="currentUser.role === 'admin'" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4 mb-8">
+                <div @click="adminPanelOpen = !adminPanelOpen" class="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-bold text-red-600 dark:text-red-400">Command Center</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage Staff and User Access (Admin Only)</p>
+                        </div>
+                    </div>
+                    <svg :class="adminPanelOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+                <div x-show="adminPanelOpen" class="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <button @click="adminTab = 'staff'" :class="adminTab === 'staff' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500'" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors">Staff Ledger</button>
+                        <button @click="adminTab = 'users'" :class="adminTab === 'users' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500'" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors">Access Controls</button>
+                    </div>
+                    
+                    <div x-show="adminTab === 'staff'">
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" x-model="newStaffName" placeholder="New Pharmacist Name" class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                            <button @click="adminAction('ADD_STAFF', { display_name: newStaffName })" class="bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-2 rounded text-sm font-bold disabled:opacity-50" :disabled="!newStaffName || isSyncing">Add</button>
+                        </div>
+                        <div class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                            <template x-for="person in staff" :key="person.id">
+                                <div class="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                                    <span class="text-sm font-medium" x-text="person.display_name"></span>
+                                    <button @click="adminAction('TOGGLE_STAFF', { id: person.id, is_active: 0 })" class="text-xs text-red-500 hover:text-red-700 font-bold">Deactivate</button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div x-show="adminTab === 'users'">
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <input type="text" x-model="newUser" placeholder="Username" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                            <input type="password" x-model="newPass" placeholder="Password" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                            <select x-model="newRole" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                                <option value="read">Read Only</option>
+                                <option value="write">Write</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <button @click="adminAction('ADD_USER', { username: newUser, password: newPass, role: newRole })" class="w-full bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-2 rounded text-sm font-bold disabled:opacity-50" :disabled="!newUser || !newPass || isSyncing">Provision Access</button>
+                    </div>
+                    <div x-show="adminMsg" class="mt-3 text-sm font-medium text-center text-red-500" x-text="adminMsg"></div>
+                </div>
+            </div>
+
         </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div x-cloak x-show="loginModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div @click.away="loginModalOpen = false" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">System Access</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Username</label>
+                    <input type="text" x-model="loginUser" @keydown.enter="processLogin" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-sterling-green outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Password</label>
+                    <input type="password" x-model="loginPass" @keydown.enter="processLogin" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-sterling-green outline-none">
+                </div>
+                <button @click="processLogin" :disabled="loginLoading || !loginUser || !loginPass" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center mt-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span x-show="!loginLoading">Authenticate</span>
+                    <span x-show="loginLoading" class="animate-pulse">Verifying...</span>
+                </button>
+                <div x-show="loginError" class="text-red-500 text-xs font-bold text-center mt-2" x-text="loginError"></div>
+            </div>
+        </div>
     </div>
 
     <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full">
@@ -249,45 +336,132 @@
         function workflowApp() {
             return {
                 WORKER_URL: 'https://sspd1.askozicki.workers.dev/',
-                AUTH_KEY: 'admin:1312', // WARNING: See Security Notice for Step 4 Testing
+                
+                // Active Session State
+                authKey: localStorage.getItem('ssp-auth') || '',
+                currentUser: JSON.parse(localStorage.getItem('ssp-user')) || { role: 'read' },
+                
+                // UI Toggles & Input Bindings
                 darkMode: false,
                 isSyncing: false,
                 isDragging: false,
                 parserOpen: false,
                 lunchOpen: false,
+                loginModalOpen: false,
+                adminPanelOpen: false,
+                adminTab: 'staff',
+                
+                // Form Data
                 rawShiftsInput: '',
                 parserMessage: '',
                 parserMsgClass: '',
+                loginUser: '',
+                loginPass: '',
+                loginError: '',
+                loginLoading: false,
+                newStaffName: '',
+                newUser: '',
+                newPass: '',
+                newRole: 'read',
+                adminMsg: '',
+                
                 copyBtnText: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`,
                 
-                // Unified Framework Application State
+                // Master Data Objects
                 stations: [],
                 staff: [],
                 boardState: {
                     date: new Date().toLocaleDateString(),
-                    statusDate: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD
+                    statusDate: new Date().toLocaleDateString('en-CA'),
                     shifts: [],
                     locations: {},
                     lunchStatus: {}
                 },
 
                 async init() {
-                    // Dark mode FOUC boundary resolution
-                    this.darkMode = localStorage.getItem('ssp-theme') === 'dark' || 
-                        (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    this.darkMode = localStorage.getItem('ssp-theme') === 'dark' || (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     if (this.darkMode) document.documentElement.classList.add('dark');
 
-                    // Primary Database Initialization Fetch
                     await this.loadRemoteData();
 
-                    // Real-time server polling synchronization
                     setInterval(async () => {
-                        if (!this.isDragging) {
-                            await this.loadRemoteData();
-                        }
+                        if (!this.isDragging) await this.loadRemoteData();
                     }, 10000);
                 },
 
+                // --- CRYPTO & AUTH LOGIC ---
+                async hashStr(str) {
+                    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+                    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                },
+
+                async processLogin() {
+                    this.loginLoading = true;
+                    this.loginError = '';
+                    try {
+                        const hash = await this.hashStr(this.loginPass);
+                        const token = `${this.loginUser}:${hash}`;
+                        
+                        const res = await fetch(this.WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-SSP-Auth': token },
+                            body: JSON.stringify({ action: 'VERIFY_AUTH' })
+                        });
+                        
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || "Authentication failed.");
+                        
+                        this.authKey = token;
+                        this.currentUser = { username: this.loginUser, role: data.role };
+                        localStorage.setItem('ssp-auth', token);
+                        localStorage.setItem('ssp-user', JSON.stringify(this.currentUser));
+                        
+                        this.loginModalOpen = false;
+                        this.loginPass = '';
+                    } catch(e) {
+                        this.loginError = e.message;
+                    } finally {
+                        this.loginLoading = false;
+                    }
+                },
+
+                logout() {
+                    this.authKey = '';
+                    this.currentUser = { role: 'read' };
+                    localStorage.removeItem('ssp-auth');
+                    localStorage.removeItem('ssp-user');
+                    this.adminPanelOpen = false;
+                },
+
+                // --- ADMIN CRUD DISPATCHER ---
+                async adminAction(actionType, payloadObj) {
+                    this.isSyncing = true;
+                    this.adminMsg = '';
+                    try {
+                        if (payloadObj.password) {
+                            payloadObj.password = await this.hashStr(payloadObj.password);
+                        }
+                        const res = await fetch(this.WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-SSP-Auth': this.authKey },
+                            body: JSON.stringify({ action: actionType, ...payloadObj })
+                        });
+                        const data = await res.json();
+                        if(!res.ok) throw new Error(data.error || "Action failed.");
+                        
+                        this.adminMsg = "Success: " + data.message;
+                        if (actionType === 'ADD_STAFF') { this.newStaffName = ''; this.loadRemoteData(); }
+                        if (actionType === 'TOGGLE_STAFF') this.loadRemoteData();
+                        if (actionType === 'ADD_USER') { this.newUser = ''; this.newPass = ''; }
+                    } catch(e) {
+                        this.adminMsg = e.message;
+                    } finally {
+                        this.isSyncing = false;
+                        setTimeout(() => { this.adminMsg = ''; }, 3000);
+                    }
+                },
+
+                // --- RENDER HELPERS ---
                 toggleDarkMode() {
                     this.darkMode = !this.darkMode;
                     if (this.darkMode) {
@@ -302,20 +476,16 @@
                 async loadRemoteData() {
                     try {
                         const response = await fetch(this.WORKER_URL);
-                        if (!response.ok) throw new Error('Failed to capture active workstation blueprint.');
+                        if (!response.ok) throw new Error('Network fault.');
                         const result = await response.json();
                         
                         if (result && result.status === 'success') {
                             this.stations = result.data.stations;
                             this.staff = result.data.staff;
-                            
-                            // Prevent null references if DB shifts table is completely empty on fresh setup
-                            if (!this.boardState.shifts || this.boardState.shifts.length === 0) {
-                                this.generateEmptyBoard();
-                            }
+                            if (!this.boardState.shifts || this.boardState.shifts.length === 0) this.generateEmptyBoard();
                         }
                     } catch (error) {
-                        console.error("D1 Pipeline failure:", error);
+                        console.error(error);
                     }
                 },
 
@@ -326,13 +496,8 @@
                     });
                 },
 
-                getStaffListNames() {
-                    return this.staff.map(s => s.display_name).join('\n');
-                },
-
-                getShiftsByLocation(locationLabel) {
-                    return this.boardState.shifts.filter(s => (this.boardState.locations[s.name] || 'Off') === locationLabel);
-                },
+                getStaffListNames() { return this.staff.map(s => s.display_name).join('\n'); },
+                getShiftsByLocation(locationLabel) { return this.boardState.shifts.filter(s => (this.boardState.locations[s.name] || 'Off') === locationLabel); },
 
                 getDisplayTask(shift) {
                     const status = this.boardState.lunchStatus[shift.name];
@@ -342,7 +507,6 @@
                 },
 
                 getColumnStyle(color) {
-                    // Safe mapping for Tailwind JIT 
                     const map = {
                         'blue': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800/30',
                         'purple': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800/30',
@@ -356,12 +520,10 @@
                     const status = this.boardState.lunchStatus[name];
                     if (status === 'lunch') return 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 text-gray-900 dark:text-gray-100 shadow-md transform scale-[1.02]';
                     if (status === 'gone') return 'bg-gray-100 dark:bg-gray-800/40 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-60';
-                    
                     if (loc === 'Off') return 'bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 shadow-sm border-l-4 border-l-gray-400';
                     
                     const activeStation = this.stations.find(s => s.label === loc);
                     const color = activeStation ? activeStation.theme_color : 'blue';
-                    
                     const borderMap = {
                         'blue': 'bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 text-gray-800 dark:text-gray-100 shadow-sm border-l-4 border-l-blue-500',
                         'purple': 'bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 text-gray-800 dark:text-gray-100 shadow-sm border-l-4 border-l-purple-500',
@@ -380,25 +542,24 @@
                     return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300';
                 },
 
+                // --- DEFENSIVE MUTATION LOGIC ---
                 dragStart(event, name) {
+                    if (this.currentUser.role === 'read') return;
                     this.isDragging = true;
                     event.dataTransfer.setData("text/plain", name);
                 },
-
-                dragEnd() {
-                    this.isDragging = false;
-                },
+                dragEnd() { this.isDragging = false; },
 
                 async dropCard(event, targetLoc) {
+                    if (this.currentUser.role === 'read') return;
                     const name = event.dataTransfer.getData("text/plain");
                     if (!name) return;
-                    
-                    // Reactive Optimistic UI Update
                     this.boardState.locations[name] = targetLoc;
                     await this.saveRemoteData();
                 },
 
                 async toggleLunchStatus(name, event) {
+                    if (this.currentUser.role === 'read') return;
                     if (window.getSelection().toString().length > 0) return;
                     
                     const current = this.boardState.lunchStatus[name];
@@ -410,7 +571,7 @@
                 },
 
                 async resetLunchStatus() {
-                    if (confirm('Clear lunch arrays across all connected monitors?')) {
+                    if (confirm('Clear lunch arrays?')) {
                         this.boardState.lunchStatus = {};
                         await this.saveRemoteData();
                     }
@@ -419,20 +580,15 @@
                 async saveRemoteData() {
                     if (this.boardState.shifts.length === 0) return;
                     this.isSyncing = true;
-                    
                     try {
                         const response = await fetch(this.WORKER_URL, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-SSP-Auth': this.AUTH_KEY
-                            },
-                            body: JSON.stringify(this.boardState)
+                            headers: { 'Content-Type': 'application/json', 'X-SSP-Auth': this.authKey },
+                            body: JSON.stringify({ action: 'SYNC_BOARD', ...this.boardState })
                         });
-                        if (!response.ok) throw new Error('Database transaction denied by Gatekeeper middleware.');
+                        if (!response.ok) throw new Error('Gatekeeper denial.');
                     } catch (error) {
                         console.error(error);
-                        alert("Sync error encountered. You might not have write access.");
                     } finally {
                         setTimeout(() => { this.isSyncing = false; }, 400);
                     }
@@ -440,8 +596,7 @@
 
                 async parseAndUpdateSchedule() {
                     try {
-                        if (!this.rawShiftsInput.trim()) throw new Error("Input string dry. Paste shift rows.");
-                        
+                        if (!this.rawShiftsInput.trim()) throw new Error("Input string dry.");
                         const lines = this.rawShiftsInput.split('\n').map(l => l.trim());
                         const freshShifts = [];
                         const freshLocations = {};
@@ -451,21 +606,13 @@
                             if (!rawRow) return;
 
                             const columns = rawRow.split('\t').map(c => c.trim()).filter(c => c !== '');
-                            let time = '';
-                            let task = '';
-                            let isOff = false;
+                            let time = '', task = '', isOff = false;
 
-                            if (columns.length >= 2) {
-                                time = columns[0];
-                                task = columns.slice(1).join(' ');
-                            } else if (columns.length === 1) {
-                                task = columns[0];
-                                isOff = true;
-                            }
+                            if (columns.length >= 2) { time = columns[0]; task = columns.slice(1).join(' '); } 
+                            else if (columns.length === 1) { task = columns[0]; isOff = true; }
 
                             let calculatedLoc = 'CC';
                             const upperTask = task.toUpperCase();
-
                             if (isOff || !task || upperTask.includes('OFF')) calculatedLoc = 'Off';
                             else if (upperTask.includes('LTC')) calculatedLoc = 'LTC';
                             else if (upperTask.includes('AM PHARM') || upperTask.includes('AM RX') || upperTask.includes('AM')) calculatedLoc = 'Rx';
@@ -479,18 +626,16 @@
                         this.boardState.lunchStatus = {};
                         this.boardState.statusDate = new Date().toLocaleDateString('en-CA');
 
-                        this.parserMessage = "Synchronizing batch ledger records with D1 engine...";
+                        this.parserMessage = "Syncing with D1...";
                         this.parserMsgClass = "text-blue-600 dark:text-blue-400 block";
-
                         await this.saveRemoteData();
 
-                        this.parserMessage = "Relational sync complete!";
+                        this.parserMessage = "Sync complete!";
                         this.parserMsgClass = "text-green-600 dark:text-green-400 block";
                         this.rawShiftsInput = '';
                         setTimeout(() => { this.parserOpen = false; this.parserMessage = ''; }, 1200);
-
                     } catch (err) {
-                        this.parserMessage = "Parsing validation failure: " + err.message;
+                        this.parserMessage = "Failure: " + err.message;
                         this.parserMsgClass = "text-red-600 dark:text-red-400 block";
                     }
                 },
@@ -510,9 +655,7 @@
                                 this.copyBtnText = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`;
                             }, 2000);
                         });
-                    } catch (e) {
-                        alert("Clipboard write failed.");
-                    }
+                    } catch (e) { alert("Clipboard write failed."); }
                 }
             }
         }
