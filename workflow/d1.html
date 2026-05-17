@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Tracker | Sterling Specialty</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M 15 75 A 35 35 0 0 1 85 75%22 fill=%22none%22 stroke=%22%2316a34a%22 stroke-width=%2212%22 stroke-linecap=%22round%22/><circle cx=%2250%22 cy=%2275%22 r=%2210%22 fill=%22%2316a34a%22/><line x1=%2250%22 y1=%2275%22 x2=%2270%22 y2=%2245%22 stroke=%22%2316a34a%22 stroke-width=%228%22 stroke-linecap=%22round%22/></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class' 
+        }
+    </script>
+    <script>
+        // Strictly adhering to SSP Dark Mode Rules for FOUC prevention
+        if (localStorage.getItem('ssp-theme') === 'dark') { 
+            document.documentElement.classList.add('dark'); 
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .sterling-green { color: #16a34a; }
+        .bg-sterling-green { background-color: #16a34a; }
+        
+        /* Custom Toggle Pill Styling */
+        .toggle-checkbox:checked { right: 0; border-color: #16a34a; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; }
+        
+        /* Pulse Animation for Live Sync */
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+
+    <!-- Alpine.js Core for Reactive State Management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body x-data="workflowApp()" x-init="init()" class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <div class="w-full p-4 flex justify-between items-center">
+        <a href="../index.html" class="flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors text-sm font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Dashboard
+        </a>
+        
+        <div class="flex items-center">
+            <span class="mr-2 text-sm text-gray-500 dark:text-gray-400">Dark Mode</span>
+            <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="toggle" id="darkModeToggle" @change="toggleDarkMode" :checked="darkMode" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 z-10 top-0 bottom-0 m-auto right-4"/>
+                <label for="darkModeToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center px-4 w-full">
+        
+        <header class="mb-10 mt-4 text-center w-full">
+            <h1 class="text-3xl font-bold tracking-tight mb-2">Workflow Tracker</h1>
+            <p class="text-gray-500 dark:text-gray-400 font-medium text-sm">Sterling Specialty Pharmacy Internal Tool</p>
+        </header>
+
+        <main class="w-full max-w-6xl flex flex-col items-center gap-8">
+            
+            <!-- Main Application Board -->
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full p-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 border-b border-gray-200 dark:border-gray-700 pb-4 gap-4 md:gap-0">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg mr-4 relative">
+                            <svg class="w-6 h-6 text-sterling-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            <span x-show="isSyncing" class="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold flex items-center gap-2">
+                                Rph Schedule 
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">D1 Relational SQL</span>
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">Generated: <span x-text="boardState.date || 'No Data'"></span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="copyForTeams" class="text-sm font-medium text-gray-500 hover:text-sterling-green transition-colors flex items-center gap-1 bg-gray-50 hover:bg-green-50 dark:bg-gray-700 dark:hover:bg-green-900/30 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-600 dark:hover:border-green-800" title="Copy format for MS Teams">
+                            <span x-html="copyBtnText"></span>
+                        </button>
+                        <button @click="resetLunchStatus" class="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1 bg-gray-50 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/30 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-600 dark:hover:border-red-800" title="Clear all Lunch/Gone statuses">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Dynamic Columns Managed completely by Database Config -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-4">
+                    <template x-for="station in stations.filter(s => s.label !== 'Off')" :key="station.id">
+                        <div :class="getColumnStyle(station.theme_color)"
+                             @drop="dropCard($event, station.label)" @dragover.prevent>
+                            <h3 :class="`text-sm font-bold mb-3 uppercase tracking-wider text-center text-${station.theme_color}-600 dark:text-${station.theme_color}-400`" x-text="station.label === 'Rx' ? 'Pharmacy' : (station.label === 'CC' ? 'Call Center' : station.label)"></h3>
+                            <div class="flex flex-col gap-2 flex-1">
+                                <template x-for="shift in getShiftsByLocation(station.label)" :key="shift.name">
+                                    <div @click="toggleLunchStatus(shift.name, $event)" 
+                                         draggable="true"
+                                         @dragstart="dragStart($event, shift.name)"
+                                         @dragend="dragEnd"
+                                         :class="getCardStyle(shift.name, station.label)"
+                                         class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-full">
+                                        <div class="flex items-center justify-between mb-1 pointer-events-none">
+                                            <span class="font-bold text-sm truncate select-none flex items-center">
+                                                <span x-text="shift.name"></span>
+                                                <template x-if="shift.task.toUpperCase().includes('FLOAT')">
+                                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 ml-1 uppercase tracking-wide border border-pink-200 dark:border-pink-800/50">Float</span>
+                                                </template>
+                                            </span>
+                                            <span x-show="shift.time" :class="getTimeBadgeStyle(shift.time)" class="text-[10px] font-semibold px-2 py-0.5 rounded transition-colors" x-text="shift.time"></span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-300 whitespace-normal pointer-events-none leading-tight" x-text="getDisplayTask(shift)"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- Persistent Drop Zone for Off/Not Scheduled Statuses -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[100px] transition-colors w-full" 
+                     @drop="dropCard($event, 'Off')" @dragover.prevent>
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider text-center">Off / Not Scheduled</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="shift in getShiftsByLocation('Off')" :key="shift.name">
+                            <div @click="toggleLunchStatus(shift.name, $event)" 
+                                 draggable="true"
+                                 @dragstart="dragStart($event, shift.name)"
+                                 @dragend="dragEnd"
+                                 :class="getCardStyle(shift.name, 'Off')"
+                                 class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-48">
+                                <div class="flex items-center justify-between mb-1 pointer-events-none">
+                                    <span class="font-bold text-sm truncate select-none flex items-center" x-text="shift.name"></span>
+                                    <span x-show="shift.time" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 transition-colors" x-text="shift.time"></span>
+                                </div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500 whitespace-normal pointer-events-none leading-tight" x-text="getDisplayTask(shift)"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div x-show="boardState.shifts.length === 0" class="w-full text-center py-8 text-gray-500 dark:text-gray-400">
+                    No schedule data found. Use the parser below to update today's workflow.
+                </div>
+            </div>
+
+            <!-- Import Parser Panel -->
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
+                <div @click="parserOpen = !parserOpen" class="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 dark:text-blue-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-bold">Import Daily Workflow</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Paste spreadsheet columns to parse and generate the board.</p>
+                        </div>
+                    </div>
+                    <svg :class="parserOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+                
+                <div x-show="parserOpen" class="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Pharmacists (Synced from Database)</label>
+                            <textarea readonly :value="getStaffListNames()" class="w-full h-40 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-500 focus:outline-none text-sm whitespace-pre cursor-not-allowed select-none" spellcheck="false"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Today's Columns</label>
+                            <textarea x-model="rawShiftsInput" class="w-full h-40 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-600 transition-colors placeholder-gray-400 dark:placeholder-gray-500 text-sm whitespace-pre" placeholder="Paste the two columns here..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <button @click="parseAndUpdateSchedule()" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        Generate & Sync to Relational Database
+                    </button>
+                    <div x-show="parserMessage" :class="parserMsgClass" class="mt-3 text-sm text-center font-medium" x-text="parserMessage"></div>
+                </div>
+            </div>
+
+            <!-- Lunch Guide Panel -->
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
+                <div @click="lunchOpen = !lunchOpen" class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-lg text-orange-600 dark:text-orange-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-bold">Lunch Schedule Reference</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Suggested times based on shift start.</p>
+                        </div>
+                    </div>
+                    <svg :class="lunchOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                
+                <div x-show="lunchOpen" class="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">6A Start</p>
+                            <p class="text-sm font-bold text-sterling-green">11:00 — 11:30</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">7A Start</p>
+                            <p class="text-sm font-bold text-sterling-green">12:00 — 12:30</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">9A (AM)</p>
+                            <p class="text-sm font-bold text-sterling-green">12:45 — 1:00</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">9A (PM)</p>
+                            <p class="text-sm font-bold text-sterling-green">1:15 — 2:15</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center col-span-2 md:col-span-1">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">12:30P Start</p>
+                            <p class="text-sm font-bold text-sterling-green">5:00 — 5:30</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full">
+        <p>&copy; <span x-text="new Date().getFullYear()"></span> Sterling Specialty Pharmacy. Internal Use Only.</p>
+    </footer>
+
+    <script>
+        function workflowApp() {
+            return {
+                WORKER_URL: 'https://sspd1.askozicki.workers.dev/',
+                AUTH_KEY: 'admin:1312', // WARNING: See Security Notice for Step 4 Testing
+                darkMode: false,
+                isSyncing: false,
+                isDragging: false,
+                parserOpen: false,
+                lunchOpen: false,
+                rawShiftsInput: '',
+                parserMessage: '',
+                parserMsgClass: '',
+                copyBtnText: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`,
+                
+                // Unified Framework Application State
+                stations: [],
+                staff: [],
+                boardState: {
+                    date: new Date().toLocaleDateString(),
+                    statusDate: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD
+                    shifts: [],
+                    locations: {},
+                    lunchStatus: {}
+                },
+
+                async init() {
+                    // Dark mode FOUC boundary resolution
+                    this.darkMode = localStorage.getItem('ssp-theme') === 'dark' || 
+                        (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+
+                    // Primary Database Initialization Fetch
+                    await this.loadRemoteData();
+
+                    // Real-time server polling synchronization
+                    setInterval(async () => {
+                        if (!this.isDragging) {
+                            await this.loadRemoteData();
+                        }
+                    }, 10000);
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('ssp-theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('ssp-theme', 'light');
+                    }
+                },
+
+                async loadRemoteData() {
+                    try {
+                        const response = await fetch(this.WORKER_URL);
+                        if (!response.ok) throw new Error('Failed to capture active workstation blueprint.');
+                        const result = await response.json();
+                        
+                        if (result && result.status === 'success') {
+                            this.stations = result.data.stations;
+                            this.staff = result.data.staff;
+                            
+                            // Prevent null references if DB shifts table is completely empty on fresh setup
+                            if (!this.boardState.shifts || this.boardState.shifts.length === 0) {
+                                this.generateEmptyBoard();
+                            }
+                        }
+                    } catch (error) {
+                        console.error("D1 Pipeline failure:", error);
+                    }
+                },
+
+                generateEmptyBoard() {
+                    this.boardState.shifts = [];
+                    this.staff.forEach(person => {
+                        this.boardState.locations[person.display_name] = 'Off';
+                    });
+                },
+
+                getStaffListNames() {
+                    return this.staff.map(s => s.display_name).join('\n');
+                },
+
+                getShiftsByLocation(locationLabel) {
+                    return this.boardState.shifts.filter(s => (this.boardState.locations[s.name] || 'Off') === locationLabel);
+                },
+
+                getDisplayTask(shift) {
+                    const status = this.boardState.lunchStatus[shift.name];
+                    if (status === 'lunch') return '🥪 ' + shift.task;
+                    if (status === 'gone') return '👋 ' + shift.task;
+                    return shift.task;
+                },
+
+                getColumnStyle(color) {
+                    // Safe mapping for Tailwind JIT 
+                    const map = {
+                        'blue': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800/30',
+                        'purple': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800/30',
+                        'emerald': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30',
+                        'gray': 'p-3 rounded-lg border min-h-[200px] flex flex-col transition-colors bg-gray-50 dark:bg-gray-900/10 border-gray-200 dark:border-gray-800/30'
+                    };
+                    return map[color] || map['blue'];
+                },
+
+                getCardStyle(name, loc) {
+                    const status = this.boardState.lunchStatus[name];
+                    if (status === 'lunch') return 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 text-gray-900 dark:text-gray-100 shadow-md transform scale-[1.02]';
+                    if (status === 'gone') return 'bg-gray-100 dark:bg-gray-800/40 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-60';
+                    
+                    if (loc === 'Off') return 'bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 shadow-sm border-l-4 border-l-gray-400';
+                    
+                    const activeStation = this.stations.find(s => s.label === loc);
+                    const color = activeStation ? activeStation.theme_color : 'blue';
+                    
+                    const borderMap = {
+                        'blue': 'bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 text-gray-800 dark:text-gray-100 shadow-sm border-l-4 border-l-blue-500',
+                        'purple': 'bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 text-gray-800 dark:text-gray-100 shadow-sm border-l-4 border-l-purple-500',
+                        'emerald': 'bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 text-gray-800 dark:text-gray-100 shadow-sm border-l-4 border-l-emerald-500',
+                        'gray': 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 shadow-sm border-l-4 border-l-gray-400'
+                    };
+                    return borderMap[color] || borderMap['blue'];
+                },
+
+                getTimeBadgeStyle(timeString) {
+                    const timeMatch = timeString.match(/(\d{1,2})/);
+                    if (!timeMatch) return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+                    const hour = parseInt(timeMatch[1], 10);
+                    if (hour === 6) return 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300';
+                    if (hour === 7) return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300';
+                    return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300';
+                },
+
+                dragStart(event, name) {
+                    this.isDragging = true;
+                    event.dataTransfer.setData("text/plain", name);
+                },
+
+                dragEnd() {
+                    this.isDragging = false;
+                },
+
+                async dropCard(event, targetLoc) {
+                    const name = event.dataTransfer.getData("text/plain");
+                    if (!name) return;
+                    
+                    // Reactive Optimistic UI Update
+                    this.boardState.locations[name] = targetLoc;
+                    await this.saveRemoteData();
+                },
+
+                async toggleLunchStatus(name, event) {
+                    if (window.getSelection().toString().length > 0) return;
+                    
+                    const current = this.boardState.lunchStatus[name];
+                    if (!current) this.boardState.lunchStatus[name] = 'lunch';
+                    else if (current === 'lunch') this.boardState.lunchStatus[name] = 'gone';
+                    else delete this.boardState.lunchStatus[name];
+
+                    await this.saveRemoteData();
+                },
+
+                async resetLunchStatus() {
+                    if (confirm('Clear lunch arrays across all connected monitors?')) {
+                        this.boardState.lunchStatus = {};
+                        await this.saveRemoteData();
+                    }
+                },
+
+                async saveRemoteData() {
+                    if (this.boardState.shifts.length === 0) return;
+                    this.isSyncing = true;
+                    
+                    try {
+                        const response = await fetch(this.WORKER_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-SSP-Auth': this.AUTH_KEY
+                            },
+                            body: JSON.stringify(this.boardState)
+                        });
+                        if (!response.ok) throw new Error('Database transaction denied by Gatekeeper middleware.');
+                    } catch (error) {
+                        console.error(error);
+                        alert("Sync error encountered. You might not have write access.");
+                    } finally {
+                        setTimeout(() => { this.isSyncing = false; }, 400);
+                    }
+                },
+
+                async parseAndUpdateSchedule() {
+                    try {
+                        if (!this.rawShiftsInput.trim()) throw new Error("Input string dry. Paste shift rows.");
+                        
+                        const lines = this.rawShiftsInput.split('\n').map(l => l.trim());
+                        const freshShifts = [];
+                        const freshLocations = {};
+
+                        this.staff.forEach((member, index) => {
+                            const rawRow = lines[index] || '';
+                            if (!rawRow) return;
+
+                            const columns = rawRow.split('\t').map(c => c.trim()).filter(c => c !== '');
+                            let time = '';
+                            let task = '';
+                            let isOff = false;
+
+                            if (columns.length >= 2) {
+                                time = columns[0];
+                                task = columns.slice(1).join(' ');
+                            } else if (columns.length === 1) {
+                                task = columns[0];
+                                isOff = true;
+                            }
+
+                            let calculatedLoc = 'CC';
+                            const upperTask = task.toUpperCase();
+
+                            if (isOff || !task || upperTask.includes('OFF')) calculatedLoc = 'Off';
+                            else if (upperTask.includes('LTC')) calculatedLoc = 'LTC';
+                            else if (upperTask.includes('AM PHARM') || upperTask.includes('AM RX') || upperTask.includes('AM')) calculatedLoc = 'Rx';
+
+                            freshLocations[member.display_name] = calculatedLoc;
+                            freshShifts.push({ name: member.display_name, time, task });
+                        });
+
+                        this.boardState.shifts = freshShifts;
+                        this.boardState.locations = freshLocations;
+                        this.boardState.lunchStatus = {};
+                        this.boardState.statusDate = new Date().toLocaleDateString('en-CA');
+
+                        this.parserMessage = "Synchronizing batch ledger records with D1 engine...";
+                        this.parserMsgClass = "text-blue-600 dark:text-blue-400 block";
+
+                        await this.saveRemoteData();
+
+                        this.parserMessage = "Relational sync complete!";
+                        this.parserMsgClass = "text-green-600 dark:text-green-400 block";
+                        this.rawShiftsInput = '';
+                        setTimeout(() => { this.parserOpen = false; this.parserMessage = ''; }, 1200);
+
+                    } catch (err) {
+                        this.parserMessage = "Parsing validation failure: " + err.message;
+                        this.parserMsgClass = "text-red-600 dark:text-red-400 block";
+                    }
+                },
+
+                copyForTeams() {
+                    try {
+                        if (this.boardState.shifts.length === 0) return alert('No data mapped.');
+                        let text = '';
+                        this.boardState.shifts.forEach(shift => {
+                            const loc = this.boardState.locations[shift.name] || 'Off';
+                            text += loc === 'Off' ? `${shift.name} - ${shift.task}\n` : `${shift.name} [${loc}] - ${shift.time ? shift.time + ' | ' : ''}${shift.task}\n`;
+                        });
+
+                        navigator.clipboard.writeText(text.trim()).then(() => {
+                            this.copyBtnText = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Copied!`;
+                            setTimeout(() => {
+                                this.copyBtnText = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`;
+                            }, 2000);
+                        });
+                    } catch (e) {
+                        alert("Clipboard write failed.");
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
