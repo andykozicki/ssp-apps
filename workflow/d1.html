@@ -21,7 +21,7 @@
     </script>
     
     <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; overflow-x: hidden; }
         .sterling-green { color: #16a34a; }
         .bg-sterling-green { background-color: #16a34a; }
         
@@ -43,9 +43,9 @@
     <!-- Alpine.js Core for Reactive State Management -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body x-data="workflowApp()" x-init="init()" class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
+<body x-data="workflowApp()" x-init="init()" @keydown.escape.window="closeAllModals()" class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
-    <div class="w-full p-4 flex justify-between items-center">
+    <div class="w-full p-4 flex justify-between items-center relative z-10">
         <a href="../index.html" class="flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -54,18 +54,30 @@
         </a>
         
         <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 border-r border-gray-300 dark:border-gray-700 pr-4">
+            <!-- Identity & Access Header -->
+            <div class="flex items-center gap-3 border-r border-gray-300 dark:border-gray-700 pr-4">
                 <template x-if="!currentUser || currentUser.role === 'read'">
                     <button @click="loginModalOpen = true" class="text-sm font-bold text-sterling-green hover:text-green-700 transition-colors">Admin Login</button>
                 </template>
                 <template x-if="currentUser && currentUser.role !== 'read'">
                     <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase tracking-wider" x-text="currentUser.role"></span>
-                        <button @click="logout()" class="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors">Logout</button>
+                        <span class="text-sm font-bold hidden sm:inline" x-text="currentUser.username"></span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase tracking-wider shadow-inner" x-text="currentUser.role"></span>
+                        
+                        <template x-if="currentUser.role === 'admin'">
+                            <button @click="adminPanelOpen = true" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Command Center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </template>
+                        
+                        <button @click="logout()" class="text-sm font-medium text-gray-400 hover:text-red-500 transition-colors border-l border-gray-300 dark:border-gray-700 pl-3">Logout</button>
                     </div>
                 </template>
             </div>
-            <span class="mr-2 text-sm text-gray-500 dark:text-gray-400">Dark Mode</span>
+            <span class="mr-2 text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">Dark Mode</span>
             <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
                 <input type="checkbox" name="toggle" id="darkModeToggle" @change="toggleDarkMode" :checked="darkMode" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 z-10 top-0 bottom-0 m-auto right-4"/>
                 <label for="darkModeToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
@@ -73,7 +85,7 @@
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center px-4 w-full">
+    <div class="flex-1 flex flex-col items-center px-4 w-full relative z-0">
         
         <header class="mb-10 mt-4 text-center w-full">
             <h1 class="text-3xl font-bold tracking-tight mb-2">Workflow Tracker</h1>
@@ -127,15 +139,35 @@
                                          @dragstart="dragStart($event, shift.name)"
                                          @dragend="dragEnd"
                                          :class="getCardStyle(shift.name, station.label)"
-                                         class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-full">
+                                         class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-full relative group">
+                                        
                                         <div class="flex items-center justify-between mb-1 pointer-events-none">
                                             <span class="font-bold text-sm truncate select-none flex items-center">
                                                 <span x-text="shift.name"></span>
                                                 <template x-if="shift.task.toUpperCase().includes('FLOAT')">
                                                     <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 ml-1 uppercase tracking-wide border border-pink-200 dark:border-pink-800/50">Float</span>
                                                 </template>
+                                                <!-- Dynamic OUT Pill -->
+                                                <template x-if="boardState.lunchStatus[shift.name] === 'out'">
+                                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 ml-1 uppercase tracking-wide border border-red-200 dark:border-red-800/50">OUT</span>
+                                                </template>
                                             </span>
-                                            <span x-show="shift.time" :class="getTimeBadgeStyle(shift.time)" class="text-[10px] font-semibold px-2 py-0.5 rounded transition-colors" x-text="shift.time"></span>
+                                            
+                                            <div class="flex items-center gap-2 pointer-events-auto">
+                                                <span x-show="shift.time" :class="getTimeBadgeStyle(shift.time)" class="text-[10px] font-semibold px-2 py-0.5 rounded transition-colors" x-text="shift.time"></span>
+                                                
+                                                <!-- Action Buttons: X (Delete) / Undo -->
+                                                <template x-if="currentUser.role !== 'read'">
+                                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button x-show="boardState.lunchStatus[shift.name] !== 'out'" @click.stop="promptOut(shift.name)" class="text-gray-400 hover:text-red-500 transition-colors" title="Mark Out">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        </button>
+                                                        <button x-show="boardState.lunchStatus[shift.name] === 'out'" @click.stop="revertOut(shift.name)" class="text-gray-400 hover:text-green-500 transition-colors" title="Undo Out">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
                                         </div>
                                         <div class="text-xs text-gray-600 dark:text-gray-300 whitespace-normal pointer-events-none leading-tight" x-text="getDisplayTask(shift)"></div>
                                     </div>
@@ -156,10 +188,27 @@
                                  @dragstart="dragStart($event, shift.name)"
                                  @dragend="dragEnd"
                                  :class="getCardStyle(shift.name, 'Off')"
-                                 class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-48">
+                                 class="flex flex-col p-3 rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:shadow-md w-48 relative group">
                                 <div class="flex items-center justify-between mb-1 pointer-events-none">
-                                    <span class="font-bold text-sm truncate select-none flex items-center" x-text="shift.name"></span>
-                                    <span x-show="shift.time" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 transition-colors" x-text="shift.time"></span>
+                                    <span class="font-bold text-sm truncate select-none flex items-center">
+                                        <span x-text="shift.name"></span>
+                                        <template x-if="boardState.lunchStatus[shift.name] === 'out'">
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 ml-1 uppercase tracking-wide border border-red-200 dark:border-red-800/50">OUT</span>
+                                        </template>
+                                    </span>
+                                    <div class="flex items-center gap-2 pointer-events-auto">
+                                        <span x-show="shift.time" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 transition-colors" x-text="shift.time"></span>
+                                        <template x-if="currentUser.role !== 'read'">
+                                            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button x-show="boardState.lunchStatus[shift.name] !== 'out'" @click.stop="promptOut(shift.name)" class="text-gray-400 hover:text-red-500 transition-colors" title="Mark Out">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                </button>
+                                                <button x-show="boardState.lunchStatus[shift.name] === 'out'" @click.stop="revertOut(shift.name)" class="text-gray-400 hover:text-green-500 transition-colors" title="Undo Out">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                                 <div class="text-xs text-gray-400 dark:text-gray-500 whitespace-normal pointer-events-none leading-tight" x-text="getDisplayTask(shift)"></div>
                             </div>
@@ -203,113 +252,77 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                         Generate & Sync to Relational Database
                     </button>
-                    <div x-show="parserMessage" :class="parserMsgClass" class="mt-3 text-sm text-center font-medium" x-text="parserMessage"></div>
-                </div>
-            </div>
-
-            <!-- Lunch Guide Panel -->
-            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4">
-                <div @click="lunchOpen = !lunchOpen" class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-lg text-orange-600 dark:text-orange-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-md font-bold">Lunch Schedule Reference</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Suggested times based on shift start.</p>
-                        </div>
-                    </div>
-                    <svg :class="lunchOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-                
-                <div x-show="lunchOpen" class="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-4">
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">6A Start</p>
-                            <p class="text-sm font-bold text-sterling-green">11:00 — 11:30</p>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">7A Start</p>
-                            <p class="text-sm font-bold text-sterling-green">12:00 — 12:30</p>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">9A (AM)</p>
-                            <p class="text-sm font-bold text-sterling-green">12:45 — 1:00</p>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">9A (PM)</p>
-                            <p class="text-sm font-bold text-sterling-green">1:15 — 2:15</p>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 text-center col-span-2 md:col-span-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">12:30P Start</p>
-                            <p class="text-sm font-bold text-sterling-green">5:00 — 5:30</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Settings Ledger -->
-            <div x-cloak x-show="currentUser.role === 'admin'" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm w-full max-w-3xl overflow-hidden transition-all mt-4 mb-8">
-                <div @click="adminPanelOpen = !adminPanelOpen" class="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors select-none">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-md font-bold text-red-600 dark:text-red-400">Command Center</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage Staff and User Access (Admin Only)</p>
-                        </div>
-                    </div>
-                    <svg :class="adminPanelOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </div>
-                <div x-show="adminPanelOpen" class="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-4">
-                    <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
-                        <button @click="adminTab = 'staff'" :class="adminTab === 'staff' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500'" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors">Staff Ledger</button>
-                        <button @click="adminTab = 'users'" :class="adminTab === 'users' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500'" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors">Access Controls</button>
-                    </div>
-                    
-                    <div x-show="adminTab === 'staff'">
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" x-model="newStaffName" placeholder="New Pharmacist Name" class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
-                            <button @click="adminAction('ADD_STAFF', { display_name: newStaffName })" class="bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-2 rounded text-sm font-bold disabled:opacity-50" :disabled="!newStaffName || isSyncing">Add</button>
-                        </div>
-                        <div class="space-y-2 max-h-40 overflow-y-auto pr-2">
-                            <template x-for="person in staff" :key="person.id">
-                                <div class="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                                    <span class="text-sm font-medium" x-text="person.display_name"></span>
-                                    <button @click="adminAction('TOGGLE_STAFF', { id: person.id, is_active: 0 })" class="text-xs text-red-500 hover:text-red-700 font-bold">Deactivate</button>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div x-show="adminTab === 'users'">
-                        <div class="grid grid-cols-3 gap-2 mb-4">
-                            <input type="text" x-model="newUser" placeholder="Username" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
-                            <input type="password" x-model="newPass" placeholder="Password" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
-                            <select x-model="newRole" class="p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
-                                <option value="read">Read Only</option>
-                                <option value="write">Write</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-                        <button @click="adminAction('ADD_USER', { username: newUser, password: newPass, role: newRole })" class="w-full bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-2 rounded text-sm font-bold disabled:opacity-50" :disabled="!newUser || !newPass || isSyncing">Provision Access</button>
-                    </div>
-                    <div x-show="adminMsg" class="mt-3 text-sm font-medium text-center text-red-500" x-text="adminMsg"></div>
                 </div>
             </div>
 
         </main>
     </div>
 
+    <!-- Right-Aligned Command Center Drawer -->
+    <div x-cloak x-show="adminPanelOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" @click="adminPanelOpen = false"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
+    
+    <div x-cloak x-show="adminPanelOpen" 
+         class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl border-l border-gray-200 dark:border-gray-700 flex flex-col overflow-y-auto"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full">
+         
+         <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+            <h2 class="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                Command Center
+            </h2>
+            <button @click="adminPanelOpen = false" class="text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+         </div>
+         
+         <div class="p-6 flex-1">
+            <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+                <button @click="adminTab = 'staff'" :class="adminTab === 'staff' ? 'border-red-500 text-red-600 dark:text-red-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'" class="w-1/2 py-3 border-b-2 font-medium text-sm transition-colors text-center">Staff Ledger</button>
+                <button @click="adminTab = 'users'" :class="adminTab === 'users' ? 'border-red-500 text-red-600 dark:text-red-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'" class="w-1/2 py-3 border-b-2 font-medium text-sm transition-colors text-center">Access Controls</button>
+            </div>
+            
+            <div x-show="adminTab === 'staff'" class="space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" x-model="newStaffName" placeholder="New Pharmacist Name" class="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                    <button @click="adminAction('ADD_STAFF', { display_name: newStaffName })" class="bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-5 py-3 rounded-lg text-sm font-bold disabled:opacity-50 transition-colors" :disabled="!newStaffName || isSyncing">Add</button>
+                </div>
+                <div class="space-y-2 max-h-96 overflow-y-auto pr-2 rounded-lg border border-gray-200 dark:border-gray-700 p-2 bg-gray-50 dark:bg-gray-900/30">
+                    <template x-for="person in staff" :key="person.id">
+                        <div class="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <span class="text-sm font-medium" x-text="person.display_name"></span>
+                            <button @click="adminAction('TOGGLE_STAFF', { id: person.id, is_active: 0 })" class="text-xs text-red-500 hover:text-red-700 font-bold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">Deactivate</button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div x-show="adminTab === 'users'" class="space-y-4">
+                <div class="space-y-3">
+                    <input type="text" x-model="newUser" placeholder="Username" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                    <input type="password" x-model="newPass" placeholder="Password" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                    <select x-model="newRole" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none text-sm">
+                        <option value="read">Read Only (View Board)</option>
+                        <option value="write">Write (Manage Board)</option>
+                        <option value="admin">Admin (Manage Staff/Users)</option>
+                    </select>
+                </div>
+                <button @click="adminAction('ADD_USER', { username: newUser, password: newPass, role: newRole })" class="w-full bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-3 rounded-lg text-sm font-bold disabled:opacity-50 transition-colors" :disabled="!newUser || !newPass || isSyncing">Provision Access</button>
+            </div>
+         </div>
+    </div>
+
     <!-- Login Modal -->
     <div x-cloak x-show="loginModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div @click.away="loginModalOpen = false" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">System Access</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">System Access</h2>
+                <button @click="loginModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Username</label>
@@ -319,16 +332,47 @@
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Password</label>
                     <input type="password" x-model="loginPass" @keydown.enter="processLogin" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-sterling-green outline-none">
                 </div>
-                <button @click="processLogin" :disabled="loginLoading || !loginUser || !loginPass" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center mt-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                <button @click="processLogin" :disabled="loginLoading || !loginUser || !loginPass" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center mt-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors">
                     <span x-show="!loginLoading">Authenticate</span>
                     <span x-show="loginLoading" class="animate-pulse">Verifying...</span>
                 </button>
-                <div x-show="loginError" class="text-red-500 text-xs font-bold text-center mt-2" x-text="loginError"></div>
             </div>
         </div>
     </div>
 
-    <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full">
+    <!-- Confirm OUT Modal -->
+    <div x-cloak x-show="confirmOut.open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div @click.away="confirmOut.open = false" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Mark Shift as OUT?</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to mark <span class="font-bold text-gray-800 dark:text-gray-200" x-text="confirmOut.targetName"></span> as OUT for the day?</p>
+            <div class="flex gap-3 justify-center">
+                <button @click="confirmOut.open = false" class="flex-1 px-4 py-2 rounded-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                <button @click="commitOut()" class="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Yes, Mark Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Toast Notifications -->
+    <div x-cloak x-show="toast.visible" 
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
+         :class="toast.type === 'error' ? 'bg-red-600' : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'" 
+         class="fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl font-bold text-sm z-50 flex items-center gap-2 text-white border border-transparent dark:border-gray-200">
+        <template x-if="toast.type === 'success'">
+            <svg class="w-4 h-4 text-green-400 dark:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </template>
+        <template x-if="toast.type === 'error'">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </template>
+        <span x-text="toast.message"></span>
+    </div>
+
+    <footer class="mt-12 text-gray-400 text-xs text-center pb-6 w-full relative z-0">
         <p>&copy; <span x-text="new Date().getFullYear()"></span> Sterling Specialty Pharmacy. Internal Use Only.</p>
     </footer>
 
@@ -346,24 +390,23 @@
                 isSyncing: false,
                 isDragging: false,
                 parserOpen: false,
-                lunchOpen: false,
                 loginModalOpen: false,
                 adminPanelOpen: false,
                 adminTab: 'staff',
                 
+                // Overlay States
+                toast: { message: '', type: 'success', visible: false },
+                confirmOut: { open: false, targetName: '' },
+                
                 // Form Data
                 rawShiftsInput: '',
-                parserMessage: '',
-                parserMsgClass: '',
                 loginUser: '',
                 loginPass: '',
-                loginError: '',
                 loginLoading: false,
                 newStaffName: '',
                 newUser: '',
                 newPass: '',
                 newRole: 'read',
-                adminMsg: '',
                 
                 copyBtnText: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`,
                 
@@ -389,6 +432,21 @@
                     }, 10000);
                 },
 
+                // --- GLOBAL UI HELPERS ---
+                closeAllModals() {
+                    this.loginModalOpen = false;
+                    this.adminPanelOpen = false;
+                    this.parserOpen = false;
+                    this.confirmOut.open = false;
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.visible = true;
+                    setTimeout(() => { this.toast.visible = false; }, 3000);
+                },
+
                 // --- CRYPTO & AUTH LOGIC ---
                 async hashStr(str) {
                     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -397,7 +455,6 @@
 
                 async processLogin() {
                     this.loginLoading = true;
-                    this.loginError = '';
                     try {
                         const hash = await this.hashStr(this.loginPass);
                         const token = `${this.loginUser}:${hash}`;
@@ -416,10 +473,11 @@
                         localStorage.setItem('ssp-auth', token);
                         localStorage.setItem('ssp-user', JSON.stringify(this.currentUser));
                         
-                        this.loginModalOpen = false;
+                        this.closeAllModals();
                         this.loginPass = '';
+                        this.showToast(`Welcome back, ${this.loginUser}`);
                     } catch(e) {
-                        this.loginError = e.message;
+                        this.showToast(e.message, 'error');
                     } finally {
                         this.loginLoading = false;
                     }
@@ -430,13 +488,13 @@
                     this.currentUser = { role: 'read' };
                     localStorage.removeItem('ssp-auth');
                     localStorage.removeItem('ssp-user');
-                    this.adminPanelOpen = false;
+                    this.closeAllModals();
+                    this.showToast('Logged out securely.');
                 },
 
                 // --- ADMIN CRUD DISPATCHER ---
                 async adminAction(actionType, payloadObj) {
                     this.isSyncing = true;
-                    this.adminMsg = '';
                     try {
                         if (payloadObj.password) {
                             payloadObj.password = await this.hashStr(payloadObj.password);
@@ -449,15 +507,14 @@
                         const data = await res.json();
                         if(!res.ok) throw new Error(data.error || "Action failed.");
                         
-                        this.adminMsg = "Success: " + data.message;
+                        this.showToast(data.message);
                         if (actionType === 'ADD_STAFF') { this.newStaffName = ''; this.loadRemoteData(); }
                         if (actionType === 'TOGGLE_STAFF') this.loadRemoteData();
                         if (actionType === 'ADD_USER') { this.newUser = ''; this.newPass = ''; }
                     } catch(e) {
-                        this.adminMsg = e.message;
+                        this.showToast(e.message, 'error');
                     } finally {
                         this.isSyncing = false;
-                        setTimeout(() => { this.adminMsg = ''; }, 3000);
                     }
                 },
 
@@ -503,7 +560,7 @@
                     const status = this.boardState.lunchStatus[shift.name];
                     if (status === 'lunch') return '🥪 ' + shift.task;
                     if (status === 'gone') return '👋 ' + shift.task;
-                    return shift.task;
+                    return shift.task; // out status relies on visual badge, keeps text intact
                 },
 
                 getColumnStyle(color) {
@@ -518,6 +575,8 @@
 
                 getCardStyle(name, loc) {
                     const status = this.boardState.lunchStatus[name];
+                    
+                    if (status === 'out') return 'bg-gray-100 dark:bg-gray-800/30 border-2 border-dashed border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-400 opacity-60 grayscale hover:grayscale-0 transition-all shadow-none';
                     if (status === 'lunch') return 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 text-gray-900 dark:text-gray-100 shadow-md transform scale-[1.02]';
                     if (status === 'gone') return 'bg-gray-100 dark:bg-gray-800/40 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-60';
                     if (loc === 'Off') return 'bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 shadow-sm border-l-4 border-l-gray-400';
@@ -563,6 +622,8 @@
                     if (window.getSelection().toString().length > 0) return;
                     
                     const current = this.boardState.lunchStatus[name];
+                    if (current === 'out') return; // Cannot toggle lunch if marked out
+                    
                     if (!current) this.boardState.lunchStatus[name] = 'lunch';
                     else if (current === 'lunch') this.boardState.lunchStatus[name] = 'gone';
                     else delete this.boardState.lunchStatus[name];
@@ -571,10 +632,35 @@
                 },
 
                 async resetLunchStatus() {
-                    if (confirm('Clear lunch arrays?')) {
-                        this.boardState.lunchStatus = {};
+                    if (confirm('Clear lunch arrays? (This does not affect OUT statuses)')) {
+                        // Only clear lunch/gone, preserve out
+                        Object.keys(this.boardState.lunchStatus).forEach(name => {
+                            if (this.boardState.lunchStatus[name] !== 'out') {
+                                delete this.boardState.lunchStatus[name];
+                            }
+                        });
                         await this.saveRemoteData();
+                        this.showToast('Lunch statuses reset.');
                     }
+                },
+
+                // --- OUT MECHANIC ---
+                promptOut(name) {
+                    this.confirmOut.targetName = name;
+                    this.confirmOut.open = true;
+                },
+
+                async commitOut() {
+                    this.boardState.lunchStatus[this.confirmOut.targetName] = 'out';
+                    this.confirmOut.open = false;
+                    await this.saveRemoteData();
+                    this.showToast(`${this.confirmOut.targetName} marked as OUT.`, 'success');
+                },
+
+                async revertOut(name) {
+                    delete this.boardState.lunchStatus[name];
+                    await this.saveRemoteData();
+                    this.showToast(`${name} returned to schedule.`);
                 },
 
                 async saveRemoteData() {
@@ -588,7 +674,7 @@
                         });
                         if (!response.ok) throw new Error('Gatekeeper denial.');
                     } catch (error) {
-                        console.error(error);
+                        this.showToast("Sync error. You may not have write access.", 'error');
                     } finally {
                         setTimeout(() => { this.isSyncing = false; }, 400);
                     }
@@ -626,36 +712,37 @@
                         this.boardState.lunchStatus = {};
                         this.boardState.statusDate = new Date().toLocaleDateString('en-CA');
 
-                        this.parserMessage = "Syncing with D1...";
-                        this.parserMsgClass = "text-blue-600 dark:text-blue-400 block";
+                        this.showToast("Syncing with D1...");
                         await this.saveRemoteData();
 
-                        this.parserMessage = "Sync complete!";
-                        this.parserMsgClass = "text-green-600 dark:text-green-400 block";
+                        this.showToast("Board synchronized successfully!");
                         this.rawShiftsInput = '';
-                        setTimeout(() => { this.parserOpen = false; this.parserMessage = ''; }, 1200);
+                        setTimeout(() => { this.parserOpen = false; }, 1200);
                     } catch (err) {
-                        this.parserMessage = "Failure: " + err.message;
-                        this.parserMsgClass = "text-red-600 dark:text-red-400 block";
+                        this.showToast("Failure: " + err.message, 'error');
                     }
                 },
 
                 copyForTeams() {
                     try {
-                        if (this.boardState.shifts.length === 0) return alert('No data mapped.');
+                        if (this.boardState.shifts.length === 0) return this.showToast('No data mapped.', 'error');
                         let text = '';
                         this.boardState.shifts.forEach(shift => {
                             const loc = this.boardState.locations[shift.name] || 'Off';
-                            text += loc === 'Off' ? `${shift.name} - ${shift.task}\n` : `${shift.name} [${loc}] - ${shift.time ? shift.time + ' | ' : ''}${shift.task}\n`;
+                            const status = this.boardState.lunchStatus[shift.name];
+                            const outTag = status === 'out' ? ' [OUT]' : '';
+                            
+                            text += loc === 'Off' ? `${shift.name}${outTag} - ${shift.task}\n` : `${shift.name}${outTag} [${loc}] - ${shift.time ? shift.time + ' | ' : ''}${shift.task}\n`;
                         });
 
                         navigator.clipboard.writeText(text.trim()).then(() => {
                             this.copyBtnText = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Copied!`;
+                            this.showToast("Copied to clipboard!");
                             setTimeout(() => {
                                 this.copyBtnText = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy to Teams`;
                             }, 2000);
                         });
-                    } catch (e) { alert("Clipboard write failed."); }
+                    } catch (e) { this.showToast("Clipboard write failed.", 'error'); }
                 }
             }
         }
