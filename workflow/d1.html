@@ -315,8 +315,12 @@
     </div>
 
     <!-- Login Modal -->
-    <div x-cloak x-show="loginModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div @click.away="loginModalOpen = false" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700">
+    <div x-cloak x-show="loginModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Clickable Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeAllModals()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">System Access</h2>
                 <button @click="loginModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -456,8 +460,12 @@
                 async processLogin() {
                     this.loginLoading = true;
                     try {
-                        const hash = await this.hashStr(this.loginPass);
-                        const token = `${this.loginUser}:${hash}`;
+                        // Sanitize inputs to prevent autofill spaces or auto-caps from ruining the hash
+                        const safeUser = this.loginUser.trim().toLowerCase();
+                        const safePass = this.loginPass.trim();
+                        
+                        const hash = await this.hashStr(safePass);
+                        const token = `${safeUser}:${hash}`;
                         
                         const res = await fetch(this.WORKER_URL, {
                             method: 'POST',
