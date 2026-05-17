@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workflow Command Center | Sterling Specialty</title>
+    <title>Workflow Tracker | Sterling Specialty</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M 15 75 A 35 35 0 0 1 85 75%22 fill=%22none%22 stroke=%22%2316a34a%22 stroke-width=%2212%22 stroke-linecap=%22round%22/><circle cx=%2250%22 cy=%2275%22 r=%2210%22 fill=%22%2316a34a%22/><line x1=%2250%22 y1=%2275%22 x2=%2270%22 y2=%2245%22 stroke=%22%2316a34a%22 stroke-width=%228%22 stroke-linecap=%22round%22/></svg>">
     
@@ -14,17 +14,24 @@
         }
     </script>
     <script>
-        if (localStorage.getItem('ssp-theme') === 'dark') { 
-            document.documentElement.classList.add('dark'); 
+        try {
+            if (localStorage.getItem('ssp-theme') === 'dark') { 
+                document.documentElement.classList.add('dark'); 
+            }
+        } catch (e) {
+            // Suppress error if storage access is blocked by privacy extensions
         }
     </script>
     
     <style>
+        :root {
+            --brand-green: #16a34a;
+        }
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .sterling-green { color: #16a34a; }
-        .bg-sterling-green { background-color: #16a34a; }
-        .toggle-checkbox:checked { right: 0; border-color: #16a34a; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #16a34a; }
+        .sterling-green { color: var(--brand-green); }
+        .bg-sterling-green { background-color: var(--brand-green); }
+        .toggle-checkbox:checked { right: 0; border-color: var(--brand-green); }
+        .toggle-checkbox:checked + .toggle-label { background-color: var(--brand-green); }
         [x-cloak] { display: none !important; }
         
         /* Custom scrollbar behaviors for high density panels */
@@ -36,9 +43,8 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body x-data="workflowApp()" x-init="init()" @keydown.escape.window="closeAllModals()" class="bg-slate-50 dark:bg-slate-900 min-h-screen flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200 pb-32">
+<body x-data="workflowApp()" x-init="init()" @keydown.escape.window="closeAllModals()" class="bg-slate-50 dark:bg-slate-900 min-h-screen flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200 pb-40">
 
-    <!-- Global Sticky Top Navbar -->
     <div class="w-full p-4 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
         <div class="flex items-center gap-6">
             <a href="../index.html" class="flex items-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors text-sm font-medium">
@@ -46,7 +52,6 @@
                 Dashboard
             </a>
             
-            <!-- Quick Filter Presets -->
             <div class="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
                 <button @click="applyPreset('all')" :class="currentPreset === 'all' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'" class="text-xs font-bold px-3 py-1.5 rounded-md transition-all">All Stations</button>
                 <button @click="applyPreset('clinical')" :class="currentPreset === 'clinical' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'" class="text-xs font-bold px-3 py-1.5 rounded-md transition-all">Clinical</button>
@@ -55,14 +60,12 @@
         </div>
         
         <div class="flex items-center gap-4">
-            <!-- Advanced Filters Trigger -->
             <button @click="filterDrawerOpen = true" class="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 transition-colors relative">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                 Filters
                 <span x-show="getActiveFilterCount() > 0" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-black animate-scale" x-text="getActiveFilterCount()"></span>
             </button>
 
-            <!-- Access State Controls -->
             <div class="flex items-center gap-3 border-r border-slate-200 dark:border-slate-700 pr-4">
                 <template x-if="!currentUser || currentUser.role === 'read'">
                     <button @click="loginModalOpen = true" class="text-xs font-bold text-sterling-green hover:text-green-700 transition-colors">Admin Login</button>
@@ -73,7 +76,7 @@
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase tracking-wider shadow-inner" x-text="currentUser.role"></span>
                         
                         <template x-if="currentUser.role === 'admin'">
-                            <button @click="adminPanelOpen = true" class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1" title="Command Center">
+                            <button @click="adminPanelOpen = true" class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1" title="Admin Settings">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </button>
                         </template>
@@ -90,17 +93,16 @@
     </div>
 
     <div class="w-full px-4 max-w-[1600px] mx-auto mt-6 flex-1 flex flex-col gap-6">
-        <!-- Dashboard Sub-Header Operations bar -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-xl shadow-sm">
             <div>
                 <h1 class="text-xl font-black tracking-tight flex items-center gap-2">
-                    Operational Command Board 
+                    Daily Staffing Board 
                     <span x-show="isSyncing" class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
                 </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Date Matrix: <span class="font-bold text-slate-700 dark:text-slate-300" x-text="boardState.date"></span></p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Schedule Date: <span class="font-bold text-slate-700 dark:text-slate-300" x-text="boardState.date"></span></p>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <button @click="copyForTeams" class="flex-1 sm:flex-initial text-xs font-bold text-slate-600 hover:text-sterling-green bg-slate-50 hover:bg-green-50 dark:bg-slate-700 dark:hover:bg-green-900/20 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 transition-all flex items-center justify-center gap-1.5" x-html="copyBtnText"></button>
@@ -108,14 +110,12 @@
             </div>
         </div>
 
-        <!-- Master High Density Grid -->
         <main class="flex-1 flex flex-col gap-6">
             
-            <!-- SECTION 1: CLINICAL SUITE -->
             <div x-show="shouldShowSection('clinical')" class="space-y-3">
                 <div class="border-b border-slate-200 dark:border-slate-700 pb-1 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Suites</h2>
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Stations</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <template x-for="station in stations.filter(s => s.board_type === 'clinical' && s.label !== 'Off' && s.label !== 'OFF - Rph')" :key="station.id">
@@ -123,9 +123,10 @@
                             <h3 :class="`text-[11px] font-black uppercase tracking-wider text-center border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5 mb-2 text-${station.theme_color}-600 dark:text-${station.theme_color}-400`" x-text="station.label"></h3>
                             <div class="flex flex-wrap gap-1.5 content-start flex-1">
                                 <template x-for="shift in getShiftsByLocation(station.label)" :key="shift.name">
-                                    <div x-show="matchesFilters(shift)" draggable="true" @dragstart="dragStart($event, shift.name)" @dragend="dragEnd" @click="openInspection(shift)" :class="getPillStyle(shift.name)" class="group relative px-2.5 py-1.5 rounded-md shadow-sm border text-xs font-medium transition-all duration-150 cursor-grab active:cursor-grabbing select-none flex items-center gap-2">
-                                        <span x-text="shift.name"></span>
+                                    <div x-show="matchesFilters(shift)" draggable="true" @dragstart="dragStart($event, shift.name)" @dragend="dragEnd" @click="openInspection(shift)" :class="getPillStyle(shift.name)" class="group relative px-2.5 py-1.5 rounded-md shadow-sm border text-xs font-medium transition-all duration-150 cursor-grab active:cursor-grabbing select-none flex items-center gap-2 max-w-full">
+                                        <span class="truncate" x-text="shift.name"></span>
                                         <span :class="getBadgeStyle(shift.name)" class="text-[9px] px-1 rounded transform scale-90" x-text="getShortRole(shift.name)"></span>
+                                        <span x-show="shift.task && shift.task.includes('➔')" class="text-[10px] font-bold px-1.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 whitespace-nowrap" x-text="shift.task"></span>
                                         <span x-show="boardState.lunchStatus[shift.name]" x-text="getMiniStatusIcon(shift.name)"></span>
                                     </div>
                                 </template>
@@ -135,11 +136,10 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: FULFILLMENT SUITE (Hyper Dense Block) -->
             <div x-show="shouldShowSection('fulfillment')" class="space-y-3">
                 <div class="border-b border-slate-200 dark:border-slate-700 pb-1 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Fulfillment Framework Grid</h2>
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Fulfillment Stations</h2>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                     <template x-for="station in stations.filter(s => s.board_type === 'fulfillment')" :key="station.id">
@@ -149,6 +149,7 @@
                                 <template x-for="shift in getShiftsByLocation(station.label)" :key="shift.name">
                                     <div x-show="matchesFilters(shift)" draggable="true" @dragstart="dragStart($event, shift.name)" @dragend="dragEnd" @click="openInspection(shift)" :class="getPillStyle(shift.name)" class="px-2 py-1 rounded border text-[11px] font-medium transition-all duration-150 cursor-grab active:cursor-grabbing select-none flex items-center gap-1.5 max-w-full truncate">
                                         <span class="truncate" x-text="shift.name"></span>
+                                        <span x-show="shift.task && shift.task.includes('➔')" class="text-[9px] font-bold px-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 whitespace-nowrap" x-text="shift.task"></span>
                                         <span x-show="boardState.lunchStatus[shift.name]" x-text="getMiniStatusIcon(shift.name)"></span>
                                     </div>
                                 </template>
@@ -158,30 +159,28 @@
                 </div>
             </div>
 
-            <!-- Parser Panel -->
             <div x-cloak x-show="currentUser.role !== 'read'" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm w-full max-w-3xl mx-auto overflow-hidden mt-4">
                 <div @click="parserOpen = !parserOpen" class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-750 select-none">
                     <div class="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                        <h3 class="text-xs font-black uppercase tracking-wider">Spreadsheet ingestion Matrix</h3>
+                        <h3 class="text-xs font-black uppercase tracking-wider">Import Schedule from Spreadsheet</h3>
                     </div>
                     <svg :class="parserOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </div>
                 <div x-show="parserOpen" class="p-4 border-t border-slate-100 dark:border-slate-700 space-y-3 bg-slate-50 dark:bg-slate-900/40">
-                    <textarea x-model="rawShiftsInput" class="w-full h-28 p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-xs font-mono" placeholder="Paste data matching database names directly..."></textarea>
-                    <button @click="parseAndUpdateSchedule()" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Process & Overwrite Relational State</button>
+                    <textarea x-model="rawShiftsInput" class="w-full h-28 p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-xs font-mono" placeholder="Paste spreadsheet columns here..."></textarea>
+                    <button @click="parseAndUpdateSchedule()" class="w-full bg-sterling-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Import & Update Board</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- PERSISTENT STICKY ROSTER BENCH (Benches Off & OFF - Rph globally at viewport baseline) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 z-20 shadow-xl p-3 px-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+    <div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 z-20 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.1)] p-3 px-6 flex flex-col gap-2">
+        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 text-center">Unassigned Pools</div>
         <div class="flex flex-col sm:flex-row gap-4 w-full flex-1">
             
-            <!-- Global Tech Off Pool -->
-            <div class="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg p-2 bg-slate-50 dark:bg-slate-900/50 min-h-[54px] flex items-center gap-2" @drop="dropCard($event, 'Off')" @dragover.prevent>
-                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 writing-mode vertical-text select-none border-r border-slate-200 dark:border-slate-700 pr-2">OFF</div>
+            <div class="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg p-2 bg-slate-50 dark:bg-slate-900/50 min-h-[64px] flex flex-col gap-1.5" @drop="dropCard($event, 'Off')" @dragover.prevent>
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-1">Off Duty (Techs)</div>
                 <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto w-full">
                     <template x-for="shift in getShiftsByLocation('Off')" :key="shift.name">
                         <div x-show="matchesFilters(shift)" draggable="true" @dragstart="dragStart($event, shift.name)" @dragend="dragEnd" @click="openInspection(shift)" :class="getPillStyle(shift.name)" class="px-2 py-1 rounded border text-[11px] font-medium transition-all duration-150 cursor-grab active:cursor-grabbing select-none flex items-center gap-1">
@@ -192,9 +191,8 @@
                 </div>
             </div>
 
-            <!-- Global Rph Off Pool -->
-            <div class="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg p-2 bg-slate-50 dark:bg-slate-900/50 min-h-[54px] flex items-center gap-2" @drop="dropCard($event, 'OFF - Rph')" @dragover.prevent>
-                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 writing-mode vertical-text select-none border-r border-slate-200 dark:border-slate-700 pr-2">OFF-RPH</div>
+            <div class="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg p-2 bg-slate-50 dark:bg-slate-900/50 min-h-[64px] flex flex-col gap-1.5" @drop="dropCard($event, 'OFF - Rph')" @dragover.prevent>
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-1">Off Duty (Pharmacists)</div>
                 <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto w-full">
                     <template x-for="shift in getShiftsByLocation('OFF - Rph')" :key="shift.name">
                         <div x-show="matchesFilters(shift)" draggable="true" @dragstart="dragStart($event, shift.name)" @dragend="dragEnd" @click="openInspection(shift)" :class="getPillStyle(shift.name)" class="px-2 py-1 rounded border text-[11px] font-medium transition-all duration-150 cursor-grab active:cursor-grabbing select-none flex items-center gap-1">
@@ -208,7 +206,6 @@
         </div>
     </div>
 
-    <!-- Advanced Filter Drawer Slider -->
     <div x-cloak x-show="filterDrawerOpen" class="fixed inset-0 z-40 bg-black/20 backdrop-blur-xs" @click="filterDrawerOpen = false"></div>
     <div x-cloak x-show="filterDrawerOpen" class="fixed inset-y-0 right-0 z-50 w-full max-w-xs bg-white dark:bg-slate-800 shadow-2xl border-l border-slate-200 dark:border-slate-700 flex flex-col" x-transition:enter="transition ease-out duration-200 transform" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full">
         <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
@@ -233,7 +230,6 @@
         </div>
     </div>
 
-    <!-- Inspector Modal (Pill Micro-State Click Management) -->
     <div x-cloak x-show="inspectionOpen" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" @click="inspectionOpen = false"></div>
         <div class="relative z-10 bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-5 w-full max-w-sm border border-slate-200 dark:border-slate-700" x-transition:enter="transition ease-out duration-150 transform" x-transition:enter-start="scale-95 opacity-0" x-transition:enter-end="scale-100 opacity-100">
@@ -249,38 +245,36 @@
             </div>
             
             <div class="space-y-3 my-4 border-t border-b border-slate-100 dark:border-slate-700 py-3 text-xs">
-                <div class="flex justify-between"><span class="text-slate-400">Shift Window:</span><span class="font-bold" x-text="inspectedShift.time || 'Standard Framework'"></span></div>
-                <div class="flex justify-between"><span class="text-slate-400">Current Mandate:</span><span class="font-bold text-right max-w-[200px]" x-text="inspectedShift.task || 'Unassigned Status'"></span></div>
-                <div class="flex justify-between items-center"><span class="text-slate-400">Status Vector:</span>
+                <div class="flex justify-between"><span class="text-slate-400">Scheduled Time:</span><span class="font-bold" x-text="inspectedShift.time || 'Regular Hours'"></span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Assigned Task / Role:</span><span class="font-bold text-right max-w-[200px]" x-text="inspectedShift.task || 'Regular Duties'"></span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-400">Attendance Status:</span>
                     <span class="font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded" 
                           :class="boardState.lunchStatus[inspectedShift.name] === 'out' ? 'bg-red-100 text-red-700' : (boardState.lunchStatus[inspectedShift.name] === 'lunch' ? 'bg-orange-100 text-orange-700' : (boardState.lunchStatus[inspectedShift.name] === 'gone' ? 'bg-slate-200 text-slate-700' : 'bg-green-100 text-green-700'))"
-                          x-text="boardState.lunchStatus[inspectedShift.name] || 'Active On Floor'"></span>
+                          x-text="boardState.lunchStatus[inspectedShift.name] || 'Present / Active'"></span>
                 </div>
             </div>
 
             <div class="flex gap-1.5" x-show="currentUser.role !== 'read'">
-                <button @click="cycleStatus(inspectedShift.name)" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold py-2 rounded text-xs transition-colors">Cycle Activity</button>
+                <button @click="cycleStatus(inspectedShift.name)" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold py-2 rounded text-xs transition-colors">Change Status</button>
                 <button x-show="boardState.lunchStatus[inspectedShift.name] !== 'out'" @click="promptOut(inspectedShift.name)" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-2 rounded text-xs border border-red-200 transition-colors">Mark OUT</button>
                 <button x-show="boardState.lunchStatus[inspectedShift.name] === 'out'" @click="revertOut(inspectedShift.name)" class="bg-green-50 hover:bg-green-100 text-green-600 font-bold px-3 py-2 rounded text-xs border border-green-200 transition-colors">Undo OUT</button>
             </div>
         </div>
     </div>
 
-    <!-- Command Center Sidebar Controls Drawer -->
     <div x-cloak x-show="adminPanelOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs" @click="adminPanelOpen = false"></div>
     <div x-cloak x-show="adminPanelOpen" class="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-white dark:bg-slate-800 shadow-2xl border-l border-slate-200 dark:border-slate-700 flex flex-col" x-transition:enter="transition ease-out duration-200 transform" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full">
          <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-            <h2 class="text-sm font-black uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-2">System Config Engine</h2>
+            <h2 class="text-sm font-black uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-2">Admin Control Panel</h2>
             <button @click="adminPanelOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white font-bold text-sm">✕</button>
          </div>
          
          <div class="p-4 flex-1 overflow-y-auto flex flex-col gap-6">
             <div class="flex border-b border-slate-200 dark:border-slate-700 text-xs font-bold">
-                <button @click="adminTab = 'staff'" :class="adminTab === 'staff' ? 'border-red-500 text-red-600' : 'border-transparent text-slate-500'" class="w-1/2 py-2.5 border-b-2 text-center uppercase tracking-wider">Staff Matrices</button>
-                <button @click="adminTab = 'users'" :class="adminTab === 'users' ? 'border-red-500 text-red-600' : 'border-transparent text-slate-500'" class="w-1/2 py-2.5 border-b-2 text-center uppercase tracking-wider">Security Access</button>
+                <button @click="adminTab = 'staff'" :class="adminTab === 'staff' ? 'border-red-500 text-red-600' : 'border-transparent text-slate-500'" class="w-1/2 py-2.5 border-b-2 text-center uppercase tracking-wider">Staff Roster</button>
+                <button @click="adminTab = 'users'" :class="adminTab === 'users' ? 'border-red-500 text-red-600' : 'border-transparent text-slate-500'" class="w-1/2 py-2.5 border-b-2 text-center uppercase tracking-wider">User Accounts</button>
             </div>
             
-            <!-- Staff Controls Ledger -->
             <div x-show="adminTab === 'staff'" class="space-y-4 flex-1 flex flex-col min-h-0">
                 <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                     <input type="text" x-model="newStaffName" placeholder="Display Name" class="p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 rounded text-xs">
@@ -288,13 +282,12 @@
                         <option value="Pharmacist">Pharmacist</option><option value="Tech">Tech</option>
                         <option value="Packer">Packer</option><option value="Lead">Lead</option><option value="Manager">Manager</option>
                     </select>
-                    <button @click="adminAction('ADD_STAFF', { display_name: newStaffName, staff_type: newStaffType })" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold rounded" :disabled="!newStaffName">Add Profile</button>
+                    <button @click="adminAction('ADD_STAFF', { display_name: newStaffName, staff_type: newStaffType })" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold rounded" :disabled="!newStaffName">Add Employee</button>
                 </div>
                 
                 <div class="flex-1 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-700">
                     <template x-for="person in staff" :key="person.id">
                         <div class="p-3 bg-white dark:bg-slate-800 flex items-center justify-between transition-colors">
-                            <!-- Read Mode -->
                             <template x-if="editingStaffId !== person.id">
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center gap-2">
@@ -307,7 +300,6 @@
                                     </div>
                                 </div>
                             </template>
-                            <!-- Write/Edit Mode -->
                             <template x-if="editingStaffId === person.id">
                                 <div class="flex flex-col sm:flex-row gap-2 w-full bg-slate-50 dark:bg-slate-900 p-2 rounded">
                                     <input type="text" x-model="editStaffForm.display_name" class="p-1 border text-xs flex-1 rounded dark:bg-slate-800">
@@ -329,21 +321,19 @@
                 </div>
             </div>
 
-            <!-- Security Access Controls -->
             <div x-show="adminTab === 'users'" class="space-y-4">
                 <div class="space-y-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <input type="text" x-model="newUser" placeholder="New Account Name" class="w-full p-2 border text-xs rounded dark:bg-slate-800">
-                    <input type="password" x-model="newPass" placeholder="Access Cipher" class="w-full p-2 border text-xs rounded dark:bg-slate-800">
+                    <input type="text" x-model="newUser" placeholder="Username" class="w-full p-2 border text-xs rounded dark:bg-slate-800">
+                    <input type="password" x-model="newPass" placeholder="Password" class="w-full p-2 border text-xs rounded dark:bg-slate-800">
                     <select x-model="newRole" class="w-full p-2 border text-xs rounded dark:bg-slate-800">
-                        <option value="read">Read Only Node</option><option value="write">Write Operations Node</option><option value="admin">Root System Admin</option>
+                        <option value="read">Read Only (View Board)</option><option value="write">Write (Edit Board)</option><option value="admin">Admin (Manage System)</option>
                     </select>
-                    <button @click="adminAction('ADD_USER', { username: newUser, password: newPass, role: newRole })" class="w-full bg-slate-950 text-white dark:bg-white dark:text-slate-900 py-2 rounded text-xs font-bold" :disabled="!newUser || !newPass">Provision Token</button>
+                    <button @click="adminAction('ADD_USER', { username: newUser, password: newPass, role: newRole })" class="w-full bg-slate-950 text-white dark:bg-white dark:text-slate-900 py-2 rounded text-xs font-bold" :disabled="!newUser || !newPass">Create Account</button>
                 </div>
             </div>
          </div>
     </div>
 
-    <!-- Login Modal Layer -->
     <div x-cloak x-show="loginModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" @click="closeAllModals()"></div>
         <div class="relative z-10 bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-5 w-full max-w-sm border border-slate-200 dark:border-slate-700">
@@ -352,43 +342,48 @@
                 <button @click="closeAllModals()" class="text-slate-400 font-bold text-sm">✕</button>
             </div>
             <div class="space-y-3">
-                <input type="text" x-model="loginUser" placeholder="Node Username" @keydown.enter="processLogin" class="w-full p-2.5 border text-xs rounded bg-slate-50 dark:bg-slate-900">
-                <input type="password" x-model="loginPass" placeholder="Access Password" @keydown.enter="processLogin" class="w-full p-2.5 border text-xs rounded bg-slate-50 dark:bg-slate-900">
+                <input type="text" x-model="loginUser" placeholder="Username" @keydown.enter="processLogin" class="w-full p-2.5 border text-xs rounded bg-slate-50 dark:bg-slate-900">
+                <input type="password" x-model="loginPass" placeholder="Password" @keydown.enter="processLogin" class="w-full p-2.5 border text-xs rounded bg-slate-50 dark:bg-slate-900">
                 <button @click="processLogin" :disabled="loginLoading" class="w-full bg-sterling-green text-white font-bold py-2 px-4 rounded text-xs">Verify Key</button>
             </div>
         </div>
     </div>
 
-    <!-- Confirm OUT Modal Layer -->
     <div x-cloak x-show="confirmOut.open" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" @click="confirmOut.open = false"></div>
         <div class="relative z-10 bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-5 w-full max-w-xs border border-slate-200 dark:border-slate-700 text-center">
-            <h3 class="text-sm font-black uppercase tracking-wider text-red-600 mb-1">Confirm Destructive State Change?</h3>
-            <p class="text-xs text-slate-500 mb-4">Isolate <span class="font-bold text-slate-800 dark:text-white" x-text="confirmOut.targetName"></span> as completely OUT?</p>
+            <h3 class="text-sm font-black uppercase tracking-wider text-red-600 mb-1">Mark Employee OUT?</h3>
+            <p class="text-xs text-slate-500 mb-4">Are you sure you want to mark <span class="font-bold text-slate-800 dark:text-white" x-text="confirmOut.targetName"></span> as OUT for the day?</p>
             <div class="flex gap-2">
                 <button @click="confirmOut.open = false" class="flex-1 bg-slate-100 py-2 rounded font-bold text-xs">Cancel</button>
-                <button @click="commitOut()" class="flex-1 bg-red-600 text-white py-2 rounded font-bold text-xs">Isolate Member</button>
+                <button @click="commitOut()" class="flex-1 bg-red-600 text-white py-2 rounded font-bold text-xs">Confirm OUT</button>
             </div>
         </div>
     </div>
 
-    <!-- Engine Global Floating Alerts -->
-    <div x-cloak x-show="toast.visible" x-transition class="fixed bottom-24 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full shadow-2xl font-bold text-xs z-50 flex items-center gap-2 text-white border border-transparent" :class="toast.type === 'error' ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-100 dark:text-slate-900'">
+    <div x-cloak x-show="toast.visible" x-transition class="fixed bottom-32 left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-full shadow-2xl font-bold text-xs z-50 flex items-center gap-2 text-white border border-transparent" :class="toast.type === 'error' ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-100 dark:text-slate-900'">
         <span x-text="toast.message"></span>
     </div>
 
-    <!-- Framework Footer -->
     <footer class="mt-auto w-full text-center py-4 text-[10px] text-slate-400">
-        &copy; <span x-text="new Date().getFullYear()"></span> Sterling Specialty Operational Dashboard Matrix. Total Sovereign Execution.
+        &copy; <span x-text="new Date().getFullYear()"></span> Sterling Specialty Workflow Tracker. Internal Use Only.
     </footer>
 
     <script>
         function workflowApp() {
+            // Safe Storage Wrapper
+            const storage = {
+                get: (key, fallback = null) => { try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; } },
+                set: (key, val) => { try { localStorage.setItem(key, val); } catch (e) { console.warn('Storage write blocked', e); } },
+                remove: (key) => { try { localStorage.removeItem(key); } catch (e) {} },
+                getJSON: (key, fallback = null) => { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : fallback; } catch (e) { return fallback; } }
+            };
+
             return {
                 WORKER_URL: 'https://sspd1.askozicki.workers.dev/',
                 
-                authKey: localStorage.getItem('ssp-auth') || '',
-                currentUser: JSON.parse(localStorage.getItem('ssp-user')) || { role: 'read' },
+                authKey: storage.get('ssp-auth', ''),
+                currentUser: storage.getJSON('ssp-user', { role: 'read' }),
                 
                 darkMode: false, isSyncing: false, isDragging: false, parserOpen: false, loginModalOpen: false, adminPanelOpen: false, inspectionOpen: false, filterDrawerOpen: false,
                 adminTab: 'staff', currentPreset: 'all',
@@ -397,21 +392,22 @@
                 confirmOut: { open: false, targetName: '' },
                 inspectedShift: {},
                 
-                // Active Ingestion Filters
                 activeRoleFilters: ['Pharmacist', 'Tech', 'Packer', 'Lead', 'Manager'],
                 
                 rawShiftsInput: '', loginUser: '', loginPass: '', loginLoading: false, newStaffName: '', newStaffType: 'Tech', newUser: '', newPass: '', newRole: 'read',
                 
-                // Inline Admin Edit Fields
                 editingStaffId: null, editStaffForm: { id: null, display_name: '', staff_type: '', is_active: 1 },
                 editingUserId: null, editUserForm: { id: null, username: '', role: '', newPassword: '' },
                 
-                copyBtnText: `📋 Format Stream`,
+                copyBtnText: `📋 Copy for Teams`,
                 stations: [], staff: [],
                 boardState: { date: new Date().toLocaleDateString(), statusDate: new Date().toLocaleDateString('en-CA'), shifts: [], locations: {}, lunchStatus: {} },
 
                 async init() {
-                    this.darkMode = localStorage.getItem('ssp-theme') === 'dark' || (!('ssp-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    try {
+                        this.darkMode = storage.get('ssp-theme') === 'dark' || (!storage.get('ssp-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    } catch (e) { this.darkMode = false; }
+                    
                     if (this.darkMode) document.documentElement.classList.add('dark');
                     await this.loadRemoteData();
                     setInterval(async () => { if (!this.isDragging && !this.inspectionOpen) await this.loadRemoteData(); }, 10000);
@@ -421,9 +417,7 @@
                 showToast(message, type = 'success') { this.toast.message = message; this.toast.type = type; this.toast.visible = true; setTimeout(() => { this.toast.visible = false; }, 2500); },
                 async hashStr(str) { const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); },
                 
-                getActiveFilterCount() {
-                    return 5 - this.activeRoleFilters.length;
-                },
+                getActiveFilterCount() { return 5 - this.activeRoleFilters.length; },
                 
                 applyPreset(type) {
                     this.currentPreset = type;
@@ -433,16 +427,8 @@
                 },
                 
                 clearAllFilters() { this.activeRoleFilters = ['Pharmacist', 'Tech', 'Packer', 'Lead', 'Manager']; this.currentPreset = 'all'; this.showToast("Filters flushed."); },
-                
-                shouldShowSection(sectionType) {
-                    if (this.currentPreset === 'all') return true;
-                    return this.currentPreset === sectionType;
-                },
-
-                matchesFilters(shift) {
-                    const matchType = this.getStaffType(shift.name);
-                    return this.activeRoleFilters.includes(matchType);
-                },
+                shouldShowSection(sectionType) { if (this.currentPreset === 'all') return true; return this.currentPreset === sectionType; },
+                matchesFilters(shift) { const matchType = this.getStaffType(shift.name); return this.activeRoleFilters.includes(matchType); },
 
                 async processLogin() {
                     this.loginLoading = true;
@@ -457,12 +443,20 @@
                         if(!res.ok) throw new Error(data.error || "Authentication blocked.");
                         
                         this.authKey = token; this.currentUser = { username: safeUser, role: data.role };
-                        localStorage.setItem('ssp-auth', token); localStorage.setItem('ssp-user', JSON.stringify(this.currentUser));
-                        this.closeAllModals(); this.loginUser = ''; this.loginPass = ''; this.showToast(`Node Authenticated.`);
+                        storage.set('ssp-auth', token); 
+                        storage.set('ssp-user', JSON.stringify(this.currentUser));
+                        this.closeAllModals(); this.loginUser = ''; this.loginPass = ''; this.showToast(`Logged in successfully.`);
                     } catch(e) { this.showToast(e.message, 'error'); } finally { this.loginLoading = false; }
                 },
 
-                logout() { this.authKey = ''; this.currentUser = { role: 'read' }; localStorage.removeItem('ssp-auth'); localStorage.removeItem('ssp-user'); this.closeAllModals(); this.showToast('Node terminated.'); },
+                logout() { 
+                    this.authKey = ''; 
+                    this.currentUser = { role: 'read' }; 
+                    storage.remove('ssp-auth'); 
+                    storage.remove('ssp-user'); 
+                    this.closeAllModals(); 
+                    this.showToast('Logged out securely.'); 
+                },
 
                 async adminAction(actionType, payloadObj) {
                     this.isSyncing = true;
@@ -476,7 +470,6 @@
                     } catch(e) { this.showToast(e.message, 'error'); } finally { this.isSyncing = false; }
                 },
 
-                // --- INLINE EDIT DISPATCHERS ---
                 startStaffEdit(person) {
                     this.editingStaffId = person.id;
                     this.editStaffForm = { id: person.id, display_name: person.display_name, staff_type: person.staff_type, is_active: person.is_active };
@@ -486,7 +479,11 @@
                     this.editingStaffId = null;
                 },
 
-                toggleDarkMode() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); localStorage.setItem('ssp-theme', this.darkMode ? 'dark' : 'light'); },
+                toggleDarkMode() { 
+                    this.darkMode = !this.darkMode; 
+                    document.documentElement.classList.toggle('dark', this.darkMode); 
+                    storage.set('ssp-theme', this.darkMode ? 'dark' : 'light'); 
+                },
 
                 async loadRemoteData() {
                     try {
@@ -528,15 +525,6 @@
                     this.inspectionOpen = true;
                 },
 
-                cycleStatus(name) {
-                    const cur = this.boardState.lunchStatus[name];
-                    if (cur === 'out') return;
-                    if (!cur) this.boardState.lunchStatus[name] = 'lunch';
-                    else if (cur === 'lunch') this.boardState.lunchStatus[name] = 'gone';
-                    else delete this.boardState.lunchStatus[name];
-                    this.saveRemoteData();
-                },
-
                 getColumnStyle(color) {
                     const map = {
                         'blue': 'p-3 rounded-xl border flex flex-col transition-all bg-blue-50/50 dark:bg-blue-950/10 border-blue-200/60 dark:border-blue-900/30',
@@ -576,56 +564,191 @@
 
                 dragStart(event, name) { if (this.currentUser.role === 'read') return; this.isDragging = true; event.dataTransfer.setData("text/plain", name); },
                 dragEnd() { this.isDragging = false; },
-                async dropCard(event, targetLoc) { if (this.currentUser.role === 'read') return; const name = event.dataTransfer.getData("text/plain"); if (!name) return; this.boardState.locations[name] = targetLoc; await this.saveRemoteData(); },
-                
-                promptOut(name) { this.confirmOut.targetName = name; this.confirmOut.open = true; },
-                async commitOut() { this.boardState.lunchStatus[this.confirmOut.targetName] = 'out'; this.confirmOut.open = false; this.inspectionOpen = false; await this.saveRemoteData(); this.showToast('Matrix Isolate Sequence Activated'); },
-                async revertOut(name) { delete this.boardState.lunchStatus[name]; this.inspectionOpen = false; await this.saveRemoteData(); this.showToast('Matrix Restored.'); },
 
+                // Rollback-Enabled State Sync
                 async saveRemoteData() {
-                    if (this.boardState.shifts.length === 0) return; this.isSyncing = true;
+                    if (this.boardState.shifts.length === 0) return true; 
+                    this.isSyncing = true;
                     try {
                         const response = await fetch(this.WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-SSP-Auth': this.authKey }, body: JSON.stringify({ action: 'SYNC_BOARD', ...this.boardState }) });
                         if (!response.ok) throw new Error('Gatekeeper rejection.');
-                    } catch (error) { this.showToast("Verification fault.", 'error'); } finally { setTimeout(() => { this.isSyncing = false; }, 300); }
+                        return true;
+                    } catch (error) { 
+                        this.showToast("Verification fault. Sync failed.", 'error'); 
+                        return false;
+                    } finally { setTimeout(() => { this.isSyncing = false; }, 300); }
+                },
+
+                async dropCard(event, targetLoc) { 
+                    if (this.currentUser.role === 'read') return; 
+                    const name = event.dataTransfer.getData("text/plain"); 
+                    if (!name) return; 
+                    
+                    const snapshot = this.boardState.locations[name]; 
+                    this.boardState.locations[name] = targetLoc; 
+                    
+                    const success = await this.saveRemoteData(); 
+                    if (!success) {
+                        this.boardState.locations[name] = snapshot; // Rollback
+                    }
+                },
+                
+                async cycleStatus(name) {
+                    const cur = this.boardState.lunchStatus[name];
+                    const snapshot = cur; 
+                    
+                    if (cur === 'out') return;
+                    if (!cur) this.boardState.lunchStatus[name] = 'lunch';
+                    else if (cur === 'lunch') this.boardState.lunchStatus[name] = 'gone';
+                    else delete this.boardState.lunchStatus[name];
+                    
+                    const success = await this.saveRemoteData();
+                    if (!success) {
+                        if (snapshot === undefined) delete this.boardState.lunchStatus[name];
+                        else this.boardState.lunchStatus[name] = snapshot; // Rollback
+                    }
+                },
+                
+                async commitOut() { 
+                    const target = this.confirmOut.targetName;
+                    const snapshot = this.boardState.lunchStatus[target]; 
+                    
+                    this.boardState.lunchStatus[target] = 'out'; 
+                    this.confirmOut.open = false; 
+                    this.inspectionOpen = false; 
+                    
+                    const success = await this.saveRemoteData(); 
+                    if (success) {
+                        this.showToast('Employee marked OUT.'); 
+                    } else {
+                        if (snapshot === undefined) delete this.boardState.lunchStatus[target];
+                        else this.boardState.lunchStatus[target] = snapshot; // Rollback
+                    }
+                },
+
+                async revertOut(name) { 
+                    const snapshot = this.boardState.lunchStatus[name];
+                    delete this.boardState.lunchStatus[name]; 
+                    this.inspectionOpen = false; 
+                    
+                    const success = await this.saveRemoteData(); 
+                    if (success) {
+                        this.showToast('Employee returned to active status.'); 
+                    } else {
+                        this.boardState.lunchStatus[name] = snapshot; // Rollback
+                    }
                 },
 
                 async parseAndUpdateSchedule() {
                     try {
-                        if (!this.rawShiftsInput.trim()) throw new Error("Null data stream.");
-                        const lines = this.rawShiftsInput.split('\n').map(l => l.trim());
+                        if (!this.rawShiftsInput.trim()) throw new Error("No text found. Please paste data.");
+                        const lines = this.rawShiftsInput.split('\n').map(l => l.trim()).filter(l => l);
+                        
                         const freshShifts = []; const freshLocations = {};
-
-                        lines.forEach(rawRow => {
-                            if (!rawRow) return;
-                            const columns = rawRow.split('\t').map(c => c.trim());
-                            if(columns.length < 2) return;
+                        
+                        // Heuristic: Matrix format usually has many columns (dates).
+                        const headers = lines[0].split('\t').map(c => c.trim());
+                        const isMatrix = headers.length > 5;
+                        
+                        let targetCol = 1;
+                        let startRow = 0;
+                        
+                        if (isMatrix) {
+                            startRow = 1; // skip header row
+                            const targetDateObj = new Date();
+                            const targetDateStr = `${targetDateObj.getMonth() + 1}/${targetDateObj.getDate()} ${targetDateObj.toLocaleDateString('en-US', {weekday: 'short'})}`;
                             
-                            const matchedName = columns[0];
-                            const rawStation = columns[1];
-                            let time = columns[2] || '';
-                            let task = columns[3] || rawStation;
+                            const foundIndex = headers.findIndex(h => h.toLowerCase().includes(targetDateStr.toLowerCase()));
+                            if (foundIndex > -1) {
+                                targetCol = foundIndex;
+                            } else {
+                                throw new Error(`Could not find column for today (${targetDateStr}) in spreadsheet header.`);
+                            }
+                        }
 
-                            const knownStaff = this.staff.find(s => s.display_name.toLowerCase() === matchedName.toLowerCase());
-                            if (!knownStaff) return;
-
+                        for (let i = startRow; i < lines.length; i++) {
+                            const columns = lines[i].split('\t').map(c => c.trim());
+                            if (columns.length === 0) continue;
+                            
+                            let rawName = columns[0];
+                            if (!rawName) continue;
+                            
+                            // Clean Name (Removes accidental time appendages like "Toua 12-830")
+                            let cleanName = rawName.split(' ')[0].trim();
+                            const knownStaff = this.staff.find(s => s.display_name.toLowerCase() === cleanName.toLowerCase());
+                            if (!knownStaff) continue;
+                            
                             const normalizedName = knownStaff.display_name;
-                            const targetStation = this.stations.find(s => s.label.toLowerCase() === rawStation.toLowerCase());
-                            const finalStationLabel = targetStation ? targetStation.label : (knownStaff.staff_type === 'Pharmacist' ? 'OFF - Rph' : 'Off');
-
+                            let time = '';
+                            let task = '';
+                            let stationLabel = '';
+                            
+                            if (isMatrix) {
+                                let rawData = columns[targetCol] || '';
+                                
+                                if (rawData === 'X' || rawData.toLowerCase() === 'off') {
+                                    stationLabel = knownStaff.staff_type === 'Pharmacist' ? 'OFF - Rph' : 'Off';
+                                } else if (rawData) {
+                                    let mainPart = rawData;
+                                    
+                                    // Rule: Split Shifts (e.g. 6AM (D2)/S1 )
+                                    if (rawData.includes('/')) {
+                                        const parts = rawData.split('/');
+                                        mainPart = parts[0].trim();
+                                        task = '➔ ' + parts.slice(1).join('/').trim();
+                                    }
+                                    
+                                    // Rule A: Parentheses (e.g. 730-4 (P/W) )
+                                    const parenMatch = mainPart.match(/^(.*?)\((.*?)\)(.*)$/);
+                                    // Rule B: Space Separated (e.g. 2-1030 S/P )
+                                    const spaceMatch = mainPart.match(/^([\dAMPM:-]+)\s+(.*)$/i);
+                                    
+                                    if (parenMatch) {
+                                        time = (parenMatch[1] + parenMatch[3]).trim();
+                                        stationLabel = parenMatch[2].trim();
+                                    } else if (spaceMatch) {
+                                        time = spaceMatch[1].trim();
+                                        stationLabel = spaceMatch[2].trim();
+                                    } else {
+                                        // Rule C: Implicit
+                                        stationLabel = mainPart;
+                                    }
+                                }
+                            } else {
+                                // Legacy Pharmacist 2-Column Paste Handling (Name, Station, Time, Task)
+                                stationLabel = columns[1] || '';
+                                time = columns[2] || '';
+                                task = columns[3] || stationLabel;
+                            }
+                            
+                            // Validation against DB
+                            let finalStationLabel = knownStaff.staff_type === 'Pharmacist' ? 'OFF - Rph' : 'Off';
+                            if (stationLabel) {
+                                const targetStation = this.stations.find(s => s.label.toLowerCase() === stationLabel.toLowerCase());
+                                if (targetStation) finalStationLabel = targetStation.label;
+                            }
+                            
                             freshLocations[normalizedName] = finalStationLabel;
                             freshShifts.push({ name: normalizedName, time, task });
-                        });
+                        }
 
-                        this.boardState.shifts = freshShifts; this.boardState.locations = freshLocations; this.boardState.lunchStatus = {};
+                        this.boardState.shifts = freshShifts; 
+                        this.boardState.locations = freshLocations; 
+                        this.boardState.lunchStatus = {};
                         this.boardState.statusDate = new Date().toLocaleDateString('en-CA');
-                        await this.saveRemoteData(); this.showToast("Roster Sync Complete."); this.rawShiftsInput = ''; this.parserOpen = false;
-                    } catch (err) { this.showToast(err.message, 'error'); }
+                        
+                        await this.saveRemoteData(); 
+                        this.showToast("Schedule imported successfully."); 
+                        this.rawShiftsInput = ''; 
+                        this.parserOpen = false;
+                    } catch (err) { 
+                        this.showToast(err.message, 'error'); 
+                    }
                 },
 
                 copyForTeams() {
                     try {
-                        let text = `**Operational Flow Execution Ledger — ${this.boardState.date}**\n\n`;
+                        let text = `**Daily Staffing Board — ${this.boardState.date}**\n\n`;
                         this.stations.forEach(station => {
                             const matchingShifts = this.getShiftsByLocation(station.label);
                             if(matchingShifts.length === 0) return;
@@ -633,13 +756,14 @@
                             matchingShifts.forEach(s => {
                                 const status = this.boardState.lunchStatus[s.name];
                                 const icon = status === 'lunch' ? ' 🥪' : (status === 'gone' ? ' 👋' : (status === 'out' ? ' ❌ [OUT]' : ''));
-                                text += `  - ${s.name}${icon} ${s.time ? '| ' + s.time : ''} (${s.task})\n`;
+                                const taskDisplay = s.task ? (s.task.startsWith('➔') ? s.task : `(${s.task})`) : '';
+                                text += `  - ${s.name}${icon} ${s.time ? '| ' + s.time : ''} ${taskDisplay}\n`;
                             });
                         });
                         navigator.clipboard.writeText(text.trim()).then(() => {
-                            this.copyBtnText = `✅ Stream Copied`;
-                            this.showToast("Teams Markdown Copied.");
-                            setTimeout(() => { this.copyBtnText = `📋 Format Stream`; }, 2000);
+                            this.copyBtnText = `✅ Copied!`;
+                            this.showToast("Copied for MS Teams.");
+                            setTimeout(() => { this.copyBtnText = `📋 Copy for Teams`; }, 2000);
                         });
                     } catch (e) { this.showToast("Clipboard block.", 'error'); }
                 }
