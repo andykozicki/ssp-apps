@@ -1,212 +1,274 @@
-:root {
-    --bg-color: #0d1117;
-    --card-bg: #161b22;
-    --card-hover: #21262d;
-    --text-primary: #c9d1d9;
-    --text-secondary: #8b949e;
-    --accent: #58a6ff;
-    --border-color: #30363d;
-    --transition-speed: 0.3s;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterling Specialty Pharmacy | Dev Apps</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --card-hover: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border-color: #30363d;
+            --transition-speed: 0.3s;
+        }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-primary); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .hidden { display: none !important; }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-primary);
-    line-height: 1.6;
-}
+        /* Header */
+        .site-header { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 3rem 2rem; text-align: center; }
+        .site-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .site-header h2 { font-size: 1.2rem; color: var(--accent); font-weight: 500; }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-}
+        /* Grid */
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; align-items: start; }
+        .grid-controls { text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px dashed var(--border-color); }
+        .grid-controls .btn { padding: 0.75rem 2rem; font-size: 1rem; cursor: pointer; }
 
-/* --- Header --- */
-.site-header {
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    padding: 3rem 2rem;
-    text-align: center;
-}
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .project-tile:not(.hidden) { animation: fadeIn 0.4s ease forwards; }
 
-.site-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
+        /* Tiles */
+        .project-tile { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: border-color var(--transition-speed) ease; }
+        .project-tile:hover { border-color: var(--text-secondary); }
+        .tile-header { padding: 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; user-select: none; transition: background-color var(--transition-speed) ease; }
+        .tile-header:hover { background-color: var(--card-hover); }
+        
+        .icon-wrapper { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background-color: rgba(88, 166, 255, 0.1); color: var(--accent); border-radius: 8px; }
+        .icon-wrapper svg { width: 24px; height: 24px; }
+        .title-wrapper h3 { font-size: 1.1rem; font-weight: 600; }
+        .title-wrapper .subtitle { font-size: 0.85rem; color: var(--text-secondary); }
 
-.site-header h2 {
-    font-size: 1.2rem;
-    color: var(--accent);
-    font-weight: 500;
-}
+        /* Accordion */
+        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--transition-speed) ease; background-color: var(--card-hover); }
+        .project-tile.active .accordion-content { grid-template-rows: 1fr; border-top: 1px solid var(--border-color); }
+        .accordion-inner { overflow: hidden; }
+        .details { padding: 1.5rem; }
+        .details p { font-size: 0.95rem; color: var(--text-primary); margin-bottom: 1.5rem; }
+        
+        /* Buttons */
+        .links { display: flex; gap: 1rem; }
+        .btn { flex: 1; text-align: center; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.2s ease; border: none; }
+        .btn-primary { background-color: var(--accent); color: var(--bg-color); }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-secondary { background-color: transparent; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { border-color: var(--text-primary); }
 
-/* --- Grid Layout --- */
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    align-items: start;
-}
+        /* States */
+        .loader-container, .error-container { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(88, 166, 255, 0.2); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-icon { width: 48px; height: 48px; color: #f85149; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-content">
+            <h1>Sterling Specialty Pharmacy</h1>
+            <h2>Dev Apps</h2>
+        </div>
+    </header>
 
-.hidden {
-    display: none !important;
-}
+    <main class="container">
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <p>Loading projects...</p>
+        </div>
 
-/* --- Project Tiles --- */
-.project-tile {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color var(--transition-speed) ease;
-}
+        <div id="error-state" class="error-container hidden">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p id="error-message">Failed to load projects.</p>
+            <button class="btn btn-secondary" onclick="window.location.reload()">Retry</button>
+        </div>
 
-.project-tile:hover {
-    border-color: var(--text-secondary);
-}
+        <section id="project-grid" class="project-grid hidden"></section>
 
-.tile-header {
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color var(--transition-speed) ease;
-}
+        <div id="grid-controls" class="grid-controls hidden">
+            <button id="toggle-view-btn" class="btn btn-secondary">View All Projects</button>
+        </div>
+    </main>
 
-.tile-header:hover {
-    background-color: var(--card-hover);
-}
+    <script>
+        const APP_STATE = {
+            projects: [],
+            icons: {},
+            activeProjectId: null,
+            isGridExpanded: false
+        };
 
-.icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background-color: rgba(88, 166, 255, 0.1);
-    color: var(--accent);
-    border-radius: 8px;
-}
+        function getSafeUrl(urlStr) {
+            try {
+                const url = new URL(urlStr, window.location.origin);
+                return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '#';
+            } catch {
+                return urlStr.startsWith('/') ? urlStr : '#';
+            }
+        }
 
-.icon-wrapper svg {
-    width: 24px;
-    height: 24px;
-}
+        function createProjectCard(project) {
+            const article = document.createElement('article');
+            article.className = 'project-tile';
+            article.dataset.id = project.id;
 
-.title-wrapper h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
+            const header = document.createElement('div');
+            header.className = 'tile-header';
+            header.addEventListener('click', () => toggleProject(project.id));
 
-.title-wrapper .subtitle {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
+            const iconWrapper = document.createElement('div');
+            iconWrapper.className = 'icon-wrapper';
+            // Look up icon from fetched JSON dictionary
+            iconWrapper.innerHTML = APP_STATE.icons[project.icon] || APP_STATE.icons['default'] || '';
 
-/* --- Accordion Details --- */
-.accordion-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows var(--transition-speed) ease;
-    background-color: var(--card-hover);
-}
+            const titleWrapper = document.createElement('div');
+            titleWrapper.className = 'title-wrapper';
+            
+            const title = document.createElement('h3');
+            title.textContent = project.title;
+            
+            const subtitle = document.createElement('span');
+            subtitle.className = 'subtitle';
+            subtitle.textContent = project.subtitle;
 
-.project-tile.active .accordion-content {
-    grid-template-rows: 1fr;
-    border-top: 1px solid var(--border-color);
-}
+            titleWrapper.appendChild(title);
+            titleWrapper.appendChild(subtitle);
+            header.appendChild(iconWrapper);
+            header.appendChild(titleWrapper);
 
-.accordion-inner {
-    overflow: hidden;
-}
+            const accordion = document.createElement('div');
+            accordion.className = 'accordion-content';
 
-.details {
-    padding: 1.5rem;
-}
+            const accordionInner = document.createElement('div');
+            accordionInner.className = 'accordion-inner';
 
-.details p {
-    font-size: 0.95rem;
-    color: var(--text-primary);
-    margin-bottom: 1.5rem;
-}
+            const details = document.createElement('div');
+            details.className = 'details';
 
-.links {
-    display: flex;
-    gap: 1rem;
-}
+            const desc = document.createElement('p');
+            desc.textContent = project.description;
 
-.btn {
-    flex: 1;
-    text-align: center;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
+            const links = document.createElement('div');
+            links.className = 'links';
 
-.btn-primary {
-    background-color: var(--accent);
-    color: var(--bg-color);
-}
+            const appLink = document.createElement('a');
+            appLink.href = getSafeUrl(project.appUrl);
+            appLink.className = 'btn btn-primary';
+            appLink.textContent = 'Launch App';
+            appLink.target = '_blank';
+            appLink.rel = 'noopener noreferrer';
 
-.btn-primary:hover {
-    filter: brightness(1.1);
-}
+            const repoLink = document.createElement('a');
+            repoLink.href = getSafeUrl(project.repoUrl);
+            repoLink.className = 'btn btn-secondary';
+            repoLink.textContent = 'Source Code';
+            repoLink.target = '_blank';
+            repoLink.rel = 'noopener noreferrer';
 
-.btn-secondary {
-    background-color: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-}
+            links.appendChild(appLink);
+            links.appendChild(repoLink);
+            details.appendChild(desc);
+            details.appendChild(links);
+            accordionInner.appendChild(details);
+            accordion.appendChild(accordionInner);
 
-.btn-secondary:hover {
-    border-color: var(--text-primary);
-}
+            article.appendChild(header);
+            article.appendChild(accordion);
 
-/* --- Loader & Error States --- */
-.loader-container, .error-container {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--text-secondary);
-}
+            return article;
+        }
 
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(88, 166, 255, 0.2);
-    border-radius: 50%;
-    border-top-color: var(--accent);
-    animation: spin 1s ease-in-out infinite;
-    margin: 0 auto 1rem;
-}
+        function toggleProject(id) {
+            const cards = document.querySelectorAll('.project-tile');
+            APP_STATE.activeProjectId = (APP_STATE.activeProjectId === id) ? null : id;
 
-@keyframes spin { to { transform: rotate(360deg); } }
+            cards.forEach(card => {
+                if (card.dataset.id === APP_STATE.activeProjectId) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
 
-.error-icon {
-    width: 48px;
-    height: 48px;
-    color: #f85149;
-    margin-bottom: 1rem;
-}
+        function toggleGridVisibility() {
+            APP_STATE.isGridExpanded = !APP_STATE.isGridExpanded;
+            const secondaryCards = document.querySelectorAll('.secondary-card');
+            const btn = document.getElementById('toggle-view-btn');
 
-.error-container button {
-    margin-top: 1rem;
-    padding: 0.5rem 1.5rem;
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-}
+            secondaryCards.forEach(card => {
+                if (APP_STATE.isGridExpanded) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                    card.classList.remove('active'); 
+                }
+            });
+
+            btn.textContent = APP_STATE.isGridExpanded ? 'Show Less' : 'View All Projects';
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('project-grid');
+            grid.innerHTML = ''; 
+
+            const sortedProjects = [...APP_STATE.projects].sort((a, b) => (b.featured === true) - (a.featured === true));
+
+            sortedProjects.forEach(project => {
+                const card = createProjectCard(project);
+                
+                if (!project.featured) {
+                    card.classList.add('secondary-card');
+                    if (!APP_STATE.isGridExpanded) {
+                        card.classList.add('hidden');
+                    }
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        async function init() {
+            const loader = document.getElementById('loader');
+            const errorState = document.getElementById('error-state');
+            const grid = document.getElementById('project-grid');
+            const controls = document.getElementById('grid-controls');
+
+            try {
+                const response = await fetch('manifest.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (!data.projects || !Array.isArray(data.projects)) throw new Error("Invalid manifest schema");
+
+                // Populate state from JSON
+                APP_STATE.projects = data.projects;
+                APP_STATE.icons = data.icons || {}; 
+
+                renderGrid();
+                
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+                
+                // Only show View More button if we have secondary cards
+                const hasSecondary = data.projects.some(p => !p.featured);
+                if (hasSecondary) {
+                    controls.classList.remove('hidden');
+                    document.getElementById('toggle-view-btn').addEventListener('click', toggleGridVisibility);
+                }
+
+            } catch (error) {
+                console.error("Failed to load projects:", error);
+                loader.classList.add('hidden');
+                errorState.classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
