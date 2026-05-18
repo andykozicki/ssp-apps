@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterling Specialty - Office Map</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' fill='%23599b42'/><path d='M35,80 C35,40 65,60 65,20 C65,60 35,40 35,80' stroke='white' stroke-width='8' fill='none'/><path d='M20,60 C40,70 60,30 80,40' stroke='white' stroke-width='6' fill='none'/></svg>">
+    <style>
+        :root {
+            --sterling-green: #599b42;
+            --sterling-green-dark: #467a33;
+            --sterling-white: #ffffff;
+            --bg-color: #f4f7f4;
+            --desk-bg: #ffffff;
+            --desk-border: #cbd5e1;
+            --desk-hover: #eaf2e8;
+            --walkway-color: #94a3b8;
+            --header-text: #64748b;
+            
+            /* Role Colors */
+            --role-rph: #ef4444;    /* Red */
+            --role-tech: #3b82f6;   /* Blue */
+            --role-csr: #f97316;    /* Orange */
+            --role-bi: #8b5cf6;     /* Purple */
+            --role-manager: #eab308; /* Gold */
+            --role-lead: #14b8a6;   /* Teal */
+            --role-none: #94a3b8;   /* Gray */
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-bar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        /* View Toggle Slider */
+        .toggle-container {
+            display: flex;
+            background: #e2e8f0;
+            border-radius: 999px;
+            padding: 4px;
+            position: relative;
+        }
+
+        .toggle-btn {
+            padding: 8px 24px;
+            border: none;
+            background: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--header-text);
+            transition: all 0.3s;
+            z-index: 1;
+        }
+
+        .toggle-btn.active {
+            color: var(--sterling-white);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            background: var(--sterling-green);
+            border-radius: 999px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Search Bar */
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 999px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid var(--desk-border);
+        }
+
+        .search-btn {
+            background: none;
+            border: none;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--sterling-green);
+        }
+
+        .search-input {
+            width: 0;
+            border: none;
+            outline: none;
+            padding: 0;
+            transition: width 0.3s, padding 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .search-wrapper.open .search-input {
+            width: 200px;
+            padding: 10px 14px 10px 0;
+        }
+
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            gap: 6px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .header-cell {
+            font-weight: 600;
+            color: var(--header-text);
+            font-size: 0.875rem;
+            user-select: none;
+        }
+
+        /* Physical Spatial Margins */
+        .col-B, .col-D, .col-F, .col-I { margin-right: 24px; }
+        .row-5-walkway { margin: 16px 0; }
+
+        .desk {
+            background-color: var(--desk-bg);
+            border: 1px solid var(--desk-border);
+            min-height: 85px;
+            padding: 8px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            flex-direction: column;
+            gap: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .desk::before {
+            content: attr(data-coord);
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            font-size: 0.65rem;
+            color: #cbd5e1;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .desk.drag-over {
+            background-color: var(--desk-hover);
+            border-color: var(--sterling-green);
+            border-style: dashed;
+        }
+
+        /* Badges */
+        .badge {
+            background-color: var(--desk-bg);
+            border: 1px solid var(--desk-border);
+            border-left: 4px solid var(--role-color, var(--role-none));
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            width: calc(100% - 10px);
+            font-size: 0.85rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            user-select: none;
+            position: relative;
+        }
+
+        .badge.unlocked { cursor: grab; }
+        .badge.unlocked:active { cursor: grabbing; }
+        .badge.dragging { opacity: 0.4; }
+
+        .role-tag {
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-right: 6px;
+            color: white;
+            background-color: var(--role-color, var(--role-none));
+            cursor: pointer;
+        }
+
+        .badge-text {
+            flex-grow: 1;
+            outline: none;
+            min-width: 20px;
+        }
+
+        .badge-text[contenteditable="true"]:focus {
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--sterling-green);
+        }
+
+        /* Contextual Controls */
+        .delete-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .badge.unlocked:hover .delete-btn {
+            display: flex;
+        }
+
+        .empty-desk-ui {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .add-btn {
+            background: var(--sterling-green);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            display: none;
+        }
+
+        .desk.unlocked:hover .add-btn {
+            display: block;
+        }
+
+        .dimmed {
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Admin Lock */
+        .admin-controls {
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .auth-btn {
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .auth-status {
+            font-size: 0.875rem;
+            color: var(--header-text);
+        }
+
+        .auth-btn.unlocked {
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-bar">
+    <div class="toggle-container">
+        <div class="toggle-slider" id="slider"></div>
+        <button class="toggle-btn active" onclick="switchView('CallCenter', this)">Call Center</button>
+        <button class="toggle-btn" onclick="switchView('HUB', this)">HUB</button>
+    </div>
+
+    <div class="search-wrapper" id="search-wrapper">
+        <button class="search-btn" onclick="toggleSearch()">🔍</button>
+        <input type="text" class="search-input" id="search-input" placeholder="Find name or role..." oninput="filterGrid()">
+    </div>
+</div>
+
+<div id="grid" class="grid-container"></div>
+
+<div class="admin-controls">
+    <button id="auth-btn" class="auth-btn" onclick="toggleAuth()">🔒 Unlock Editor</button>
+    <span id="auth-status" class="auth-status">Read-Only Mode</span>
+</div>
+
+<script>
+    const API_URL = 'https://cubemap.askozicki.workers.dev';
+    let apiKey = null;
+    let isUnlocked = false;
+    let currentView = 'CallCenter';
+    let mapData = { CallCenter: {}, HUB: {} };
+
+    const roles = {
+        'None': 'var(--role-none)',
+        'Rph': 'var(--role-rph)',
+        'Tech': 'var(--role-tech)',
+        'CSR': 'var(--role-csr)',
+        'BI': 'var(--role-bi)',
+        'Manager': 'var(--role-manager)',
+        'Lead': 'var(--role-lead)'
+    };
+
+    const roleKeys = Object.keys(roles);
+
+    // Initial load map
+    async function init() {
+        try {
+            const res = await fetch(API_URL);
+            if (res.ok) {
+                mapData = await res.json();
+            }
+        } catch (e) {
+            console.warn('Backend unavailable. Using local state.');
+        }
+        renderGrid();
+    }
+
+    function switchView(view, btn) {
+        currentView = view;
+        const slider = document.getElementById('slider');
+        const btns = document.querySelectorAll('.toggle-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        slider.style.transform = view === 'HUB' ? 'translateX(100%)' : 'translateX(0)';
+        renderGrid();
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        
+        const config = currentView === 'CallCenter' 
+            ? { cols: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], rows: [9, 8, 7, 6, 5, 4, 3, 2, 1] }
+            : { cols: ['I', 'J', 'K'], rows: [4, 3, 2, 1] };
+
+        grid.style.gridTemplateColumns = `40px repeat(${config.cols.length}, 1fr)`;
+
+        // Top-left corner
+        grid.appendChild(createDiv('cell header-cell', ''));
+
+        // Column Headers
+        config.cols.forEach(col => grid.appendChild(createDiv(`cell header-cell col-${col}`, col)));
+
+        // Rows
+        config.rows.forEach(rowNum => {
+            const rowClass = (currentView === 'CallCenter' && rowNum === 5) ? 'row-5-walkway' : '';
+            
+            // Row Header
+            grid.appendChild(createDiv(`cell header-cell ${rowClass}`, rowNum));
+
+            config.cols.forEach(col => {
+                const coord = `${col}${rowNum}`;
+                const isWalkway = (currentView === 'CallCenter' && rowNum === 5);
+                
+                if (isWalkway) {
+                    grid.appendChild(createDiv(`cell walkway col-${col} ${rowClass}`, ''));
+                    return;
+                }
+
+                const desk = createDiv(`cell desk col-${col} ${isUnlocked ? 'unlocked' : ''}`, '');
+                desk.dataset.coord = coord;
+                
+                if (isUnlocked) {
+                    desk.addEventListener('dragover', dragOver);
+                    desk.addEventListener('dragenter', dragEnter);
+                    desk.addEventListener('dragleave', dragLeave);
+                    desk.addEventListener('drop', drop);
+                }
+
+                const occupant = mapData[currentView][coord];
+                if (occupant) {
+                    desk.appendChild(createBadge(occupant.name, occupant.role, coord));
+                } else {
+                    desk.appendChild(createEmptyUI(coord));
+                }
+
+                grid.appendChild(desk);
+            });
+        });
+
+        if (document.getElementById('search-input').value) filterGrid();
+    }
+
+    function createDiv(className, text) {
+        const div = document.createElement('div');
+        div.className = className;
+        div.textContent = text;
+        return div;
+    }
+
+    function createEmptyUI(coord) {
+        const ui = document.createElement('div');
+        ui.className = 'empty-desk-ui';
+        
+        const btn = document.createElement('button');
+        btn.className = 'add-btn';
+        btn.innerHTML = '+';
+        btn.onclick = () => addBadge(coord);
+        
+        const text = document.createElement('span');
+        text.textContent = 'Empty';
+
+        ui.appendChild(btn);
+        ui.appendChild(text);
+        return ui;
+    }
+
+    function createBadge(name, role, coord) {
+        role = role || 'None';
+        const badge = document.createElement('div');
+        badge.className = `badge ${isUnlocked ? 'unlocked' : ''}`;
+        badge.style.setProperty('--role-color', roles[role]);
+        badge.id = `badge-${coord}`;
+        
+        if (isUnlocked) {
+            badge.draggable = true;
+            badge.addEventListener('dragstart', (e) => dragStart(e, coord));
+            badge.addEventListener('dragend', dragEnd);
+        }
+
+        const roleTag = document.createElement('span');
+        roleTag.className = 'role-tag';
+        roleTag.textContent = role === 'None' ? '---' : role;
+        if (isUnlocked) roleTag.onclick = (e) => cycleRole(e, coord, role);
+
+        const text = document.createElement('span');
+        text.className = 'badge-text';
+        text.contentEditable = isUnlocked;
+        text.spellcheck = false;
+        text.textContent = name;
+        
+        if (isUnlocked) {
+            text.addEventListener('focus', () => badge.draggable = false);
+            text.addEventListener('blur', (e) => {
+                badge.draggable = true;
+                updateName(coord, e.target.textContent);
+            });
+        }
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.innerHTML = 'X';
+        delBtn.onclick = () => deleteBadge(coord);
+
+        badge.appendChild(roleTag);
+        badge.appendChild(text);
+        if (isUnlocked) badge.appendChild(delBtn);
+        
+        return badge;
+    }
+
+    // --- State Mutations ---
+
+    function addBadge(coord) {
+        if (!isUnlocked) return;
+        mapData[currentView][coord] = { name: "New Person", role: "None" };
+        syncState();
+        renderGrid();
+        
+        // Auto-focus
+        setTimeout(() => {
+            const el = document.querySelector(`#badge-${coord} .badge-text`);
+            if(el) {
+                el.focus();
+                document.execCommand('selectAll', false, null);
+            }
+        }, 50);
+    }
+
+    function deleteBadge(coord) {
+        if (!isUnlocked) return;
+        delete mapData[currentView][coord];
+        syncState();
+        renderGrid();
+    }
+
+    function updateName(coord, newName) {
+        if (!newName.trim()) return deleteBadge(coord);
+        if (mapData[currentView][coord].name !== newName) {
+            mapData[currentView][coord].name = newName;
+            syncState();
+        }
+    }
+
+    function cycleRole(e, coord, currentRole) {
+        if (!isUnlocked) return;
+        const currentIndex = roleKeys.indexOf(currentRole);
+        const nextRole = roleKeys[(currentIndex + 1) % roleKeys.length];
+        mapData[currentView][coord].role = nextRole;
+        syncState();
+        renderGrid();
+    }
+
+    async function syncState() {
+        if (!apiKey) return;
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Cube-Key': apiKey },
+                body: JSON.stringify(mapData)
+            });
+        } catch (e) {
+            console.error('Failed to sync', e);
+        }
+    }
+
+    // --- Drag and Drop ---
+
+    let draggedCoord = null;
+
+    function dragStart(e, coord) {
+        if (!isUnlocked) return e.preventDefault();
+        draggedCoord = coord;
+        setTimeout(() => e.target.classList.add('dragging'), 0);
+    }
+
+    function dragEnd(e) {
+        e.target.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        draggedCoord = null;
+    }
+
+    function dragOver(e) { e.preventDefault(); }
+    function dragEnter(e) {
+        if (e.currentTarget.classList.contains('desk')) {
+            e.currentTarget.classList.add('drag-over');
+        }
+    }
+    function dragLeave(e) {
+        if (e.currentTarget.classList.contains('desk')) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+    }
+
+    function drop(e) {
+        e.preventDefault();
+        const targetDesk = e.currentTarget;
+        targetDesk.classList.remove('drag-over');
+        
+        const targetCoord = targetDesk.dataset.coord;
+        if (!targetCoord || targetCoord === draggedCoord) return;
+
+        // Swap or Move in state
+        const sourceData = mapData[currentView][draggedCoord];
+        const targetData = mapData[currentView][targetCoord];
+
+        mapData[currentView][targetCoord] = sourceData;
+        if (targetData) {
+            mapData[currentView][draggedCoord] = targetData;
+        } else {
+            delete mapData[currentView][draggedCoord];
+        }
+
+        syncState();
+        renderGrid();
+    }
+
+    // --- UI Controls ---
+
+    function toggleSearch() {
+        document.getElementById('search-wrapper').classList.toggle('open');
+        if (document.getElementById('search-wrapper').classList.contains('open')) {
+            document.getElementById('search-input').focus();
+        } else {
+            document.getElementById('search-input').value = '';
+            filterGrid();
+        }
+    }
+
+    function filterGrid() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const desks = document.querySelectorAll('.desk');
+        
+        desks.forEach(desk => {
+            if (!query) {
+                desk.classList.remove('dimmed');
+                return;
+            }
+            
+            const text = desk.textContent.toLowerCase();
+            if (text.includes(query)) {
+                desk.classList.remove('dimmed');
+            } else {
+                desk.classList.add('dimmed');
+            }
+        });
+    }
+
+    function toggleAuth() {
+        if (isUnlocked) {
+            isUnlocked = false;
+            apiKey = null;
+            document.getElementById('auth-btn').textContent = '🔒 Unlock Editor';
+            document.getElementById('auth-btn').classList.remove('unlocked');
+            document.getElementById('auth-status').textContent = 'Read-Only Mode';
+            renderGrid();
+            return;
+        }
+
+        const pin = prompt('Enter Admin PIN to edit map:');
+        if (pin === '1312') {
+            apiKey = pin;
+            isUnlocked = true;
+            document.getElementById('auth-btn').textContent = '🔓 Lock Editor';
+            document.getElementById('auth-btn').classList.add('unlocked');
+            document.getElementById('auth-status').textContent = 'Edit Mode Active (Changes Auto-Save)';
+            renderGrid();
+        } else if (pin !== null) {
+            alert('Incorrect PIN.');
+        }
+    }
+
+    // Boot
+    init();
+
+</script>
+</body>
+</html>
