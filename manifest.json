@@ -1,0 +1,204 @@
+{
+  "projects": [
+    {
+      "id": "pharmacy-breaker",
+      "title": "Rx Breaker",
+      "subtitle": "Arcade Game",
+      "description": "A pharmacy-themed brick breaker game built using vanilla HTML5 canvas.",
+      "icon": "pill",
+      "appUrl": "/apps/breaker/",
+      "repoUrl": "https://github.com/your-repo/rx-breaker"
+    }
+  ]
+}
+Component Architecture
+State Object: Unidirectional data flow managed by a single central array.
+
+JavaScript
+const APP_STATE = {
+  projects: [],
+  activeProjectId: null,
+  isLoading: true,
+  error: null
+};
+Core Functions:
+
+init(): Triggers the fetch sequence on DOMContentLoaded.
+
+fetchManifest(): Handles the asynchronous request, try/catch safety boundaries, and error updates.
+
+renderGrid(): Loops through the state and updates the innerHTML of the grid container wrapper.
+
+toggleProject(id): Updates activeProjectId and updates the DOM classes without full re-renders.
+
+4. Audit Blueprint
+Performance Bottleneck: Excessive DOM re-rendering on accordion toggle.
+
+Fix: Render the accordion DOM structure immediately during the initial loop. Use CSS utility classes (max-height, opacity, visibility) to drive the transition performance via hardware acceleration.
+
+Security Risk: Dynamic text injection via JSON data could expose the application to XSS if repository inputs are compromised.
+
+Fix: Use textContent for titles and descriptions instead of blind innerHTML interpolation. Explicitly sanitize URL attributes using the URL constructor to verify protocols before binding to href.
+
+Start the manifest.json based on the screenshot of my project folders attached. I'll fill in links, add short descriptions based on what you know about the projects. Or just make something up as a placeholder.
+
+Web Apps
+Custom Gem
+Your JSON file is ready based on the project folders provided.
+JSON icon
+ manifest 
+JSON
+
+What's Inside
+I populated the manifest.json using the schema we agreed on. For the icons, I used standardized keyword strings (e.g., "truck", "calculator", "clock", "globe") that you can map to an inline SVG registry in your vanilla JavaScript file (e.g. Feather Icons, Heroicons, or Phosphor icons).
+
+Here is a quick look at how the data is structured:
+
+JSON
+{
+  "projects": [
+    {
+      "id": "mf-maker",
+      "title": "MF Maker",
+      "subtitle": "Utility App",
+      "description": "A micro-frontend scaffolding tool designed to streamline project setup and component generation.",
+      "icon": "tool",
+      "appUrl": "/apps/mf-maker/",
+      "repoUrl": "https://github.com/your-repo/mf-maker"
+    },
+    ...
+To fetch this dynamically in your index.html, you can use a simple setup like this:
+
+JavaScript
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('manifest.json');
+        const data = await response.json();
+        renderProjects(data.projects);
+    } catch (error) {
+        console.error("Failed to load project manifest:", error);
+        // Inject error state UI here
+    }
+});
+Let me know if you need the actual vanilla JS, HTML grid, and CSS accordion transitions drafted out next!
+
+
+
+
+
+Gemini is AI and can make mistakes.
+
+{
+  "projects": [
+    {
+      "id": "mf-maker",
+      "title": "MF Maker",
+      "subtitle": "Utility App",
+      "description": "A micro-frontend scaffolding tool designed to streamline project setup and component generation.",
+      "icon": "tool",
+      "appUrl": "/apps/mf-maker/",
+      "repoUrl": "https://github.com/your-repo/mf-maker"
+    },
+    {
+      "id": "multi-calc",
+      "title": "Multi-Calc",
+      "subtitle": "Pharmacy Utility",
+      "description": "A versatile calculation tool supporting multiple specialized formulas for everyday pharmacy operations.",
+      "icon": "calculator",
+      "appUrl": "/apps/multi-calc/",
+      "repoUrl": "https://github.com/your-repo/multi-calc"
+    },
+    {
+      "id": "personal-sports-hub",
+      "title": "Sports Hub",
+      "subtitle": "Dashboard",
+      "description": "A personalized dashboard for tracking favorite sports teams, scores, and upcoming schedules.",
+      "icon": "activity",
+      "appUrl": "/apps/personal-sports-hub/",
+      "repoUrl": "https://github.com/your-repo/personal-sports-hub"
+    },
+    {
+      "id": "pharm-flow",
+      "title": "Pharm Flow",
+      "subtitle": "Workflow Management",
+      "description": "A process visualization and management app for tracking prescription lifecycles and dispensing workflows.",
+      "icon": "git-merge",
+      "appUrl": "/apps/pharm-flow/",
+      "repoUrl": "https://github.com/your-repo/pharm-flow"
+    },
+    {
+      "id": "pharmacy-brickbreaker",
+      "title": "Rx Breaker",
+      "subtitle": "Arcade Game",
+      "description": "A pharmacy-themed brick breaker game built using vanilla HTML5 canvas. Smash the pills to win!",
+      "icon": "gamepad",
+      "appUrl": "/apps/pharmacy-brickbreaker/",
+      "repoUrl": "https://github.com/your-repo/pharmacy-brickbreaker"
+    },
+    {
+      "id": "pomodoro-timer",
+      "title": "Pomodoro Timer",
+      "subtitle": "Productivity",
+      "description": "A focused work timer applying the Pomodoro technique, complete with customizable intervals and alerts.",
+      "icon": "clock",
+      "appUrl": "/apps/pomodoro-timer/",
+      "repoUrl": "https://github.com/your-repo/pomodoro-timer"
+    },
+    {
+      "id": "rts-calculator",
+      "title": "RTS Calculator",
+      "subtitle": "Clinical Tool",
+      "description": "Return-to-stock calculator helping technicians determine viability and expiration dates for returned medications.",
+      "icon": "cpu",
+      "appUrl": "/apps/rts-calculator/",
+      "repoUrl": "https://github.com/your-repo/rts-calculator"
+    },
+    {
+      "id": "shippingcalc",
+      "title": "Shipping Calc",
+      "subtitle": "Logistics",
+      "description": "Estimates shipping costs and transit times based on package dimensions, weight, and destination zip codes.",
+      "icon": "truck",
+      "appUrl": "/apps/shippingcalc/",
+      "repoUrl": "https://github.com/your-repo/shippingcalc"
+    },
+    {
+      "id": "ssp-public",
+      "title": "SSP Public",
+      "subtitle": "Landing Page",
+      "description": "The public-facing informational site for Sterling Specialty Pharmacy, detailing services and contact information.",
+      "icon": "globe",
+      "appUrl": "/apps/ssp-public/",
+      "repoUrl": "https://github.com/your-repo/ssp-public"
+    },
+    {
+      "id": "weather-center",
+      "title": "Weather Center",
+      "subtitle": "API Integration",
+      "description": "A real-time weather tracking application pulling data from external meteorological APIs.",
+      "icon": "cloud",
+      "appUrl": "/apps/weather-center/",
+      "repoUrl": "https://github.com/your-repo/weather-center"
+    },
+    {
+      "id": "workflow",
+      "title": "Workflow",
+      "subtitle": "Task Management",
+      "description": "A Kanban-style task management board tailored for internal dev teams to track app progress.",
+      "icon": "trello",
+      "appUrl": "/apps/workflow/",
+      "repoUrl": "https://github.com/your-repo/workflow"
+    },
+    {
+      "id": "zen-snake",
+      "title": "Zen Snake",
+      "subtitle": "Casual Game",
+      "description": "A relaxing, modern take on the classic Snake game featuring smooth animations and ambient colors.",
+      "icon": "play-circle",
+      "appUrl": "/apps/zen-snake/",
+      "repoUrl": "https://github.com/your-repo/zen-snake"
+    }
+  ]
+}
+manifest.json
+Displaying manifest.json.
