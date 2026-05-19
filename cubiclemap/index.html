@@ -5,688 +5,788 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sterling Specialty - Office Map</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z' fill='none' stroke='%23599b42' stroke-width='6' stroke-linejoin='round'/><path d='M50 10 L50 50 L90 30 M10 30 L50 50 L50 90 M10 70 L50 50 M90 70 L50 50' fill='none' stroke='%23599b42' stroke-width='6' stroke-linejoin='round'/></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables & Theme Setup */
         :root {
             --sterling-green: #599b42;
-            --sterling-green-dark: #467a33;
             --sterling-white: #ffffff;
-            --bg-color: #f4f7f4;
+            --role-none: transparent;
+            
+            /* Light Theme with Glassmorphism support */
+            --bg-color: #f8fafc;
+            --panel-bg: rgba(255, 255, 255, 0.85); 
             --desk-bg: #ffffff;
             --desk-border: #cbd5e1;
             --desk-hover: #eaf2e8;
             --header-text: #64748b;
-            
-            /* Role Colors */
-            --role-rph: #ef4444;
-            --role-tech: #3b82f6;
-            --role-csr: #f97316;
-            --role-bi: #8b5cf6;
-            --role-manager: #eab308;
-            --role-lead: #14b8a6;
-            --role-none: transparent;
+            --text-main: #0f172a;
+            --shading-bg: #f1f5f9;
+            --pill-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --spring-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-color: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --desk-bg: #1e293b;
+            --desk-border: #334155;
+            --desk-hover: #0f172a;
+            --header-text: #94a3b8;
+            --text-main: #f8fafc;
+            --shading-bg: #0f172a;
+            --pill-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            color: #334155;
-            margin: 0;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s;
         }
 
-        .header-bar {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+        /* Loading Skeleton Overlay */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-color); z-index: 9999; display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        .loading-overlay.hidden { opacity: 0; visibility: hidden; }
+        .gear-spin { stroke: var(--sterling-green); animation: spin 3s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Nav Bar (Glassmorphism) */
+        .nav-bar {
+            width: 100%; background: var(--panel-bg); border-bottom: 1px solid var(--desk-border);
+            padding: 1.5rem 2rem; display: flex; justify-content: center;
+            z-index: 50; flex-shrink: 0; transition: background-color 0.3s, border-color 0.3s;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
 
-        .header-titles h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            color: #0f172a;
-            letter-spacing: -0.5px;
-        }
+        .nav-content { width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
 
-        .header-titles .subtitle {
-            margin: 0;
-            font-size: 0.95rem;
-            color: var(--sterling-green);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .header-titles { display: flex; flex-direction: column; align-items: center; }
+        .header-titles h1 { margin: 0; font-size: 1.6rem; color: var(--text-main); letter-spacing: -0.5px; }
+        .header-titles .subtitle { margin: 0; font-size: 0.8rem; color: var(--sterling-green); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* View Toggle Slider */
+        .controls-toolbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; width: 100%; gap: 24px; }
+
+        /* Metrics */
+        .metrics-board {
+            display: flex; gap: 1.5rem; background: var(--shading-bg); padding: 8px 24px; 
+            border-radius: 999px; border: 1px solid var(--desk-border); box-shadow: var(--pill-shadow); justify-self: start;
+        }
+        .metric { display: flex; flex-direction: column; align-items: center; }
+        .metric-val { font-weight: 700; color: var(--text-main); font-size: 1.1rem; line-height: 1; }
+        .metric-label { font-size: 0.65rem; color: var(--header-text); text-transform: uppercase; font-weight: 700; margin-top: 2px;}
+
+        /* Center Stack & Legend */
+        .center-stack { display: flex; flex-direction: column; align-items: center; gap: 12px; justify-self: center; }
+
+        .role-legend {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
+            background: var(--desk-bg); padding: 6px 16px; border-radius: 999px;
+            border: 1px solid var(--desk-border); box-shadow: var(--pill-shadow);
+        }
+        
+        /* Eye Toggle SVGs */
+        .role-toggle-btn { 
+            background: none; border: none; cursor: pointer; color: var(--header-text); 
+            display: flex; align-items: center; justify-content: center; padding: 0 8px 0 0; 
+            border-right: 1px solid var(--desk-border); margin-right: 4px; transition: color 0.2s, transform 0.15s var(--spring-curve);
+        }
+        .role-toggle-btn:hover { color: var(--text-main); }
+        .role-toggle-btn:active { transform: scale(0.90); }
+        body.hide-roles .eye-open { display: none; }
+        body:not(.hide-roles) .eye-closed { display: none; }
+
+        .role-inputs { display: flex; gap: 4px; overflow: hidden; transition: max-width 0.3s, opacity 0.3s; max-width: 250px; opacity: 1; align-items: center;}
+        .role-inputs.hidden { max-width: 0; opacity: 0; pointer-events: none; }
+        .role-input-group { display: flex; gap: 4px; align-items: center; }
+        .role-input-group input[type="text"] { font-size: 0.7rem; padding: 4px 8px; border: 1px solid var(--desk-border); border-radius: 4px; width: 80px; background: var(--bg-color); color: var(--text-main); outline: none;}
+        .role-input-group input[type="color"] { border: none; width: 24px; height: 24px; padding: 0; background: none; cursor: pointer; }
+        .role-expand-btn { background: var(--sterling-green); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s var(--spring-curve); }
+        .role-expand-btn:active { transform: scale(0.90); }
+        .role-action-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; border: none; cursor: pointer; color: white; transition: transform 0.15s var(--spring-curve); }
+        .role-action-btn:active { transform: scale(0.90); }
+
         .toggle-container {
-            display: flex;
-            background: #e2e8f0;
-            border-radius: 999px;
-            padding: 4px;
-            position: relative;
+            display: flex; background: var(--shading-bg); border-radius: 999px; padding: 4px; position: relative; border: 1px solid var(--desk-border);
         }
-
         .toggle-btn {
-            padding: 8px 24px;
-            border: none;
-            background: none;
-            border-radius: 999px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--header-text);
-            transition: all 0.3s;
-            z-index: 1;
+            width: 120px; text-align: center; padding: 6px 0; border: none; background: none; 
+            border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--header-text); z-index: 1;
         }
-
-        .toggle-btn.active {
-            color: var(--sterling-white);
-        }
-
+        .toggle-btn.active { color: var(--sterling-white); }
         .toggle-slider {
-            position: absolute;
-            top: 4px;
-            bottom: 4px;
-            left: 4px;
-            width: calc(50% - 4px);
-            background: var(--sterling-green);
-            border-radius: 999px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; top: 4px; bottom: 4px; left: 4px; width: 120px;
+            background: var(--sterling-green); border-radius: 999px; transition: transform 0.4s var(--spring-curve);
         }
 
-        /* Search Bar */
+        /* Right Actions (Physics added) */
+        .action-column { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; justify-self: end; }
+        .action-buttons { display: flex; gap: 8px; align-items: center; }
+        .icon-btn {
+            background: var(--desk-bg); border: 1px solid var(--desk-border); color: var(--text-main); 
+            border-radius: 6px; padding: 6px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s var(--spring-curve), background-color 0.2s; font-size: 1rem; height: 34px;
+        }
+        .icon-btn:hover { background-color: var(--shading-bg); }
+        .icon-btn:active { transform: scale(0.92); }
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--header-text); margin-left: 8px;}
+        .theme-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--desk-border); transition: .3s; border-radius: 24px; }
+        .theme-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: transform 0.3s var(--spring-curve); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        input:checked + .theme-slider { background-color: var(--sterling-green); }
+        input:checked + .theme-slider:before { transform: translateX(20px); }
+
         .search-wrapper {
-            display: flex;
-            align-items: center;
-            background: white;
-            border-radius: 999px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            overflow: hidden;
-            border: 1px solid var(--desk-border);
+            display: flex; align-items: center; background: var(--desk-bg); border-radius: 999px; 
+            border: 1px solid var(--desk-border); padding: 8px 16px; box-shadow: var(--pill-shadow);
         }
+        .search-input { border: none; outline: none; padding: 0 4px; width: 150px; font-size: 0.85rem; font-family: inherit; background: transparent; color: var(--text-main); }
 
-        .search-btn {
-            background: none;
-            border: none;
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--sterling-green);
+        /* Grid Canvas */
+        .canvas-scroll { flex-grow: 1; width: 100%; overflow: auto; display: flex; justify-content: center; padding: 2rem; }
+        .grid-container { 
+            display: grid; gap: 8px; width: 100%; max-width: 1200px; 
+            min-width: 1000px; /* Forces horizontal scroll on small screens */
+            margin: 0 auto; transition: max-width 0.3s; position: relative; height: max-content; 
         }
+        .grid-container.hub-mode { max-width: 500px; min-width: auto; }
 
-        .search-input {
-            width: 0;
-            border: none;
-            outline: none;
-            padding: 0;
-            transition: width 0.3s, padding 0.3s;
-            font-size: 0.95rem;
-        }
-
-        .search-wrapper.open .search-input {
-            width: 200px;
-            padding: 10px 14px 10px 0;
-        }
-
-        /* Grid Layout */
-        .grid-container {
-            display: grid;
-            gap: 6px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-        }
-
+        /* Cells & Axes */
+        .cell { display: flex; align-items: center; justify-content: center; border-radius: 6px; }
         .header-cell {
-            font-weight: 600;
-            color: var(--header-text);
-            font-size: 0.875rem;
-            user-select: none;
+            font-weight: 600; color: var(--header-text); font-size: 0.85rem; user-select: none; 
+            background-color: transparent; transition: background-color 0.3s;
+            display: flex; align-items: center; justify-content: center; text-align: center;
         }
+        .col-header { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--desk-border); padding-bottom: 4px; background-color: var(--bg-color); }
+        .row-header { position: sticky; left: 0; z-index: 10; border-right: 1px solid var(--desk-border); padding-right: 4px; background-color: var(--bg-color); }
+        .corner-cell { position: sticky; top: 0; left: 0; z-index: 11; background-color: var(--bg-color); }
 
-        /* Physical Spatial Margins applied to both desks and headers */
         .col-B, .col-D, .col-F, .col-I { margin-right: 24px; }
         .row-5-walkway { margin: 16px 0; }
 
+        /* Walkway Graphics */
+        .walkway {
+            background-color: var(--shading-bg);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+            color: var(--header-text); font-weight: 900; letter-spacing: 12px; text-transform: uppercase; font-size: 1.2rem; border-radius: 8px;
+        }
+
+        /* Desks */
         .desk {
-            background-color: var(--desk-bg);
-            border: 1px solid var(--desk-border);
-            min-height: 80px;
-            padding: 4px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
-            flex-direction: column;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-            position: relative;
+            background-color: var(--desk-bg); border: 1px solid var(--desk-border); min-height: 90px;
+            padding: 6px; padding-bottom: 24px; display: flex; align-items: center; justify-content: flex-start;
+            flex-direction: column; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; position: relative; z-index: 1; 
         }
-
         .desk::before {
-            content: attr(data-coord);
-            position: absolute;
-            bottom: 4px;
-            right: 6px;
-            font-size: 0.65rem;
-            color: #cbd5e1;
-            font-weight: bold;
-            pointer-events: none;
+            content: attr(data-coord); position: absolute; bottom: 4px; right: 6px;
+            font-size: 0.65rem; color: var(--header-text); font-weight: 700; pointer-events: none; opacity: 0.5;
         }
+        .desk.drag-over { background-color: var(--desk-hover); border-color: var(--sterling-green); border-style: dashed; }
 
-        .desk.drag-over {
-            background-color: var(--desk-hover);
-            border-color: var(--sterling-green);
-            border-style: dashed;
-        }
+        /* Merged Physical Desks */
+        .desk[data-coord="C6"], .desk[data-coord="E6"] { border-right: none; border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -4px; z-index: 2; }
+        .desk[data-coord="D6"], .desk[data-coord="F6"] { border-left: none; border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -4px; z-index: 2; }
 
-        /* Badges */
+        /* Cupertino Badges (With Drop Physics) */
         .badge {
-            background-color: var(--desk-bg);
-            border-left: 4px solid var(--role-color, var(--role-none));
-            border-radius: 4px;
-            padding: 4px 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            width: calc(100% - 16px);
-            user-select: none;
-            position: relative;
-            gap: 2px;
+            background-color: var(--bg-color); border-radius: 10px;
+            display: flex; flex-direction: row; align-items: stretch; text-align: center;
+            width: calc(100% - 8px); user-select: none; position: relative; gap: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--desk-border);
+            overflow: visible; padding: 0; transition: transform 0.3s var(--spring-curve), box-shadow 0.3s ease;
+        }
+        .badge.dragging { 
+            opacity: 0.95; transform: scale(1.05); 
+            box-shadow: 0 16px 32px rgba(0,0,0,0.15); border: 1px dashed var(--sterling-green); z-index: 99; 
         }
 
-        .badge.unlocked { cursor: grab; }
-        .badge.unlocked:active { cursor: grabbing; }
-        .badge.dragging { opacity: 0.4; }
-
-        .badge-text {
-            width: 100%;
-            outline: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #1e293b;
+        .drag-handle {
+            width: 24px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+            background-color: var(--role-color, var(--desk-border)); color: rgba(255,255,255,0.7);
+            font-size: 14px; border-right: 1px solid var(--desk-border); flex-shrink: 0; border-top-left-radius: 9px; border-bottom-left-radius: 9px;
         }
+        .badge.unlocked .drag-handle { cursor: grab; }
+        .badge.unlocked .drag-handle:active { cursor: grabbing; }
 
-        .badge-text[contenteditable="true"]:focus {
-            background-color: #f8fafc;
-            border-bottom: 1px solid var(--sterling-green);
-            white-space: normal;
-            overflow: visible;
-        }
+        .badge-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; gap: 4px; min-width: 0; overflow: visible; border-top-right-radius: 9px; border-bottom-right-radius: 9px;}
+        .badge-text { width: 100%; outline: none; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); text-align: center; cursor: text; }
+        .badge-text[contenteditable="true"]:focus { background-color: var(--desk-bg); border-bottom: 2px solid var(--sterling-green); white-space: normal; overflow: visible; }
 
         .role-tag {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 2px 6px;
-            border-radius: 999px;
-            color: white;
-            background-color: var(--role-color, var(--role-none));
-            cursor: pointer;
-            letter-spacing: 0.5px;
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;
+            color: white; border: none; outline: none; width: auto; text-align: center; font-family: inherit; letter-spacing: 0.5px;
         }
+        .role-tag[data-role="None"] { display: none; }
 
-        /* Suppress tag if no role */
-        .role-tag[data-role="None"] {
-            display: none;
+        /* Custom Dropdown Engine */
+        .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
+        .custom-select-trigger {
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;
+            color: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            transition: filter 0.2s;
         }
+        .custom-select-trigger:hover { filter: brightness(1.1); }
+        .custom-options {
+            position: absolute; top: calc(100% + 4px); left: -10px; right: -10px; background: var(--panel-bg);
+            border: 1px solid var(--desk-border); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            opacity: 0; visibility: hidden; transform: translateY(-10px); 
+            transition: all 0.3s var(--spring-curve); z-index: 100;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); overflow-y: auto; max-height: 200px;
+        }
+        .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
+        .custom-option {
+            padding: 8px 12px; font-size: 0.75rem; font-weight: 600; color: var(--text-main); cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;
+        }
+        .custom-option:hover { background: var(--desk-hover); }
+        .custom-option.selected { color: var(--sterling-green); }
+        .check-icon { display: none; color: var(--sterling-green); }
+        .custom-option.selected .check-icon { display: block; }
 
-        /* Contextual Controls */
+        /* Global Role Toggle */
+        body.hide-roles .role-tag, body.hide-roles .custom-select-wrapper { display: none !important; }
+
+        /* Floating Delete Button */
         .delete-btn {
-            position: absolute;
-            top: -4px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            z-index: 10;
+            position: absolute; top: -8px; right: -8px; 
+            background: var(--panel-bg); color: #ef4444; border: 1px solid var(--desk-border);
+            border-radius: 50%; width: 22px; height: 22px; cursor: pointer; display: none;
+            align-items: center; justify-content: center; z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.15s var(--spring-curve), background-color 0.2s;
         }
+        .delete-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+        .delete-btn:active { transform: scale(0.85); }
+        .badge.unlocked:hover .delete-btn { display: flex; }
 
-        .badge.unlocked:hover .delete-btn {
-            display: flex;
+        .empty-desk-ui { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .desk.unlocked .empty-desk-ui { opacity: 1; }
+        .add-btn { background: transparent; color: var(--header-text); border: 2px dashed var(--desk-border); border-radius: 6px; width: 100%; height: 100%; min-height: 40px; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: transform 0.15s var(--spring-curve), border-color 0.2s; }
+        .add-btn:hover { border-color: var(--sterling-green); color: var(--sterling-green); }
+        .add-btn:active { transform: scale(0.96); }
+        .dimmed { opacity: 0.15; pointer-events: none; }
+
+        /* Footer & Admin (Glassmorphism) */
+        .footer {
+            width: 100%; padding: 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-top: 1px solid var(--desk-border); background: var(--panel-bg); gap: 8px; flex-shrink: 0; z-index: 50; transition: background-color 0.3s, border-color 0.3s;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
+        .auth-btn { background-color: #0f172a; color: white; border: none; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; font-family: inherit; transition: transform 0.15s var(--spring-curve), background-color 0.2s;}
+        [data-theme="dark"] .auth-btn { background-color: #334155; }
+        .auth-btn.unlocked { background-color: #ef4444 !important; }
+        .auth-btn:active { transform: scale(0.95); }
+        .sync-stamp { font-size: 0.7rem; color: var(--header-text); font-weight: 600; text-transform: uppercase;}
 
-        .empty-desk-ui {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            opacity: 0.15;
-            transition: opacity 0.2s;
+        /* Toast */
+        .toast {
+            position: fixed; bottom: -60px; right: 24px; background: var(--text-main); color: var(--bg-color); padding: 12px 24px; border-radius: 6px;
+            font-size: 0.85rem; font-weight: 600; transition: bottom 0.4s var(--spring-curve); box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 100;
         }
+        .toast.show { bottom: 24px; }
+        .toast.error { background: #ef4444; color: white;}
 
-        .desk.unlocked .empty-desk-ui {
-            opacity: 0.8;
-        }
+        /* Onboarding Modal */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
+        .modal-content { background: var(--panel-bg); padding: 40px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--desk-border); box-shadow: 0 20px 40px rgba(0,0,0,0.2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);}
+        .modal-content h2 { margin-top: 0; color: var(--text-main); }
+        .modal-content p { color: var(--header-text); margin-bottom: 24px; line-height: 1.5; }
 
-        .add-btn {
-            background: var(--sterling-green);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            margin-bottom: 6px;
-            display: none;
-            font-size: 16px;
-            line-height: 1;
-        }
-
-        .desk.unlocked:hover .add-btn {
-            display: block;
-        }
-
-        .dimmed {
-            opacity: 0.1;
-            pointer-events: none;
-        }
-
-        /* Admin Lock */
-        .admin-controls {
-            margin-top: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .auth-btn {
-            background-color: #0f172a;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .auth-status {
-            font-size: 0.875rem;
-            color: var(--header-text);
-        }
-
-        .auth-btn.unlocked {
-            background-color: #ef4444;
+        /* Print Engine */
+        @media print {
+            @page { size: landscape; margin: 0.5in; }
+            body { background-color: white !important; overflow: visible !important; height: auto !important; }
+            .nav-bar, .footer, .toast, .add-btn, .delete-btn, .empty-desk-ui, .modal-backdrop, .loading-overlay { display: none !important; }
+            .canvas-scroll { padding: 0 !important; overflow: visible !important; }
+            .grid-container { max-width: 100% !important; min-width: 100% !important; page-break-inside: avoid; }
+            .desk, .header-cell, .badge, .shading-block { background-color: white !important; border-color: #cbd5e1 !important; color: black !important; }
+            .badge-text { color: black !important; }
+            .drag-handle { display: none !important; }
+            .role-tag, .custom-select-trigger { print-color-adjust: exact; -webkit-print-color-adjust: exact; border: 1px solid #cbd5e1;}
+            .walkway { background: transparent !important; break-after: page; page-break-after: always; }
         }
     </style>
 </head>
 <body>
 
-<div class="header-bar">
-    <div class="header-titles">
-        <h1>Cubicle Map</h1>
-        <div class="subtitle">Sterling Specialty Pharmacy</div>
-    </div>
+<div id="loading-overlay" class="loading-overlay">
+    <svg class="gear-spin" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+</div>
 
-    <div class="toggle-container">
-        <div class="toggle-slider" id="slider"></div>
-        <button class="toggle-btn active" onclick="switchView('CallCenter', this)">Call Center</button>
-        <button class="toggle-btn" onclick="switchView('HUB', this)">HUB</button>
-    </div>
+<div class="nav-bar">
+    <div class="nav-content">
+        <div class="header-titles">
+            <h1>Cubicle Map</h1>
+            <div class="subtitle">Sterling Specialty Pharmacy</div>
+        </div>
+        
+        <div class="controls-toolbar">
+            <div class="metrics-board">
+                <div class="metric"><span class="metric-val" id="metric-cap">--</span><span class="metric-label">Capacity</span></div>
+                <div class="metric"><span class="metric-val" id="metric-occ">--</span><span class="metric-label">Occupied</span></div>
+                <div class="metric"><span class="metric-val" id="metric-vac">--</span><span class="metric-label">Vacant</span></div>
+            </div>
 
-    <div class="search-wrapper" id="search-wrapper">
-        <button class="search-btn" onclick="toggleSearch()">🔍</button>
-        <input type="text" class="search-input" id="search-input" placeholder="Find name or role..." oninput="filterGrid()">
+            <div class="center-stack">
+                <div class="role-legend" id="role-legend"></div>
+                <div class="toggle-container">
+                    <div class="toggle-slider" id="slider"></div>
+                    <button class="toggle-btn active" onclick="switchView('CallCenter', this)">Call Center</button>
+                    <button class="toggle-btn" onclick="switchView('HUB', this)">HUB</button>
+                </div>
+            </div>
+
+            <div class="action-column">
+                <div class="action-buttons">
+                    <button class="icon-btn theme-btn" onclick="window.print()" title="Print Floor Plan">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    </button>
+                    <div class="theme-switch-wrapper">
+                        <span>Dark</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-checkbox" onchange="toggleTheme()">
+                            <span class="theme-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="search-wrapper">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--sterling-green); margin-right: 4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" class="search-input" id="search-input" placeholder="Search..." oninput="handleSearch()">
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div id="grid" class="grid-container"></div>
+<div class="canvas-scroll">
+    <div id="grid" class="grid-container"></div>
+</div>
 
-<div class="admin-controls">
-    <button id="auth-btn" class="auth-btn" onclick="toggleAuth()">🔒 Unlock Editor</button>
-    <span id="auth-status" class="auth-status">Read-Only Mode</span>
+<div class="footer">
+    <button id="auth-btn" class="auth-btn" onclick="toggleAuth()">Unlock Editor</button>
+    <div class="sync-stamp" id="sync-stamp">Last Synced: Never</div>
+</div>
+
+<div id="toast" class="toast">Map Saved</div>
+
+<div id="onboarding-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content">
+        <h2>The Floor Plan is Empty</h2>
+        <p>Your database returned zero assigned occupants. To build the map, unlock the editor using your admin PIN.</p>
+        <button class="auth-btn unlocked" onclick="document.getElementById('onboarding-modal').style.display='none'; toggleAuth();">Unlock Editor</button>
+    </div>
 </div>
 
 <script>
     const API_URL = 'https://cubemap.askozicki.workers.dev';
-    let apiKey = null;
-    let isUnlocked = false;
-    let currentView = 'CallCenter';
-    let mapData = { CallCenter: {}, HUB: {} };
-
-    const roles = {
-        'None': 'var(--role-none)',
-        'Rph': 'var(--role-rph)',
-        'Tech': 'var(--role-tech)',
-        'CSR': 'var(--role-csr)',
-        'BI': 'var(--role-bi)',
-        'Manager': 'var(--role-manager)',
-        'Lead': 'var(--role-lead)'
-    };
-
-    const roleKeys = Object.keys(roles);
+    let apiKey = null; let isUnlocked = false; let currentView = 'CallCenter';
+    const defaultRoles = { 'Rph': '#ef4444', 'Tech': '#3b82f6', 'CSR': '#f97316', 'BI': '#8b5cf6', 'Manager': '#eab308', 'Lead': '#14b8a6' };
+    let mapData = { CallCenter: {}, HUB: {}, roles: defaultRoles };
 
     async function init() {
+        initTheme(); parseURL();
         try {
             const res = await fetch(API_URL);
-            if (res.ok) {
-                mapData = await res.json();
-            }
-        } catch (e) {
-            console.warn('Backend unavailable. Using local state.');
-        }
-        renderGrid();
+            if (res.ok) { migrateData(await res.json()); updateTimestamp(); }
+        } catch (e) { console.warn('Backend unavailable.'); }
+        updateUIState(); renderLegend(); renderGrid();
+        setTimeout(() => { document.getElementById('loading-overlay').classList.add('hidden'); }, 300);
     }
 
-    function switchView(view, btn) {
-        currentView = view;
+    function initTheme() {
+        const savedTheme = localStorage.getItem('cubeMapTheme');
+        const wantsDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && wantsDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-checkbox').checked = true;
+        }
+    }
+
+    function toggleTheme() {
+        const root = document.documentElement;
+        if (root.getAttribute('data-theme') === 'dark') {
+            root.removeAttribute('data-theme'); localStorage.setItem('cubeMapTheme', 'light');
+            document.getElementById('theme-checkbox').checked = false;
+        } else {
+            root.setAttribute('data-theme', 'dark'); localStorage.setItem('cubeMapTheme', 'dark');
+            document.getElementById('theme-checkbox').checked = true;
+        }
+    }
+
+    function migrateData(rawData) {
+        mapData = { CallCenter: {}, HUB: {}, roles: rawData.roles || defaultRoles };
+        ['CallCenter', 'HUB'].forEach(zone => {
+            if(!rawData[zone]) return;
+            Object.keys(rawData[zone]).forEach(coord => {
+                const val = rawData[zone][coord];
+                if (!val) return; mapData[zone][coord] = Array.isArray(val) ? val : [val];
+            });
+        });
+    }
+
+    function parseURL() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('zone')) currentView = params.get('zone');
+        if (params.has('search')) document.getElementById('search-input').value = params.get('search');
+    }
+
+    function updateURL() {
+        const url = new URL(window.location); url.searchParams.set('zone', currentView);
+        const search = document.getElementById('search-input').value;
+        if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
+        window.history.replaceState({}, '', url);
+    }
+
+    function updateUIState() {
         const slider = document.getElementById('slider');
         const btns = document.querySelectorAll('.toggle-btn');
         btns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        slider.style.transform = view === 'HUB' ? 'translateX(100%)' : 'translateX(0)';
-        renderGrid();
+        if(currentView === 'HUB') {
+            btns[1].classList.add('active'); slider.style.transform = 'translateX(100%)';
+            document.getElementById('grid').classList.add('hub-mode');
+        } else {
+            btns[0].classList.add('active'); slider.style.transform = 'translateX(0)';
+            document.getElementById('grid').classList.remove('hub-mode');
+        }
+    }
+
+    function switchView(view) { currentView = view; updateURL(); updateUIState(); renderGrid(); }
+    function handleSearch() { updateURL(); filterGrid(); }
+
+    // Close open custom dropdowns globally
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-select-wrapper')) {
+            document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open'));
+        }
+    });
+
+    function renderLegend() {
+        const legend = document.getElementById('role-legend'); legend.innerHTML = '';
+        
+        const eyeBtn = document.createElement('button');
+        eyeBtn.className = 'role-toggle-btn'; eyeBtn.title = 'Toggle Roles';
+        eyeBtn.onclick = () => document.body.classList.toggle('hide-roles');
+        eyeBtn.innerHTML = `
+            <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+        `;
+        legend.appendChild(eyeBtn);
+
+        Object.entries(mapData.roles).forEach(([role, color]) => {
+            const tag = document.createElement('div'); tag.className = 'role-tag';
+            tag.style.backgroundColor = color; tag.textContent = role;
+            if (isUnlocked) { tag.title = "Double click to delete"; tag.ondblclick = () => deleteRole(role); }
+            legend.appendChild(tag);
+        });
+
+        if (isUnlocked) {
+            const addContainer = document.createElement('div'); addContainer.className = 'role-input-group';
+            const expandBtn = document.createElement('button'); expandBtn.className = 'role-expand-btn'; expandBtn.textContent = '+';
+            const inputWrapper = document.createElement('div'); inputWrapper.className = 'role-inputs hidden';
+            
+            const input = document.createElement('input'); input.type = 'text'; input.placeholder = 'New Role';
+            const color = document.createElement('input'); color.type = 'color'; color.value = '#599b42';
+            
+            const saveBtn = document.createElement('button'); saveBtn.className = 'role-action-btn'; saveBtn.style.backgroundColor = 'var(--sterling-green)'; saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>'; 
+            saveBtn.disabled = true; saveBtn.style.opacity = '0.5';
+            
+            const cancelBtn = document.createElement('button'); cancelBtn.className = 'role-action-btn'; cancelBtn.style.backgroundColor = '#64748b'; cancelBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'; 
+            
+            input.oninput = () => {
+                saveBtn.disabled = !input.value.trim();
+                saveBtn.style.opacity = input.value.trim() ? '1' : '0.5';
+            };
+
+            expandBtn.onclick = () => { inputWrapper.classList.remove('hidden'); expandBtn.style.display = 'none'; };
+            cancelBtn.onclick = () => { inputWrapper.classList.add('hidden'); expandBtn.style.display = 'flex'; input.value = ''; input.oninput(); };
+            saveBtn.onclick = () => { addRole(input.value, color.value); cancelBtn.onclick(); };
+
+            inputWrapper.append(input, color, saveBtn, cancelBtn); addContainer.append(expandBtn, inputWrapper); legend.appendChild(addContainer);
+        }
+    }
+
+    function addRole(name, color) { if (!name.trim()) return; mapData.roles[name] = color; syncState(); renderLegend(); renderGrid(); }
+    function deleteRole(name) {
+        if(!confirm(`Delete role: ${name}?`)) return; delete mapData.roles[name];
+        ['CallCenter', 'HUB'].forEach(zone => {
+            Object.values(mapData[zone]).forEach(deskArr => { deskArr.forEach(person => { if(person.role === name) person.role = 'None'; }); });
+        });
+        syncState(); renderLegend(); renderGrid();
     }
 
     function renderGrid() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        
+        const grid = document.getElementById('grid'); grid.innerHTML = '';
         const config = currentView === 'CallCenter' 
-            ? { cols: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], rows: [9, 8, 7, 6, 5, 4, 3, 2, 1] }
-            : { cols: ['I', 'J', 'K'], rows: [4, 3, 2, 1] };
+            ? { cols: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], rows: [9, 8, 7, 6, 5, 4, 3, 2, 1], capacity: 64 }
+            : { cols: ['I', 'J', 'K'], rows: [4, 3, 2, 1], capacity: 12 };
 
-        grid.style.gridTemplateColumns = `40px repeat(${config.cols.length}, 1fr)`;
+        grid.style.gridTemplateColumns = `40px repeat(${config.cols.length}, minmax(120px, 1fr))`;
 
-        // Top-left corner
-        grid.appendChild(createDiv('cell header-cell', ''));
+        const corner = createDiv('header-cell corner-cell', '');
+        corner.style.gridColumn = '1'; corner.style.gridRow = '1'; grid.appendChild(corner);
+        
+        config.cols.forEach((col, index) => {
+            const hdr = createDiv(`header-cell col-header col-${col}`, col);
+            hdr.style.gridColumn = (index + 2).toString(); hdr.style.gridRow = '1'; grid.appendChild(hdr);
+        });
 
-        // Column Headers
-        config.cols.forEach(col => grid.appendChild(createDiv(`cell header-cell col-${col}`, col)));
+        const totalRows = config.rows.length + 1; 
+        if (currentView === 'CallCenter') {
+            const shadeTracks = ['2 / 4', '4 / 6', '6 / 8', '8 / 10'];
+            shadeTracks.forEach(track => {
+                const shade = document.createElement('div'); shade.className = 'shading-block';
+                shade.style.gridColumn = track; shade.style.gridRow = `2 / ${totalRows + 1}`; 
+                shade.style.backgroundColor = 'var(--shading-bg)'; shade.style.borderRadius = '8px'; shade.style.zIndex = '0'; grid.appendChild(shade);
+            });
+        } else if (currentView === 'HUB') {
+            const shade = document.createElement('div'); shade.className = 'shading-block';
+            shade.style.gridColumn = '2 / 5'; shade.style.gridRow = `2 / ${totalRows + 1}`; 
+            shade.style.backgroundColor = 'var(--shading-bg)'; shade.style.borderRadius = '8px'; shade.style.zIndex = '0'; grid.appendChild(shade);
+        }
 
-        // Rows
+        let occupiedDesks = 0; let currentRowGridIndex = 2;
+
         config.rows.forEach(rowNum => {
             const rowClass = (currentView === 'CallCenter' && rowNum === 5) ? 'row-5-walkway' : '';
-            
-            // Row Header
-            grid.appendChild(createDiv(`cell header-cell ${rowClass}`, rowNum));
+            const rowHdr = createDiv(`header-cell row-header ${rowClass}`, rowNum);
+            rowHdr.style.gridColumn = '1'; rowHdr.style.gridRow = currentRowGridIndex.toString(); grid.appendChild(rowHdr);
+
+            if (currentView === 'CallCenter' && rowNum === 5) {
+                const walkway = document.createElement('div');
+                walkway.className = `walkway ${rowClass}`; walkway.textContent = 'W A L K W A Y';
+                walkway.style.gridColumn = `2 / ${config.cols.length + 2}`; walkway.style.gridRow = currentRowGridIndex.toString();
+                walkway.style.display = 'flex'; walkway.style.alignItems = 'center'; walkway.style.justifyContent = 'center'; walkway.style.zIndex = '1';
+                grid.appendChild(walkway); currentRowGridIndex++; return; 
+            }
+
+            let currentColGridIndex = 2;
 
             config.cols.forEach(col => {
                 const coord = `${col}${rowNum}`;
-                const isWalkway = (currentView === 'CallCenter' && rowNum === 5);
-                
-                if (isWalkway) {
-                    grid.appendChild(createDiv(`cell walkway col-${col} ${rowClass}`, ''));
-                    return;
-                }
-
                 const desk = createDiv(`cell desk col-${col} ${isUnlocked ? 'unlocked' : ''}`, '');
-                desk.dataset.coord = coord;
+                desk.dataset.coord = coord; desk.style.gridColumn = currentColGridIndex.toString(); desk.style.gridRow = currentRowGridIndex.toString();
                 
                 if (isUnlocked) {
-                    desk.addEventListener('dragover', dragOver);
-                    desk.addEventListener('dragenter', dragEnter);
-                    desk.addEventListener('dragleave', dragLeave);
-                    desk.addEventListener('drop', drop);
+                    desk.addEventListener('dragover', dragOver); desk.addEventListener('dragenter', dragEnter);
+                    desk.addEventListener('dragleave', dragLeave); desk.addEventListener('drop', drop);
                 }
 
-                const occupant = mapData[currentView][coord];
-                if (occupant) {
-                    desk.appendChild(createBadge(occupant.name, occupant.role, coord));
-                } else {
-                    desk.appendChild(createEmptyUI(coord));
+                const occupants = mapData[currentView][coord] || [];
+                if (occupants.length > 0) {
+                    occupiedDesks++;
+                    occupants.forEach((occ, index) => { desk.appendChild(createBadge(occ.name, occ.role, coord, index)); });
                 }
-
-                grid.appendChild(desk);
+                
+                if (isUnlocked && occupants.length < 2) desk.appendChild(createEmptyUI(coord));
+                grid.appendChild(desk); currentColGridIndex++;
             });
+            currentRowGridIndex++;
         });
 
+        document.getElementById('metric-cap').textContent = config.capacity;
+        document.getElementById('metric-occ').textContent = occupiedDesks;
+        document.getElementById('metric-vac').textContent = config.capacity - occupiedDesks;
+
         if (document.getElementById('search-input').value) filterGrid();
+
+        const modal = document.getElementById('onboarding-modal');
+        if (occupiedDesks === 0 && !isUnlocked && Object.keys(mapData.CallCenter).length === 0) {
+            modal.style.display = 'flex';
+        } else { modal.style.display = 'none'; }
     }
 
-    function createDiv(className, text) {
-        const div = document.createElement('div');
-        div.className = className;
-        div.textContent = text;
-        return div;
-    }
-
+    function createDiv(className, text) { const div = document.createElement('div'); div.className = className; div.textContent = text; return div; }
     function createEmptyUI(coord) {
-        const ui = document.createElement('div');
-        ui.className = 'empty-desk-ui';
-        
-        const btn = document.createElement('button');
-        btn.className = 'add-btn';
-        btn.innerHTML = '+';
-        btn.onclick = () => addBadge(coord);
-        
-        const text = document.createElement('span');
-        text.textContent = 'Empty';
-
-        ui.appendChild(btn);
-        ui.appendChild(text);
-        return ui;
+        const ui = document.createElement('div'); ui.className = 'empty-desk-ui';
+        const btn = document.createElement('button'); btn.className = 'add-btn'; btn.innerHTML = '+'; btn.onclick = () => addBadge(coord);
+        ui.appendChild(btn); return ui;
     }
 
-    function createBadge(name, role, coord) {
-        role = role || 'None';
+    function createBadge(name, role, coord, index) {
+        role = role || 'None'; const roleColor = mapData.roles[role] || 'transparent';
         const badge = document.createElement('div');
         badge.className = `badge ${isUnlocked ? 'unlocked' : ''}`;
-        badge.style.setProperty('--role-color', roles[role]);
-        badge.id = `badge-${coord}`;
+        badge.dataset.coord = coord; badge.dataset.index = index;
         
+        const handle = document.createElement('div');
+        handle.className = 'drag-handle'; handle.innerHTML = isUnlocked ? '⋮⋮' : '';
+        handle.style.setProperty('--role-color', roleColor !== 'transparent' ? roleColor : 'var(--desk-border)');
+
+        const content = document.createElement('div'); content.className = 'badge-content';
+
         if (isUnlocked) {
-            badge.draggable = true;
-            badge.addEventListener('dragstart', (e) => dragStart(e, coord));
-            badge.addEventListener('dragend', dragEnd);
+            handle.draggable = true;
+            handle.addEventListener('dragstart', dragStart); handle.addEventListener('dragend', dragEnd);
+            handle.addEventListener('touchstart', touchStart, { passive: false });
+            handle.addEventListener('touchmove', touchMove, { passive: false });
+            handle.addEventListener('touchend', touchEnd);
         }
 
-        const text = document.createElement('span');
-        text.className = 'badge-text';
-        text.contentEditable = isUnlocked;
-        text.spellcheck = false;
-        text.textContent = name;
+        const text = document.createElement('span'); text.className = 'badge-text'; text.contentEditable = isUnlocked;
+        text.spellcheck = false; text.textContent = name;
         
         if (isUnlocked) {
-            text.addEventListener('focus', () => badge.draggable = false);
-            text.addEventListener('blur', (e) => {
-                badge.draggable = true;
-                updateName(coord, e.target.textContent);
+            text.addEventListener('focus', () => handle.draggable = false);
+            text.addEventListener('blur', (e) => { handle.draggable = true; updateName(coord, index, e.target.textContent); });
+            
+            // Custom Dropdown Engine
+            const selectWrapper = document.createElement('div'); selectWrapper.className = 'custom-select-wrapper';
+            const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger'; trigger.style.backgroundColor = roleColor;
+            trigger.innerHTML = `<span>${role === 'None' ? 'ROLE' : role}</span> <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+            
+            const optionsContainer = document.createElement('div'); optionsContainer.className = 'custom-options';
+            
+            const rolesList = ['ROLE', ...Object.keys(mapData.roles)];
+            rolesList.forEach(r => {
+                const isSelected = r === role || (r === 'ROLE' && role === 'None');
+                const opt = document.createElement('div'); opt.className = `custom-option ${isSelected ? 'selected' : ''}`;
+                opt.innerHTML = `<span>${r}</span> <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                opt.onclick = (e) => {
+                    e.stopPropagation();
+                    mapData[currentView][coord][index].role = r === 'ROLE' ? 'None' : r;
+                    selectWrapper.classList.remove('open');
+                    syncState(); renderGrid();
+                };
+                optionsContainer.appendChild(opt);
             });
+
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.custom-select-wrapper.open').forEach(el => { if(el !== selectWrapper) el.classList.remove('open'); });
+                selectWrapper.classList.toggle('open');
+            };
+
+            selectWrapper.append(trigger, optionsContainer);
+            content.append(text, selectWrapper);
+        } else {
+            const roleTag = document.createElement('span'); roleTag.className = 'role-tag'; roleTag.textContent = role; roleTag.style.backgroundColor = roleColor;
+            content.appendChild(text); if (role !== 'None') content.appendChild(roleTag);
         }
 
-        const roleTag = document.createElement('span');
-        roleTag.className = 'role-tag';
-        roleTag.textContent = role;
-        roleTag.dataset.role = role;
-        if (isUnlocked) roleTag.onclick = (e) => cycleRole(e, coord, role);
+        badge.append(handle, content);
 
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-btn';
-        delBtn.innerHTML = 'X';
-        delBtn.onclick = () => deleteBadge(coord);
-
-        badge.appendChild(text);
-        badge.appendChild(roleTag);
+        const delBtn = document.createElement('button'); delBtn.className = 'delete-btn'; 
+        delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'; 
+        delBtn.onclick = () => deleteBadge(coord, index);
         if (isUnlocked) badge.appendChild(delBtn);
-        
         return badge;
     }
 
     function addBadge(coord) {
-        if (!isUnlocked) return;
-        mapData[currentView][coord] = { name: "New Person", role: "None" };
-        syncState();
-        renderGrid();
-        
-        setTimeout(() => {
-            const el = document.querySelector(`#badge-${coord} .badge-text`);
-            if(el) {
-                el.focus();
-                document.execCommand('selectAll', false, null);
-            }
-        }, 50);
+        if (!isUnlocked) return; if (!mapData[currentView][coord]) mapData[currentView][coord] = [];
+        mapData[currentView][coord].push({ name: "New Person", role: "None" }); syncState(); renderGrid();
+        setTimeout(() => { const badges = document.querySelectorAll(`.desk[data-coord="${coord}"] .badge-text`); const el = badges[badges.length - 1]; if(el) { el.focus(); document.execCommand('selectAll', false, null); } }, 50);
     }
-
-    function deleteBadge(coord) {
-        if (!isUnlocked) return;
-        delete mapData[currentView][coord];
-        syncState();
-        renderGrid();
+    function deleteBadge(coord, index) {
+        if (!isUnlocked) return; mapData[currentView][coord].splice(index, 1);
+        if (mapData[currentView][coord].length === 0) delete mapData[currentView][coord]; syncState(); renderGrid();
     }
-
-    function updateName(coord, newName) {
-        if (!newName.trim()) return deleteBadge(coord);
-        if (mapData[currentView][coord].name !== newName) {
-            mapData[currentView][coord].name = newName;
-            syncState();
-        }
-    }
-
-    function cycleRole(e, coord, currentRole) {
-        if (!isUnlocked) return;
-        const currentIndex = roleKeys.indexOf(currentRole);
-        const nextRole = roleKeys[(currentIndex + 1) % roleKeys.length];
-        mapData[currentView][coord].role = nextRole;
-        syncState();
-        renderGrid();
+    function updateName(coord, index, newName) {
+        if (!newName.trim()) return deleteBadge(coord, index);
+        if (mapData[currentView][coord][index].name !== newName) { mapData[currentView][coord][index].name = newName; syncState(); }
     }
 
     async function syncState() {
         if (!apiKey) return;
         try {
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Cube-Key': apiKey },
-                body: JSON.stringify(mapData)
-            });
-        } catch (e) {
-            console.error('Failed to sync', e);
-        }
+            const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Cube-Key': apiKey }, body: JSON.stringify(mapData) });
+            if(res.ok) { showToast('Map Saved Successfully'); updateTimestamp(); } else { showToast('Auth Error. Save Failed.', true); }
+        } catch (e) { showToast('Network Error. Save Failed.', true); }
     }
+    function updateTimestamp() { const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); document.getElementById('sync-stamp').textContent = `Last Synced: Today, ${time}`; }
+    function showToast(msg, isError = false) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.className = `toast show ${isError ? 'error' : ''}`; setTimeout(() => toast.classList.remove('show'), 3000); }
 
-    let draggedCoord = null;
+    // --- Drag & Drop (Mouse & Touch) ---
+    let draggedItem = null; let touchGhost = null;
 
-    function dragStart(e, coord) {
+    function dragStart(e) {
         if (!isUnlocked) return e.preventDefault();
-        draggedCoord = coord;
-        setTimeout(() => e.target.classList.add('dragging'), 0);
+        const badge = e.currentTarget.closest('.badge'); draggedItem = { coord: badge.dataset.coord, index: parseInt(badge.dataset.index) };
+        setTimeout(() => badge.classList.add('dragging'), 0);
     }
-
-    function dragEnd(e) {
-        e.target.classList.remove('dragging');
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        draggedCoord = null;
-    }
-
+    function dragEnd(e) { e.target.closest('.badge').classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); draggedItem = null; }
     function dragOver(e) { e.preventDefault(); }
-    function dragEnter(e) {
-        if (e.currentTarget.classList.contains('desk')) {
-            e.currentTarget.classList.add('drag-over');
-        }
-    }
-    function dragLeave(e) {
-        if (e.currentTarget.classList.contains('desk')) {
-            e.currentTarget.classList.remove('drag-over');
-        }
-    }
-
+    function dragEnter(e) { if (e.currentTarget.classList.contains('desk')) e.currentTarget.classList.add('drag-over'); }
+    function dragLeave(e) { if (e.currentTarget.classList.contains('desk')) e.currentTarget.classList.remove('drag-over'); }
+    
     function drop(e) {
-        e.preventDefault();
-        const targetDesk = e.currentTarget;
-        targetDesk.classList.remove('drag-over');
-        
-        const targetCoord = targetDesk.dataset.coord;
-        if (!targetCoord || targetCoord === draggedCoord) return;
-
-        const sourceData = mapData[currentView][draggedCoord];
-        const targetData = mapData[currentView][targetCoord];
-
-        mapData[currentView][targetCoord] = sourceData;
-        if (targetData) {
-            mapData[currentView][draggedCoord] = targetData;
-        } else {
-            delete mapData[currentView][draggedCoord];
-        }
-
-        syncState();
-        renderGrid();
+        e.preventDefault(); const targetDesk = e.currentTarget; targetDesk.classList.remove('drag-over');
+        processDropTarget(targetDesk);
     }
 
-    function toggleSearch() {
-        document.getElementById('search-wrapper').classList.toggle('open');
-        if (document.getElementById('search-wrapper').classList.contains('open')) {
-            document.getElementById('search-input').focus();
-        } else {
-            document.getElementById('search-input').value = '';
-            filterGrid();
-        }
+    function touchStart(e) {
+        if (!isUnlocked || e.target.closest('.custom-select-wrapper')) return;
+        e.preventDefault(); const badge = e.currentTarget.closest('.badge'); draggedItem = { coord: badge.dataset.coord, index: parseInt(badge.dataset.index) };
+        
+        if (navigator.vibrate) navigator.vibrate(50); // Haptic pickup
+
+        const touch = e.touches[0]; touchGhost = badge.cloneNode(true);
+        touchGhost.style.position = 'fixed'; touchGhost.style.opacity = '0.9'; touchGhost.style.pointerEvents = 'none'; touchGhost.style.zIndex = '9999';
+        touchGhost.style.width = `${badge.offsetWidth}px`; touchGhost.style.left = `${touch.clientX - (badge.offsetWidth / 2)}px`; touchGhost.style.top = `${touch.clientY - (badge.offsetHeight / 2)}px`;
+        touchGhost.style.boxShadow = '0 16px 32px rgba(0,0,0,0.15)'; touchGhost.style.transform = 'scale(1.05)';
+        document.body.appendChild(touchGhost); badge.classList.add('dragging');
+    }
+    function touchMove(e) {
+        if (!touchGhost) return; e.preventDefault(); const touch = e.touches[0];
+        touchGhost.style.left = `${touch.clientX - (touchGhost.offsetWidth / 2)}px`; touchGhost.style.top = `${touch.clientY - (touchGhost.offsetHeight / 2)}px`;
+    }
+    function touchEnd(e) {
+        if (!touchGhost) return;
+        const badge = document.querySelector('.dragging'); if (badge) badge.classList.remove('dragging');
+        touchGhost.remove(); touchGhost = null;
+        const touch = e.changedTouches[0]; const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!dropTarget) { draggedItem = null; return; }
+        processDropTarget(dropTarget.closest('.desk'));
+    }
+
+    function processDropTarget(targetDesk) {
+        if (!targetDesk || !draggedItem) { draggedItem = null; return; }
+        const targetCoord = targetDesk.dataset.coord;
+        const sourceArr = mapData[currentView][draggedItem.coord];
+        const movedPerson = sourceArr.splice(draggedItem.index, 1)[0];
+        if (sourceArr.length === 0) delete mapData[currentView][draggedItem.coord];
+        if (!mapData[currentView][targetCoord]) mapData[currentView][targetCoord] = [];
+        mapData[currentView][targetCoord].push(movedPerson);
+        
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30]); // Haptic drop
+
+        syncState(); renderGrid(); draggedItem = null;
     }
 
     function filterGrid() {
         const query = document.getElementById('search-input').value.toLowerCase();
         const desks = document.querySelectorAll('.desk');
-        
         desks.forEach(desk => {
-            if (!query) {
-                desk.classList.remove('dimmed');
-                return;
-            }
-            
-            const text = desk.textContent.toLowerCase();
-            if (text.includes(query)) {
-                desk.classList.remove('dimmed');
-            } else {
-                desk.classList.add('dimmed');
-            }
+            if (!query) { desk.classList.remove('dimmed'); return; }
+            if (desk.textContent.toLowerCase().includes(query)) desk.classList.remove('dimmed'); else desk.classList.add('dimmed');
         });
     }
 
     function toggleAuth() {
         if (isUnlocked) {
-            isUnlocked = false;
-            apiKey = null;
-            document.getElementById('auth-btn').textContent = '🔒 Unlock Editor';
-            document.getElementById('auth-btn').classList.remove('unlocked');
-            document.getElementById('auth-status').textContent = 'Read-Only Mode';
-            renderGrid();
-            return;
+            isUnlocked = false; apiKey = null;
+            const btn = document.getElementById('auth-btn'); btn.textContent = 'Unlock Editor'; btn.classList.remove('unlocked');
+            renderLegend(); renderGrid(); return;
         }
-
-        const pin = prompt('Enter Admin PIN to edit map:');
+        const pin = prompt('Enter Admin PIN:');
         if (pin === '1312') {
-            apiKey = pin;
-            isUnlocked = true;
-            document.getElementById('auth-btn').textContent = '🔓 Lock Editor';
-            document.getElementById('auth-btn').classList.add('unlocked');
-            document.getElementById('auth-status').textContent = 'Edit Mode Active (Changes Auto-Save)';
-            renderGrid();
-        } else if (pin !== null) {
-            alert('Incorrect PIN.');
-        }
+            apiKey = pin; isUnlocked = true;
+            const btn = document.getElementById('auth-btn'); btn.textContent = 'Lock Editor'; btn.classList.add('unlocked');
+            renderLegend(); renderGrid();
+        } else if (pin) { alert('Incorrect PIN.'); }
     }
 
     init();
-
 </script>
 </body>
 </html>
