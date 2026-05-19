@@ -6,8 +6,8 @@
       "subtitle": "Workflow Management",
       "description": "A process visualization and management app for tracking prescription lifecycles and dispensing workflows.",
       "icon": "git-merge",
-      "appUrl": "/apps/pharm-flow/",
-      "repoUrl": "https://github.com/your-repo/pharm-flow",
+      "appUrl": "/pharm-flow/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pharm-flow",
       "featured": true
     },
     {
@@ -16,8 +16,8 @@
       "subtitle": "Pharmacy Utility",
       "description": "A versatile calculation tool supporting multiple specialized formulas for everyday pharmacy operations.",
       "icon": "calculator",
-      "appUrl": "/apps/multi-calc/",
-      "repoUrl": "https://github.com/your-repo/multi-calc",
+      "appUrl": "/multi-calc/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/multi-calc",
       "featured": true
     },
     {
@@ -26,8 +26,8 @@
       "subtitle": "Arcade Game",
       "description": "A pharmacy-themed brick breaker game built using vanilla HTML5 canvas. Smash the pills to win!",
       "icon": "gamepad",
-      "appUrl": "/apps/pharmacy-brickbreaker/",
-      "repoUrl": "https://github.com/your-repo/pharmacy-brickbreaker",
+      "appUrl": "/pharmacy-brickbreaker/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pharmacy-brickbreaker",
       "featured": true
     },
     {
@@ -36,8 +36,8 @@
       "subtitle": "Task Management",
       "description": "A Kanban-style task management board tailored for internal dev teams to track app progress.",
       "icon": "trello",
-      "appUrl": "/apps/workflow/",
-      "repoUrl": "https://github.com/your-repo/workflow",
+      "appUrl": "/workflow/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/workflow",
       "featured": true
     },
     {
@@ -46,8 +46,8 @@
       "subtitle": "Utility App",
       "description": "A micro-frontend scaffolding tool designed to streamline project setup and component generation.",
       "icon": "tool",
-      "appUrl": "/apps/mf-maker/",
-      "repoUrl": "https://github.com/your-repo/mf-maker",
+      "appUrl": "/mf-maker/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/mf-maker",
       "featured": false
     },
     {
@@ -56,8 +56,8 @@
       "subtitle": "Dashboard",
       "description": "A personalized dashboard for tracking favorite sports teams, scores, and upcoming schedules.",
       "icon": "activity",
-      "appUrl": "/apps/personal-sports-hub/",
-      "repoUrl": "https://github.com/your-repo/personal-sports-hub",
+      "appUrl": "/personal-sports-hub/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/personal-sports-hub",
       "featured": false
     },
     {
@@ -66,8 +66,8 @@
       "subtitle": "Productivity",
       "description": "A focused work timer applying the Pomodoro technique, complete with customizable intervals and alerts.",
       "icon": "clock",
-      "appUrl": "/apps/pomodoro-timer/",
-      "repoUrl": "https://github.com/your-repo/pomodoro-timer",
+      "appUrl": "/pomodoro-timer/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pomodoro-timer",
       "featured": false
     },
     {
@@ -76,8 +76,8 @@
       "subtitle": "Clinical Tool",
       "description": "Return-to-stock calculator helping technicians determine viability and expiration dates for returned medications.",
       "icon": "cpu",
-      "appUrl": "/apps/rts-calculator/",
-      "repoUrl": "https://github.com/your-repo/rts-calculator",
+      "appUrl": "/rts-calculator/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/rts-calculator",
       "featured": false
     },
     {
@@ -86,8 +86,8 @@
       "subtitle": "Logistics",
       "description": "Estimates shipping costs and transit times based on package dimensions, weight, and destination zip codes.",
       "icon": "truck",
-      "appUrl": "/apps/shippingcalc/",
-      "repoUrl": "https://github.com/your-repo/shippingcalc",
+      "appUrl": "/shippingcalc/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/shippingcalc",
       "featured": false
     },
     {
@@ -96,8 +96,8 @@
       "subtitle": "Landing Page",
       "description": "The public-facing informational site for Sterling Specialty Pharmacy, detailing services and contact information.",
       "icon": "globe",
-      "appUrl": "/apps/ssp-public/",
-      "repoUrl": "https://github.com/your-repo/ssp-public",
+      "appUrl": "/ssp-public/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/ssp-public",
       "featured": false
     },
     {
@@ -106,8 +106,8 @@
       "subtitle": "API Integration",
       "description": "A real-time weather tracking application pulling data from external meteorological APIs.",
       "icon": "cloud",
-      "appUrl": "/apps/weather-center/",
-      "repoUrl": "https://github.com/your-repo/weather-center",
+      "appUrl": "/weather-center/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/weather-center",
       "featured": false
     },
     {
@@ -116,8 +116,8 @@
       "subtitle": "Casual Game",
       "description": "A relaxing, modern take on the classic Snake game featuring smooth animations and ambient colors.",
       "icon": "play-circle",
-      "appUrl": "/apps/zen-snake/",
-      "repoUrl": "https://github.com/your-repo/zen-snake",
+      "appUrl": "/zen-snake/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/zen-snake",
       "featured": false
     }
   ],
