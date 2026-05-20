@@ -8,33 +8,33 @@
       "icon": "git-merge",
       "appUrl": "/pharm-flow/",
       "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pharm-flow",
-      "featured": true
+      "featured": false
     },
     {
       "id": "multi-calc",
-      "title": "Multi-Calc",
+      "title": "Clinical Calculators",
       "subtitle": "Pharmacy Utility",
-      "description": "A versatile calculation tool supporting multiple specialized formulas for everyday pharmacy operations.",
+      "description": "A versatile calculation tool supporting multiple specialized formulas for everyday pharmacy operations. Official Internal tool for SSP.",
       "icon": "calculator",
-      "appUrl": "/multi-calc/",
-      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/multi-calc",
+      "appUrl": "https://calc.sterlingspecialtyrx.com/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/ssp-public/dash",
       "featured": true
     },
     {
       "id": "pharmacy-brickbreaker",
-      "title": "Rx Breaker",
-      "subtitle": "Arcade Game",
+      "title": "Script Smash",
+      "subtitle": "Pharmacy Arcade Game",
       "description": "A pharmacy-themed brick breaker game built using vanilla HTML5 canvas. Smash the pills to win!",
       "icon": "gamepad",
-      "appUrl": "/pharmacy-brickbreaker/",
-      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pharmacy-brickbreaker",
+      "appUrl": "/scriptsmash/",
+      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/scriptsmash",
       "featured": true
     },
     {
       "id": "workflow",
       "title": "Workflow",
       "subtitle": "Task Management",
-      "description": "A Kanban-style task management board tailored for internal dev teams to track app progress.",
+      "description": "A staff organization board for pharmacist locations across three clinical areas of SSP.",
       "icon": "trello",
       "appUrl": "/workflow/",
       "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/workflow",
@@ -42,9 +42,9 @@
     },
     {
       "id": "mf-maker",
-      "title": "MF Maker",
+      "title": "Master File Maker",
       "subtitle": "Utility App",
-      "description": "A micro-frontend scaffolding tool designed to streamline project setup and component generation.",
+      "description": "Combines multi-file applications into a single masterfile for machine analysis and debugging.",
       "icon": "tool",
       "appUrl": "/mf-maker/",
       "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/mf-maker",
@@ -68,36 +68,6 @@
       "icon": "clock",
       "appUrl": "/pomodoro-timer/",
       "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/pomodoro-timer",
-      "featured": false
-    },
-    {
-      "id": "rts-calculator",
-      "title": "RTS Calculator",
-      "subtitle": "Clinical Tool",
-      "description": "Return-to-stock calculator helping technicians determine viability and expiration dates for returned medications.",
-      "icon": "cpu",
-      "appUrl": "/rts-calculator/",
-      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/rts-calculator",
-      "featured": false
-    },
-    {
-      "id": "shippingcalc",
-      "title": "Shipping Calc",
-      "subtitle": "Logistics",
-      "description": "Estimates shipping costs and transit times based on package dimensions, weight, and destination zip codes.",
-      "icon": "truck",
-      "appUrl": "/shippingcalc/",
-      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/shippingcalc",
-      "featured": false
-    },
-    {
-      "id": "ssp-public",
-      "title": "SSP Public",
-      "subtitle": "Landing Page",
-      "description": "The public-facing informational site for Sterling Specialty Pharmacy, detailing services and contact information.",
-      "icon": "globe",
-      "appUrl": "/ssp-public/",
-      "repoUrl": "https://github.com/andykozicki/ssp-apps/tree/main/ssp-public",
       "featured": false
     },
     {
